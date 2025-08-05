@@ -1,4 +1,4 @@
-# WebTransport Messenger
+# NoNetChat Web
 
 Une application de messagerie décentralisée moderne utilisant WebTransport (HTTP/3 QUIC) avec fallback WebSocket automatique.
 

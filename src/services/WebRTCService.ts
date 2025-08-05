@@ -33,6 +33,16 @@ class WebRTCService {
     return WebRTCService.instance;
   }
 
+  disconnect() {
+    if (this.signaling) {
+      this.signaling.close();
+    }
+    this.peers.forEach(peer => peer.destroy());
+    this.peers.clear();
+    this.clientId = null;
+    this.signaling = null;
+  }
+
   connect(serverUrl: string) {
     if (this.signaling) return;
 

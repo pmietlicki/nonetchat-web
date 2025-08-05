@@ -27,7 +27,7 @@ interface StoredConversation {
 class IndexedDBService {
   private static instance: IndexedDBService;
   private db: IDBDatabase | null = null;
-  private readonly dbName = 'WebTransportMessenger';
+  private readonly dbName = 'NoNetChatWeb';
   private readonly version = 1;
 
   public static getInstance(): IndexedDBService {
