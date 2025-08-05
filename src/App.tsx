@@ -9,7 +9,7 @@ import WebRTCService from './services/WebRTCService';
 import IndexedDBService from './services/IndexedDBService';
 import { MessageSquare, Users, Wifi, WifiOff, X } from 'lucide-react';
 
-const DEFAULT_SIGNALING_URL = 'wss://chat.nonetchat.com';
+const DEFAULT_SIGNALING_URL = 'wss://chat.pascal-mietlicki.fr';
 
 function App() {
   const [selectedPeerId, setSelectedPeerId] = useState<string | undefined>();
