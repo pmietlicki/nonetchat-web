@@ -23,6 +23,12 @@ class EventEmitter {
       this.events[event].forEach(listener => listener(...args));
     }
   }
+
+  removeListener(event: string, listener: Function) {
+    if (this.events[event]) {
+      this.events[event] = this.events[event].filter(l => l !== listener);
+    }
+  }
 }
 
 class PeerService extends EventEmitter {
