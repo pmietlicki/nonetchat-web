@@ -12,6 +12,7 @@ class PeerService {
   private connections: Map<string, DataConnection> = new Map();
 
   public onPeerOpen: (id: string) => void = () => {};
+  public onPeerList: (peerIds: string[]) => void = () => {};
   public onNewConnection: (conn: DataConnection) => void = () => {};
   public onConnectionClose: (conn: DataConnection) => void = () => {};
   public onData: (peerId: string, data: MessagePayload) => void = () => {};
@@ -37,8 +38,12 @@ class PeerService {
       secure: url.protocol === 'wss:',
     });
 
-    this.peer.on('open', (id) => {
+    this.peer.on('open', async (id) => {
       this.onPeerOpen(id);
+      // Récupérer la liste des pairs existants
+      const response = await fetch(`https://${url.hostname}:${url.port}${url.pathname}/peers`);
+      const peerIds = await response.json();
+      this.onPeerList(peerIds.filter((pId: string) => pId !== id));
     });
 
     this.peer.on('connection', (conn) => {

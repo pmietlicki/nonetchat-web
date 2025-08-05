@@ -71,6 +71,12 @@ function App() {
       }
     };
 
+    peerService.onPeerList = (peerIds) => {
+      for (const peerId of peerIds) {
+        peerService.connect(peerId);
+      }
+    };
+
     peerService.onNewConnection = (conn) => {
       setPeers(prev => new Map(prev).set(conn.peer, createBaseUser(conn.peer)));
       peerService.sendProfile(conn.peer, userProfile);
