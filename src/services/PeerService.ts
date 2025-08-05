@@ -14,6 +14,7 @@ class PeerService {
   public onPeerOpen: (id: string) => void = () => {};
   public onPeerList: (peerIds: string[]) => void = () => {};
   public onNewConnection: (conn: DataConnection) => void = () => {};
+  public onConnectionOpen: (conn: DataConnection) => void = () => {};
   public onConnectionClose: (conn: DataConnection) => void = () => {};
   public onData: (peerId: string, data: MessagePayload) => void = () => {};
   public onError: (error: any) => void = () => {};
@@ -57,7 +58,10 @@ class PeerService {
   }
 
   private setupConnection(conn: DataConnection) {
-    this.connections.set(conn.peer, conn);
+    conn.on('open', () => {
+      this.connections.set(conn.peer, conn);
+      this.onConnectionOpen(conn);
+    });
     conn.on('data', (data) => {
       this.onData(conn.peer, data as MessagePayload);
     });

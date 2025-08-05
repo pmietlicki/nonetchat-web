@@ -77,7 +77,8 @@ function App() {
       }
     };
 
-    peerService.onNewConnection = (conn) => {
+    peerService.onConnectionOpen = (conn) => {
+      console.log(`Connection established with ${conn.peer}`);
       setPeers(prev => new Map(prev).set(conn.peer, createBaseUser(conn.peer)));
       peerService.sendProfile(conn.peer, userProfile);
     };
