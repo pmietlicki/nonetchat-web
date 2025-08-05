@@ -4,10 +4,12 @@ import ConversationList from './components/ConversationList';
 import ChatWindow from './components/ChatWindow';
 import StatusBar from './components/StatusBar';
 import ConnectionStatus from './components/ConnectionStatus';
+import ProfileModal from './components/ProfileModal'; // Importer le nouveau modal
 import { User } from './types';
 import WebRTCService from './services/WebRTCService';
 import IndexedDBService from './services/IndexedDBService';
-import { MessageSquare, Users, Wifi, WifiOff, X } from 'lucide-react';
+import ProfileService from './services/ProfileService'; // Importer le service de profil
+import { MessageSquare, Users, Wifi, WifiOff, X, User as UserIcon } from 'lucide-react';
 
 const DEFAULT_SIGNALING_URL = 'wss://chat.pascal-mietlicki.fr';
 
@@ -18,9 +20,14 @@ function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [peers, setPeers] = useState<User[]>([]);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
-  // Gérer l'URL du serveur de signalisation
+  // États pour les modaux
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  // État pour le profil utilisateur
+  const [userProfile, setUserProfile] = useState<Partial<User>>({});
+
   const [signalingUrl, setSignalingUrl] = useState(
     () => localStorage.getItem('signalingUrl') || DEFAULT_SIGNALING_URL
   );
@@ -28,11 +35,21 @@ function App() {
 
   const rtcService = WebRTCService.getInstance();
   const dbService = IndexedDBService.getInstance();
+  const profileService = ProfileService.getInstance();
 
   useEffect(() => {
     const initializeApp = async () => {
       try {
         await dbService.initialize();
+        const profile = await profileService.getProfile();
+        const avatar = await profileService.getAvatarAsBase64();
+        setUserProfile(profile);
+        rtcService.setUserProfile(profile, avatar); // Informer le service WebRTC
+
+        if (!profile.name) {
+          setIsProfileOpen(true);
+        }
+
         rtcService.connect(signalingUrl);
         setIsInitialized(true);
       } catch (error) {
@@ -55,11 +72,19 @@ function App() {
       }
     };
 
+    rtcService.onProfileUpdate = (peerId, profile) => {
+      setPeers(prevPeers =>
+        prevPeers.map(p =>
+          p.id === peerId ? { ...p, ...profile } : p
+        )
+      );
+    };
+
     return () => {
       rtcService.disconnect();
     }
 
-  }, [signalingUrl]); // Re-connecter si l'URL change
+  }, [signalingUrl]);
 
   useEffect(() => {
     if (selectedPeerId) {
@@ -98,6 +123,19 @@ function App() {
     setIsSettingsOpen(false);
   };
 
+  const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) => {
+    await profileService.saveProfile(profileData, avatarFile);
+    const updatedProfile = await profileService.getProfile();
+    const updatedAvatar = await profileService.getAvatarAsBase64();
+    setUserProfile(updatedProfile);
+    rtcService.setUserProfile(updatedProfile, updatedAvatar);
+
+    // Informer tous les pairs connectés de la mise à jour
+    rtcService.getPeers().forEach(peerId => {
+      rtcService.sendProfileUpdate(peerId);
+    });
+  };
+
   if (!isInitialized) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -111,7 +149,13 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Modal de configuration */}
+      <ProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        onSave={handleSaveProfile}
+        initialProfile={userProfile}
+      />
+
       {isSettingsOpen && (
         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
@@ -155,7 +199,6 @@ function App() {
         </div>
       )}
 
-      {/* Header */}
       <header className="bg-white border-b border-gray-200 p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -200,13 +243,19 @@ function App() {
                 Messages
               </button>
             </div>
+
+            <button
+              onClick={() => setIsProfileOpen(true)}
+              className="p-2 rounded-full hover:bg-gray-100"
+              title="Modifier votre profil"
+            >
+              <UserIcon size={20} />
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
       <div className="flex-1 flex">
-        {/* Sidebar */}
         {activeTab === 'peers' ? (
           <PeerList 
             peers={peers}
@@ -221,7 +270,6 @@ function App() {
           />
         )}
 
-        {/* Chat Area */}
         {selectedPeer && isConnected ? (
           <ChatWindow selectedPeer={selectedPeer} />
         ) : (
@@ -251,7 +299,6 @@ function App() {
         )}
       </div>
 
-      {/* Status Bar */}
       <StatusBar 
         isConnected={isConnected}
         peerCount={peers.length}

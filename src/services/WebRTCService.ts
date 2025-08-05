@@ -1,5 +1,5 @@
 import SimplePeer from 'simple-peer';
-import { v4 as uuidv4 } from 'uuid';
+import { User } from '../types';
 
 type SignalData = SimplePeer.SignalData;
 
@@ -15,22 +15,36 @@ interface Message {
   };
 }
 
+interface ProfileUpdateMessage {
+  type: 'profile-update';
+  profile: Partial<User>;
+  avatar?: string; // Base64 encoded avatar
+}
+
 class WebRTCService {
   private static instance: WebRTCService;
   private signaling: WebSocket | null = null;
   private peers: Map<string, SimplePeer.Instance> = new Map();
   private clientId: string | null = null;
+  private userProfile: Partial<User> = {};
+  private userAvatar: string | null = null;
 
   public onPeerConnect: (peerId: string) => void = () => {};
   public onPeerDisconnect: (peerId: string) => void = () => {};
   public onMessage: (senderId: string, message: Message) => void = () => {};
   public onFile: (senderId: string, file: Blob, fileName: string) => void = () => {};
+  public onProfileUpdate: (peerId: string, profile: Partial<User>) => void = () => {};
 
   public static getInstance(): WebRTCService {
     if (!WebRTCService.instance) {
       WebRTCService.instance = new WebRTCService();
     }
     return WebRTCService.instance;
+  }
+
+  public setUserProfile(profile: Partial<User>, avatar: string | null) {
+    this.userProfile = profile;
+    this.userAvatar = avatar;
   }
 
   disconnect() {
@@ -116,6 +130,7 @@ class WebRTCService {
     peer.on('connect', () => {
       console.log(`Connected to peer: ${peerId}`);
       this.onPeerConnect(peerId);
+      this.sendProfileUpdate(peerId);
     });
 
     peer.on('data', (data) => {
@@ -144,7 +159,12 @@ class WebRTCService {
 
       // Assume it's a JSON message
       const message = JSON.parse(data.toString());
-      this.onMessage(senderId, message);
+
+      if (message.type === 'profile-update') {
+        this.handleProfileUpdate(senderId, message);
+      } else {
+        this.onMessage(senderId, message);
+      }
 
     } catch (error) {
       console.error('Error processing peer data:', error);
@@ -222,6 +242,33 @@ class WebRTCService {
 
   getPeers(): string[] {
     return Array.from(this.peers.keys());
+  }
+
+  private handleProfileUpdate(senderId: string, message: ProfileUpdateMessage) {
+    const profile = message.profile;
+    if (message.avatar) {
+      // Convertir le Base64 en Blob URL
+      fetch(message.avatar)
+        .then(res => res.blob())
+        .then(blob => {
+          profile.avatar = URL.createObjectURL(blob);
+          this.onProfileUpdate(senderId, profile);
+        });
+    } else {
+      this.onProfileUpdate(senderId, profile);
+    }
+  }
+
+  public sendProfileUpdate(peerId: string) {
+    if (!this.peers.has(peerId)) return;
+
+    const message: ProfileUpdateMessage = {
+      type: 'profile-update',
+      profile: this.userProfile,
+      avatar: this.userAvatar || undefined,
+    };
+
+    this.peers.get(peerId)?.send(JSON.stringify(message));
   }
 }
 

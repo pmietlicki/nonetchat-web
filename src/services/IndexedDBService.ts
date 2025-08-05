@@ -28,7 +28,7 @@ class IndexedDBService {
   private static instance: IndexedDBService;
   private db: IDBDatabase | null = null;
   private readonly dbName = 'NoNetChatWeb';
-  private readonly version = 1;
+  private readonly version = 2;
 
   public static getInstance(): IndexedDBService {
     if (!IndexedDBService.instance) {
@@ -67,6 +67,11 @@ class IndexedDBService {
         if (!db.objectStoreNames.contains('files')) {
           const fileStore = db.createObjectStore('files', { keyPath: 'id' });
           fileStore.createIndex('messageId', 'messageId', { unique: false });
+        }
+
+        // Avatar store
+        if (!db.objectStoreNames.contains('avatars')) {
+          db.createObjectStore('avatars', { keyPath: 'id' });
         }
       };
     });
@@ -204,6 +209,21 @@ class IndexedDBService {
       transaction.objectStore('conversations').clear(),
       transaction.objectStore('files').clear()
     ]);
+  }
+
+  async saveAvatar(id: string, avatar: File): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    const transaction = this.db.transaction(['avatars'], 'readwrite');
+    const store = transaction.objectStore('avatars');
+    await store.put({ id, avatar });
+  }
+
+  async getAvatar(id: string): Promise<File | null> {
+    if (!this.db) throw new Error('Database not initialized');
+    const transaction = this.db.transaction(['avatars'], 'readonly');
+    const store = transaction.objectStore('avatars');
+    const result = await store.get(id);
+    return result ? result.avatar : null;
   }
 }
 

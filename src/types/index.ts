@@ -2,6 +2,8 @@ export interface User {
   id: string;
   name: string;
   avatar: string;
+  age?: number;
+  gender?: string;
   status: 'online' | 'offline' | 'busy';
   joinedAt: string;
   publicKey?: string;
