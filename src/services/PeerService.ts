@@ -38,12 +38,12 @@ class PeerService {
       secure: url.protocol === 'wss:',
     });
 
-    this.peer.on('open', async (id) => {
+    this.peer.on('open', (id) => {
       this.onPeerOpen(id);
-      // Récupérer la liste des pairs existants
-      const response = await fetch(`https://${url.hostname}:${url.port}${url.pathname}/peers`);
-      const peerIds = await response.json();
-      this.onPeerList(peerIds.filter((pId: string) => pId !== id));
+      // Utiliser la méthode officielle pour lister les pairs
+      this.peer?.listAllPeers((peerIds) => {
+        this.onPeerList(peerIds.filter((pId) => pId !== id));
+      });
     });
 
     this.peer.on('connection', (conn) => {
