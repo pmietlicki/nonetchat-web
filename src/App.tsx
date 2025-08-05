@@ -7,7 +7,7 @@ import StatusBar from './components/StatusBar';
 import ConnectionStatus from './components/ConnectionStatus';
 import ProfileModal from './components/ProfileModal';
 import { User } from './types';
-import PeerService from './services/PeerService';
+import PeerService, { PeerMessage } from './services/PeerService';
 import IndexedDBService from './services/IndexedDBService';
 import ProfileService from './services/ProfileService';
 import { MessageSquare, Users, Wifi, WifiOff, X, User as UserIcon } from 'lucide-react';
@@ -38,64 +38,53 @@ function App() {
   useEffect(() => {
     const initialize = async () => {
       await dbService.initialize();
-      const profile = await profileService.getProfile();
-      setUserProfile(profile);
+      let profile = await profileService.getProfile();
 
-      const userId = profile.id || uuidv4();
       if (!profile.id) {
-        profile.id = userId;
+        profile = { ...profile, id: uuidv4() };
         await profileService.saveProfile(profile);
       }
-      setMyId(userId);
-
-      peerService.initialize(userId, signalingUrl);
+      setUserProfile(profile);
+      setMyId(profile.id!);
 
       if (!profile.name) {
         setIsProfileOpen(true);
       }
+
+      peerService.connect(profile.id!, profile, signalingUrl);
       setIsInitialized(true);
     };
 
     initialize();
 
-    peerService.onPeerOpen = () => setIsConnected(true);
-    peerService.onError = (err) => {
-      console.error('PeerJS Error:', err);
-      if (err.type === 'peer-unavailable') {
-        alert(`Impossible de se connecter au pair : ${err.message.split(' ').pop()}`);
-        setPeers(prev => {
-          const newMap = new Map(prev);
-          newMap.delete(err.message.split(' ').pop() || '');
-          return newMap;
-        });
-      }
+    const onOpen = (id: string) => {
+      setIsConnected(true);
+      setMyId(id);
     };
 
-    peerService.onPeerList = (peerIds) => {
-      for (const peerId of peerIds) {
-        peerService.connect(peerId);
-      }
+    const onPeerJoined = (peerId: string) => {
+      setPeers(prev => new Map(prev).set(peerId, createBaseUser(peerId)));
     };
 
-    peerService.onConnectionOpen = (conn) => {
-      console.log(`Connection established with ${conn.peer}`);
-      setPeers(prev => new Map(prev).set(conn.peer, createBaseUser(conn.peer)));
-      peerService.sendProfile(conn.peer, userProfile);
-    };
-
-    peerService.onData = (peerId, data) => {
-      if (data.type === 'profile-update') {
-        setPeers(prev => new Map(prev).set(peerId, { ...prev.get(peerId)!, ...data.payload }));
-      }
-    };
-
-    peerService.onConnectionClose = (conn) => {
+    const onPeerLeft = (peerId: string) => {
       setPeers(prev => {
         const newMap = new Map(prev);
-        newMap.delete(conn.peer);
+        newMap.delete(peerId);
         return newMap;
       });
     };
+
+    const onData = (peerId: string, data: PeerMessage) => {
+      if (data.type === 'profile') {
+        setPeers(prev => new Map(prev).set(peerId, { ...prev.get(peerId)!, ...data.payload }));
+      }
+      // Gérer les messages de chat ici
+    };
+
+    peerService.on('open', onOpen);
+    peerService.on('peer-joined', onPeerJoined);
+    peerService.on('peer-left', onPeerLeft);
+    peerService.on('data', onData);
 
     return () => {
       peerService.destroy();
@@ -103,10 +92,11 @@ function App() {
   }, [signalingUrl]);
 
   const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) => {
-    await profileService.saveProfile(profileData, avatarFile);
+    const newProfile = { ...userProfile, ...profileData };
+    await profileService.saveProfile(newProfile, avatarFile);
     const updatedProfile = await profileService.getProfile();
     setUserProfile(updatedProfile);
-    peerService.broadcast({ type: 'profile-update', payload: updatedProfile });
+    peerService.updateProfile(updatedProfile);
   };
 
   const handleSaveSettings = () => {
@@ -116,6 +106,7 @@ function App() {
   };
 
   const handleSelectPeer = (peerId: string) => {
+    // Tenter de se connecter si ce n'est pas déjà fait
     peerService.connect(peerId);
     setSelectedPeerId(peerId);
     setActiveTab('conversations');
@@ -173,9 +164,6 @@ function App() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 placeholder="wss://votre-serveur.com"
               />
-              <p className="text-xs text-gray-500 mt-2">
-                L'application se reconnectera après la sauvegarde.
-              </p>
             </div>
             <div className="mt-6 flex justify-end gap-3">
               <button
@@ -267,7 +255,7 @@ function App() {
         )}
 
         {selectedPeer && isConnected ? (
-          <ChatWindow selectedPeer={selectedPeer} />
+          <ChatWindow selectedPeer={selectedPeer} myId={myId} />
         ) : (
           <div className="flex-1 flex items-center justify-center bg-gray-50">
             <div className="text-center text-gray-500">

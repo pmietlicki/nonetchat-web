@@ -1,23 +1,36 @@
 import Peer, { DataConnection } from 'peerjs';
 import { User } from '../types';
+import { v4 as uuidv4 } from 'uuid';
 
-interface MessagePayload {
-  type: 'message' | 'profile-update' | 'file-info';
+// Structure unifiée pour tous les messages
+export interface PeerMessage {
+  type: 'profile' | 'chat-message';
   payload: any;
 }
 
-class PeerService {
+// Utilisation d'un EventEmitter simple pour découpler le service de l'UI
+class EventEmitter {
+  private events: { [key: string]: Function[] } = {};
+
+  on(event: string, listener: Function) {
+    if (!this.events[event]) {
+      this.events[event] = [];
+    }
+    this.events[event].push(listener);
+  }
+
+  emit(event: string, ...args: any[]) {
+    if (this.events[event]) {
+      this.events[event].forEach(listener => listener(...args));
+    }
+  }
+}
+
+class PeerService extends EventEmitter {
   private static instance: PeerService;
   public peer: Peer | null = null;
   private connections: Map<string, DataConnection> = new Map();
-
-  public onPeerOpen: (id: string) => void = () => {};
-  public onPeerList: (peerIds: string[]) => void = () => {};
-  public onNewConnection: (conn: DataConnection) => void = () => {};
-  public onConnectionOpen: (conn: DataConnection) => void = () => {};
-  public onConnectionClose: (conn: DataConnection) => void = () => {};
-  public onData: (peerId: string, data: MessagePayload) => void = () => {};
-  public onError: (error: any) => void = () => {};
+  private myProfile: Partial<User> = {};
 
   public static getInstance(): PeerService {
     if (!PeerService.instance) {
@@ -26,77 +39,90 @@ class PeerService {
     return PeerService.instance;
   }
 
-  public initialize(userId: string, signalingUrl: string) {
+  public connect(userId: string, profile: Partial<User>, signalingUrl: string) {
     if (this.peer) {
       this.peer.destroy();
     }
+    this.myProfile = profile;
 
     const url = new URL(signalingUrl);
-    this.peer = new Peer(userId, {
+    const peerOptions = {
       host: url.hostname,
       port: parseInt(url.port) || (url.protocol === 'wss:' ? 443 : 80),
       path: url.pathname,
       secure: url.protocol === 'wss:',
-    });
+    };
+
+    this.peer = new Peer(userId, peerOptions);
 
     this.peer.on('open', (id) => {
-      this.onPeerOpen(id);
-      // Utiliser la méthode officielle pour lister les pairs via la connexion WebSocket
-      this.peer?.listAllPeers((peerIds) => {
-        this.onPeerList(peerIds.filter((pId) => pId !== id));
-      });
+      console.log('My peer ID is: ' + id);
+      this.emit('open', id);
+      // Découvrir les pairs existants
+      this.discoverPeers();
     });
 
+    // Gérer les connexions entrantes
     this.peer.on('connection', (conn) => {
       this.setupConnection(conn);
-      this.onNewConnection(conn);
     });
 
     this.peer.on('error', (err) => {
-      this.onError(err);
+      console.error('PeerJS Error:', err);
+      this.emit('error', err);
+    });
+  }
+
+  private discoverPeers() {
+    this.peer?.listAllPeers((peerIds) => {
+      console.log('Discovered peers:', peerIds);
+      peerIds.forEach(peerId => {
+        if (peerId !== this.peer?.id && !this.connections.has(peerId)) {
+          const conn = this.peer!.connect(peerId);
+          this.setupConnection(conn);
+        }
+      });
     });
   }
 
   private setupConnection(conn: DataConnection) {
     conn.on('open', () => {
+      console.log(`Connection opened with ${conn.peer}`);
       this.connections.set(conn.peer, conn);
-      this.onConnectionOpen(conn);
+      this.emit('peer-joined', conn.peer);
+      // Envoyer notre profil au nouveau pair
+      this.sendMessage(conn.peer, {
+        type: 'profile',
+        payload: this.myProfile,
+      });
     });
+
     conn.on('data', (data) => {
-      this.onData(conn.peer, data as MessagePayload);
+      this.emit('data', conn.peer, data as PeerMessage);
     });
+
     conn.on('close', () => {
+      console.log(`Connection closed with ${conn.peer}`);
       this.connections.delete(conn.peer);
-      this.onConnectionClose(conn);
+      this.emit('peer-left', conn.peer);
     });
   }
 
-  public connect(peerId: string): DataConnection {
-    if (this.connections.has(peerId)) {
-      return this.connections.get(peerId)!;
-    }
-    const conn = this.peer!.connect(peerId);
-    this.setupConnection(conn);
-    return conn;
+  public sendMessage(peerId: string, message: PeerMessage) {
+    this.connections.get(peerId)?.send(message);
   }
 
-  public sendMessage(peerId: string, message: string) {
-    const payload: MessagePayload = { type: 'message', payload: message };
-    this.connections.get(peerId)?.send(payload);
+  public broadcast(message: PeerMessage) {
+    this.connections.forEach(conn => conn.send(message));
   }
 
-  public sendProfile(peerId: string, profile: Partial<User>) {
-    const payload: MessagePayload = { type: 'profile-update', payload: profile };
-    this.connections.get(peerId)?.send(payload);
-  }
-
-  public broadcast(payload: MessagePayload) {
-    this.connections.forEach(conn => conn.send(payload));
+  public updateProfile(profile: Partial<User>) {
+    this.myProfile = profile;
+    this.broadcast({ type: 'profile', payload: profile });
   }
 
   public destroy() {
     this.peer?.destroy();
-    this.peer = null;
   }
 }
 
