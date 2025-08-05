@@ -1,6 +1,5 @@
 import Peer, { DataConnection } from 'peerjs';
 import { User } from '../types';
-import { v4 as uuidv4 } from 'uuid';
 
 // Structure unifiée pour tous les messages
 export interface PeerMessage {
@@ -39,7 +38,7 @@ class PeerService extends EventEmitter {
     return PeerService.instance;
   }
 
-  public connect(userId: string, profile: Partial<User>, signalingUrl: string) {
+  public initialize(userId: string, profile: Partial<User>, signalingUrl: string) {
     if (this.peer) {
       this.peer.destroy();
     }
@@ -58,11 +57,9 @@ class PeerService extends EventEmitter {
     this.peer.on('open', (id) => {
       console.log('My peer ID is: ' + id);
       this.emit('open', id);
-      // Découvrir les pairs existants
       this.discoverPeers();
     });
 
-    // Gérer les connexions entrantes
     this.peer.on('connection', (conn) => {
       this.setupConnection(conn);
     });
@@ -77,12 +74,18 @@ class PeerService extends EventEmitter {
     this.peer?.listAllPeers((peerIds) => {
       console.log('Discovered peers:', peerIds);
       peerIds.forEach(peerId => {
-        if (peerId !== this.peer?.id && !this.connections.has(peerId)) {
-          const conn = this.peer!.connect(peerId);
-          this.setupConnection(conn);
+        if (peerId !== this.peer?.id) {
+          this.connect(peerId);
         }
       });
     });
+  }
+
+  public connect(peerId: string) {
+    if (this.connections.has(peerId)) return;
+    console.log(`Connecting to peer: ${peerId}`);
+    const conn = this.peer!.connect(peerId);
+    this.setupConnection(conn);
   }
 
   private setupConnection(conn: DataConnection) {
@@ -90,7 +93,6 @@ class PeerService extends EventEmitter {
       console.log(`Connection opened with ${conn.peer}`);
       this.connections.set(conn.peer, conn);
       this.emit('peer-joined', conn.peer);
-      // Envoyer notre profil au nouveau pair
       this.sendMessage(conn.peer, {
         type: 'profile',
         payload: this.myProfile,

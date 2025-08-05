@@ -51,7 +51,7 @@ function App() {
         setIsProfileOpen(true);
       }
 
-      peerService.connect(profile.id!, profile, signalingUrl);
+      peerService.initialize(profile.id!, profile, signalingUrl);
       setIsInitialized(true);
     };
 
@@ -63,7 +63,11 @@ function App() {
     };
 
     const onPeerJoined = (peerId: string) => {
-      setPeers(prev => new Map(prev).set(peerId, createBaseUser(peerId)));
+      setPeers(prev => {
+        const newMap = new Map(prev);
+        newMap.set(peerId, createBaseUser(peerId));
+        return newMap;
+      });
     };
 
     const onPeerLeft = (peerId: string) => {
@@ -76,7 +80,11 @@ function App() {
 
     const onData = (peerId: string, data: PeerMessage) => {
       if (data.type === 'profile') {
-        setPeers(prev => new Map(prev).set(peerId, { ...prev.get(peerId)!, ...data.payload }));
+        setPeers(prev => {
+          const newMap = new Map(prev);
+          newMap.set(peerId, { ...prev.get(peerId)!, ...data.payload });
+          return newMap;
+        });
       }
       // Gérer les messages de chat ici
     };
@@ -92,7 +100,7 @@ function App() {
   }, [signalingUrl]);
 
   const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) => {
-    const newProfile = { ...userProfile, ...profileData };
+    const newProfile = { ...userProfile, ...profileData, id: myId };
     await profileService.saveProfile(newProfile, avatarFile);
     const updatedProfile = await profileService.getProfile();
     setUserProfile(updatedProfile);
@@ -106,7 +114,6 @@ function App() {
   };
 
   const handleSelectPeer = (peerId: string) => {
-    // Tenter de se connecter si ce n'est pas déjà fait
     peerService.connect(peerId);
     setSelectedPeerId(peerId);
     setActiveTab('conversations');
