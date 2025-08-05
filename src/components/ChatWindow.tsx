@@ -54,10 +54,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId }) => {
       // Gérer la réception de fichiers ici si nécessaire
     };
 
-    peerService.onData = handleData;
+    peerService.on('data', handleData);
 
     return () => {
-      peerService.onData = () => {};
+      peerService.removeListener('data', handleData);
     };
   }, [selectedPeer.id]);
 

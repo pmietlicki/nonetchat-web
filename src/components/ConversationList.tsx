@@ -41,10 +41,10 @@ const ConversationList: React.FC<ConversationListProps> = ({
       loadConversations();
     };
 
-    peerService.onData = handleMessage;
+    peerService.on('data', handleMessage);
 
     return () => {
-      peerService.onData = () => {};
+      peerService.removeListener('data', handleMessage);
     }
   }, []);
 
