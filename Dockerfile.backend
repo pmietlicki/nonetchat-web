@@ -1,0 +1,12 @@
+FROM node:18-alpine
+WORKDIR /app
+
+# Copier les dépendances du projet principal
+COPY package*.json ./
+RUN npm install
+
+# Copier le code du serveur
+COPY server/server.js .
+
+EXPOSE 3001
+CMD ["node", "server.js"]

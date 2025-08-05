@@ -1,0 +1,16 @@
+# Étape 1: Construire l'application React
+FROM node:18-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Étape 2: Servir les fichiers statiques avec Nginx
+FROM nginx:1.25-alpine
+# Copier les fichiers statiques construits de l'étape précédente
+COPY --from=build /app/dist /usr/share/nginx/html
+# Copier une configuration Nginx personnalisée pour gérer le routage côté client
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
