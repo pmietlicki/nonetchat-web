@@ -2,7 +2,7 @@ import { PeerServer } from 'peer';
 
 const peerServer = PeerServer({
   port: 3001,
-  path: '/myapp', // Le chemin que les clients utiliseront pour se connecter
+  path: '/',
 });
 
 console.log('PeerJS Server running on port 3001');

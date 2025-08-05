@@ -24,12 +24,18 @@ class PeerService {
     return PeerService.instance;
   }
 
-  public initialize(userId: string, options: { host: string; port: number; path: string; secure?: boolean }) {
+  public initialize(userId: string, signalingUrl: string) {
     if (this.peer) {
       this.peer.destroy();
     }
 
-    this.peer = new Peer(userId, options);
+    const url = new URL(signalingUrl);
+    this.peer = new Peer(userId, {
+      host: url.hostname,
+      port: parseInt(url.port) || (url.protocol === 'wss:' ? 443 : 80),
+      path: url.pathname,
+      secure: url.protocol === 'wss:',
+    });
 
     this.peer.on('open', (id) => {
       this.onPeerOpen(id);

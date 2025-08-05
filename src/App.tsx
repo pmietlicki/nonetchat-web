@@ -12,7 +12,7 @@ import IndexedDBService from './services/IndexedDBService';
 import ProfileService from './services/ProfileService';
 import { MessageSquare, Users, Wifi, WifiOff, X, User as UserIcon } from 'lucide-react';
 
-const DEFAULT_SIGNALING_URL = 'wss://chat.pascal-mietlicki.fr/myapp';
+const DEFAULT_SIGNALING_URL = 'wss://chat.pascal-mietlicki.fr';
 
 function App() {
   const [myId, setMyId] = useState('');
@@ -48,18 +48,7 @@ function App() {
       }
       setMyId(userId);
 
-      try {
-        const url = new URL(signalingUrl);
-        const options = {
-          host: url.hostname,
-          port: parseInt(url.port, 10) || (url.protocol === 'wss:' ? 443 : 80),
-          path: url.pathname,
-          secure: url.protocol === 'wss:',
-        };
-        peerService.initialize(userId, options);
-      } catch (error) {
-        console.error('Invalid signaling URL:', error);
-      }
+      peerService.initialize(userId, signalingUrl);
 
       if (!profile.name) {
         setIsProfileOpen(true);
