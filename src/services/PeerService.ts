@@ -38,23 +38,12 @@ class PeerService {
       secure: url.protocol === 'wss:',
     });
 
-    this.peer.on('open', async (id) => {
+    this.peer.on('open', (id) => {
       this.onPeerOpen(id);
-      // Construire l'URL pour l'API de découverte
-      const proto = url.protocol === 'wss:' ? 'https:' : 'http:';
-      const port = url.port ? `:${url.port}` : '';
-      const discoverUrl = `${proto}//${url.hostname}${port}${url.pathname}peers`;
-
-      try {
-        const response = await fetch(discoverUrl);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch peer list: ${response.statusText}`);
-        }
-        const peerIds = await response.json();
-        this.onPeerList(peerIds.filter((pId: string) => pId !== id));
-      } catch (error) {
-        console.error("Failed to discover peers:", error);
-      }
+      // Utiliser la méthode officielle pour lister les pairs via la connexion WebSocket
+      this.peer?.listAllPeers((peerIds) => {
+        this.onPeerList(peerIds.filter((pId) => pId !== id));
+      });
     });
 
     this.peer.on('connection', (conn) => {
