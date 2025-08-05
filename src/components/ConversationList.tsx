@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, MessageSquare } from 'lucide-react';
 import IndexedDBService from '../services/IndexedDBService';
-import WebRTCService from '../services/WebRTCService';
+import PeerService from '../services/PeerService';
 
 interface ConversationListProps {
   onSelectConversation: (participantId: string) => void;
@@ -32,7 +32,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   
   const dbService = IndexedDBService.getInstance();
-  const rtcService = WebRTCService.getInstance();
+  const peerService = PeerService.getInstance();
 
   useEffect(() => {
     loadConversations();
@@ -41,12 +41,10 @@ const ConversationList: React.FC<ConversationListProps> = ({
       loadConversations();
     };
 
-    rtcService.onMessage = handleMessage;
-    rtcService.onFile = handleMessage;
+    peerService.onData = handleMessage;
 
     return () => {
-        rtcService.onMessage = () => {};
-        rtcService.onFile = () => {};
+      peerService.onData = () => {};
     }
   }, []);
 

@@ -1,31 +1,29 @@
 import React, { useState, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import PeerList from './components/PeerList';
 import ConversationList from './components/ConversationList';
 import ChatWindow from './components/ChatWindow';
 import StatusBar from './components/StatusBar';
 import ConnectionStatus from './components/ConnectionStatus';
-import ProfileModal from './components/ProfileModal'; // Importer le nouveau modal
+import ProfileModal from './components/ProfileModal';
 import { User } from './types';
-import WebRTCService from './services/WebRTCService';
+import PeerService from './services/PeerService';
 import IndexedDBService from './services/IndexedDBService';
-import ProfileService from './services/ProfileService'; // Importer le service de profil
+import ProfileService from './services/ProfileService';
 import { MessageSquare, Users, Wifi, WifiOff, X, User as UserIcon } from 'lucide-react';
 
-const DEFAULT_SIGNALING_URL = 'wss://chat.pascal-mietlicki.fr';
+const DEFAULT_SIGNALING_URL = 'wss://chat.pascal-mietlicki.fr/myapp';
 
 function App() {
+  const [myId, setMyId] = useState('');
+  const [peers, setPeers] = useState<Map<string, User>>(new Map());
   const [selectedPeerId, setSelectedPeerId] = useState<string | undefined>();
-  const [selectedPeer, setSelectedPeer] = useState<User | undefined>();
   const [activeTab, setActiveTab] = useState<'peers' | 'conversations'>('peers');
   const [isConnected, setIsConnected] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [peers, setPeers] = useState<User[]>([]);
-  
-  // États pour les modaux
+
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-
-  // État pour le profil utilisateur
   const [userProfile, setUserProfile] = useState<Partial<User>>({});
 
   const [signalingUrl, setSignalingUrl] = useState(
@@ -33,88 +31,86 @@ function App() {
   );
   const [tempSignalingUrl, setTempSignalingUrl] = useState(signalingUrl);
 
-  const rtcService = WebRTCService.getInstance();
-  const dbService = IndexedDBService.getInstance();
+  const peerService = PeerService.getInstance();
   const profileService = ProfileService.getInstance();
+  const dbService = IndexedDBService.getInstance();
 
   useEffect(() => {
-    const initializeApp = async () => {
+    const initialize = async () => {
+      await dbService.initialize();
+      const profile = await profileService.getProfile();
+      setUserProfile(profile);
+
+      const userId = profile.id || uuidv4();
+      if (!profile.id) {
+        profile.id = userId;
+        await profileService.saveProfile(profile);
+      }
+      setMyId(userId);
+
       try {
-        await dbService.initialize();
-        const profile = await profileService.getProfile();
-        const avatar = await profileService.getAvatarAsBase64();
-        setUserProfile(profile);
-        rtcService.setUserProfile(profile, avatar); // Informer le service WebRTC
-
-        if (!profile.name) {
-          setIsProfileOpen(true);
-        }
-
-        rtcService.connect(signalingUrl);
-        setIsInitialized(true);
+        const url = new URL(signalingUrl);
+        const options = {
+          host: url.hostname,
+          port: parseInt(url.port, 10) || (url.protocol === 'wss:' ? 443 : 80),
+          path: url.pathname,
+          secure: url.protocol === 'wss:',
+        };
+        peerService.initialize(userId, options);
       } catch (error) {
-        console.error('Initialization failed:', error);
-        setIsInitialized(true);
+        console.error('Invalid signaling URL:', error);
+      }
+
+      if (!profile.name) {
+        setIsProfileOpen(true);
+      }
+      setIsInitialized(true);
+    };
+
+    initialize();
+
+    peerService.onPeerOpen = () => setIsConnected(true);
+    peerService.onError = (err) => {
+      console.error('PeerJS Error:', err);
+      if (err.type === 'peer-unavailable') {
+        alert(`Impossible de se connecter au pair : ${err.message.split(' ').pop()}`);
+        setPeers(prev => {
+          const newMap = new Map(prev);
+          newMap.delete(err.message.split(' ').pop() || '');
+          return newMap;
+        });
       }
     };
 
-    initializeApp();
-
-    rtcService.onPeerConnect = (peerId) => {
-      setIsConnected(true);
-      setPeers(prev => [...prev, createPeerUser(peerId)]);
+    peerService.onNewConnection = (conn) => {
+      setPeers(prev => new Map(prev).set(conn.peer, createBaseUser(conn.peer)));
+      peerService.sendProfile(conn.peer, userProfile);
     };
 
-    rtcService.onPeerDisconnect = (peerId) => {
-      setPeers(prev => prev.filter(p => p.id !== peerId));
-      if (rtcService.getPeers().length === 0) {
-        setIsConnected(false);
+    peerService.onData = (peerId, data) => {
+      if (data.type === 'profile-update') {
+        setPeers(prev => new Map(prev).set(peerId, { ...prev.get(peerId)!, ...data.payload }));
       }
     };
 
-    rtcService.onProfileUpdate = (peerId, profile) => {
-      setPeers(prevPeers =>
-        prevPeers.map(p =>
-          p.id === peerId ? { ...p, ...profile } : p
-        )
-      );
+    peerService.onConnectionClose = (conn) => {
+      setPeers(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(conn.peer);
+        return newMap;
+      });
     };
 
     return () => {
-      rtcService.disconnect();
-    }
-
+      peerService.destroy();
+    };
   }, [signalingUrl]);
 
-  useEffect(() => {
-    if (selectedPeerId) {
-      const peer = peers.find(p => p.id === selectedPeerId);
-      setSelectedPeer(peer);
-    } else {
-      setSelectedPeer(undefined);
-    }
-  }, [selectedPeerId, peers]);
-
-  const createPeerUser = (peerId: string): User => ({
-    id: peerId,
-    name: `Peer-${peerId.slice(0, 8)}`,
-    avatar: `https://i.pravatar.cc/150?u=${peerId}`,
-    status: 'online',
-    joinedAt: new Date().toISOString(),
-  });
-
-  const handleSelectPeer = (peerId: string) => {
-    setSelectedPeerId(peerId);
-    setActiveTab('conversations');
-  };
-
-  const handleSelectConversation = (participantId: string) => {
-    setSelectedPeerId(participantId);
-  };
-
-  const handleReconnect = () => {
-    rtcService.disconnect();
-    rtcService.connect(signalingUrl);
+  const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) => {
+    await profileService.saveProfile(profileData, avatarFile);
+    const updatedProfile = await profileService.getProfile();
+    setUserProfile(updatedProfile);
+    peerService.broadcast({ type: 'profile-update', payload: updatedProfile });
   };
 
   const handleSaveSettings = () => {
@@ -123,25 +119,29 @@ function App() {
     setIsSettingsOpen(false);
   };
 
-  const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) => {
-    await profileService.saveProfile(profileData, avatarFile);
-    const updatedProfile = await profileService.getProfile();
-    const updatedAvatar = await profileService.getAvatarAsBase64();
-    setUserProfile(updatedProfile);
-    rtcService.setUserProfile(updatedProfile, updatedAvatar);
-
-    // Informer tous les pairs connectés de la mise à jour
-    rtcService.getPeers().forEach(peerId => {
-      rtcService.sendProfileUpdate(peerId);
-    });
+  const handleSelectPeer = (peerId: string) => {
+    peerService.connect(peerId);
+    setSelectedPeerId(peerId);
+    setActiveTab('conversations');
   };
+
+  const createBaseUser = (peerId: string): User => ({
+    id: peerId,
+    name: `Peer-${peerId.slice(0, 8)}`,
+    avatar: `https://i.pravatar.cc/150?u=${peerId}`,
+    status: 'online',
+    joinedAt: new Date().toISOString(),
+  });
+
+  const peerList = Array.from(peers.values());
+  const selectedPeer = peers.get(selectedPeerId || '');
 
   if (!isInitialized) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Initialisation de WebRTC...</p>
+          <p className="text-gray-600">Initialisation de PeerJS...</p>
         </div>
       </div>
     );
@@ -216,7 +216,7 @@ function App() {
           <div className="flex items-center gap-4">
             <ConnectionStatus 
               isConnected={isConnected} 
-              onReconnect={handleReconnect}
+              onReconnect={() => { /* TODO */ }}
             />
             
             <div className="flex bg-gray-100 rounded-lg p-1">
@@ -229,7 +229,7 @@ function App() {
                 }`}
               >
                 <Users size={16} />
-                Pairs ({peers.length})
+                Pairs ({peerList.length})
               </button>
               <button
                 onClick={() => setActiveTab('conversations')}
@@ -258,14 +258,14 @@ function App() {
       <div className="flex-1 flex">
         {activeTab === 'peers' ? (
           <PeerList 
-            peers={peers}
+            peers={peerList}
             onSelectPeer={handleSelectPeer}
             selectedPeerId={selectedPeerId}
             isConnected={isConnected}
           />
         ) : (
           <ConversationList
-            onSelectConversation={handleSelectConversation}
+            onSelectConversation={setSelectedPeerId}
             selectedConversationId={selectedPeerId}
           />
         )}
@@ -278,17 +278,9 @@ function App() {
               <MessageSquare size={64} className="mx-auto mb-4 text-gray-300" />
               <h3 className="text-lg font-medium mb-2">NoNetChat Web</h3>
               {!isConnected ? (
-                <div>
-                  <p className="max-w-md mb-4">
-                    Connexion au serveur de signalisation requise pour trouver des pairs.
-                  </p>
-                  <button
-                    onClick={handleReconnect}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Se connecter
-                  </button>
-                </div>
+                <p className="max-w-md mb-4">
+                  Connexion au serveur de signalisation en cours...
+                </p>
               ) : (
                 <p className="max-w-md">
                   Sélectionnez un pair dans la liste pour commencer une conversation directe et sécurisée.
@@ -301,8 +293,8 @@ function App() {
 
       <StatusBar 
         isConnected={isConnected}
-        peerCount={peers.length}
-        clientId={rtcService.getClientId()}
+        peerCount={peerList.length}
+        clientId={myId}
         signalingUrl={signalingUrl}
         onOpenSettings={() => setIsSettingsOpen(true)}
       />
