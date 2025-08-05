@@ -84,22 +84,35 @@ class IndexedDBService {
     const messageStore = transaction.objectStore('messages');
     const conversationStore = transaction.objectStore('conversations');
 
-    // Save message with conversation reference
-    await messageStore.put({ ...message, conversationId });
+    // La transaction ne se fermera pas tant que toutes les requêtes ne sont pas terminées.
+    const getRequest = conversationStore.get(conversationId);
 
-    // Update or create conversation
-    const conversation = await this.getConversation(conversationId);
-    const updatedConversation: StoredConversation = {
-      id: conversationId,
-      participantId: message.senderId === 'current_user' ? message.receiverId : message.senderId,
-      participantName: conversation?.participantName || 'Unknown User',
-      participantAvatar: conversation?.participantAvatar || '',
-      lastMessage: message,
-      unreadCount: message.senderId === 'current_user' ? 0 : (conversation?.unreadCount || 0) + 1,
-      updatedAt: Date.now()
+    getRequest.onsuccess = () => {
+        const conversation = getRequest.result;
+
+        const updatedConversation: StoredConversation = {
+            id: conversationId,
+            participantId: message.senderId === 'current_user' ? message.receiverId : message.senderId,
+            participantName: conversation?.participantName || 'Unknown User',
+            participantAvatar: conversation?.participantAvatar || '',
+            lastMessage: message,
+            unreadCount: message.senderId === 'current_user' ? 0 : (conversation?.unreadCount || 0) + 1,
+            updatedAt: Date.now()
+        };
+
+        // Ces opérations sont ajoutées à la file d'attente de la même transaction
+        conversationStore.put(updatedConversation);
+        messageStore.put({ ...message, conversationId });
     };
 
-    await conversationStore.put(updatedConversation);
+    return new Promise((resolve, reject) => {
+        transaction.oncomplete = () => {
+            resolve();
+        };
+        transaction.onerror = () => {
+            reject(transaction.error);
+        };
+    });
   }
 
   async getMessages(conversationId: string, limit = 50): Promise<StoredMessage[]> {
