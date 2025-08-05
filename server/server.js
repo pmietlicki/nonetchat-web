@@ -3,6 +3,7 @@ import { PeerServer } from 'peer';
 const peerServer = PeerServer({
   port: 3001,
   path: '/',
+  allow_discovery: true,
 });
 
 console.log('PeerJS Server running on port 3001');
