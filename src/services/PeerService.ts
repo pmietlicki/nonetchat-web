@@ -83,7 +83,7 @@ class PeerService extends EventEmitter {
       this.emit('open', id);
       this.discoverPeers();
       if (this.discoveryInterval) clearInterval(this.discoveryInterval);
-      this.discoveryInterval = setInterval(() => this.discoverPeers(), 10000); // 10s interval
+      this.discoveryInterval = setInterval(() => this.discoverPeers(), 10000);
     });
 
     this.peer.on('connection', (conn) => this.setupConnection(conn));
@@ -96,9 +96,7 @@ class PeerService extends EventEmitter {
   private discoverPeers() {
     this.peer?.listAllPeers((peerIds) => {
       peerIds.forEach(peerId => {
-        if (!this.peer || peerId === this.peer.id) return;
-        // Glare handling: only the peer with the greater ID initiates the connection
-        if (peerId > this.peer.id) {
+        if (this.peer && peerId !== this.peer.id) {
           this.connect(peerId);
         }
       });
@@ -110,54 +108,58 @@ class PeerService extends EventEmitter {
 
     console.log(`Attempting to connect to peer: ${peerId}`);
     const conn = this.peer.connect(peerId, { reliable: true });
-    this.connections.set(peerId, conn); // Lock the connection attempt immediately
     this.setupConnection(conn);
   }
 
   private setupConnection(conn: DataConnection) {
-    // If a connection already exists, decide who keeps it (glare handling)
-    const existingConn = this.connections.get(conn.peer);
-    if (existingConn && existingConn.open) {
-        if (this.peer!.id > conn.peer) {
-            console.log(`Glare detected with ${conn.peer}. Closing incoming connection.`);
-            conn.close();
-            return;
-        }
+    const peerId = conn.peer;
+
+    if (this.connections.has(peerId)) {
+      console.log(`Glare detected with ${peerId}. Applying resolution logic.`);
+      const existingConn = this.connections.get(peerId)!;
+      if (this.peer!.id > peerId) {
+        console.log(`My ID is greater. Closing incoming connection from ${peerId}.`);
+        conn.close();
+        return; // Keep the outgoing connection
+      } else {
+        console.log(`My ID is smaller. Closing existing connection and accepting new one from ${peerId}.`);
+        existingConn.close();
+      }
     }
-    this.connections.set(conn.peer, conn); // Ensure the latest connection is stored
+    this.connections.set(peerId, conn);
 
     conn.on('open', async () => {
-      console.log(`Connection established with ${conn.peer}`);
-      this.reconnectAttempts.set(conn.peer, 0);
-      this.emit('peer-joined', conn.peer);
+      console.log(`Connection established with ${peerId}`);
+      this.reconnectAttempts.set(peerId, 0);
+      this.emit('peer-joined', peerId);
 
       const myPublicKey = await this.cryptoService.getPublicKeyJwk();
-      this.send(conn.peer, { type: 'key-exchange', payload: myPublicKey });
+      this.send(peerId, { type: 'key-exchange', payload: myPublicKey });
     });
 
     conn.on('data', async (data) => {
       const message = data as PeerMessage;
 
       if (message.type === 'key-exchange') {
-        await this.cryptoService.deriveSharedSecret(conn.peer, message.payload);
-        console.log(`Shared secret derived with ${conn.peer}`);
-        await this.sendProfile(conn.peer);
+        await this.cryptoService.deriveSharedSecret(peerId, message.payload);
+        console.log(`Shared secret derived with ${peerId}`);
+        await this.sendProfile(peerId);
         return;
       }
 
       if (message.type === 'chat-message' && typeof message.payload === 'string') {
-        message.payload = await this.cryptoService.decryptMessage(conn.peer, message.payload);
+        message.payload = await this.cryptoService.decryptMessage(peerId, message.payload);
       }
 
       this.emit('data', conn.peer, message);
     });
 
-    conn.on('close', () => this.handleDisconnect(conn.peer, 'Connection closed'));
-    conn.on('error', (err) => this.handleDisconnect(conn.peer, `Connection error: ${err.message}`))
+    conn.on('close', () => this.handleDisconnect(peerId, 'Connection closed'));
+    conn.on('error', (err) => this.handleDisconnect(peerId, `Connection error: ${err.message}`))
   }
 
   private handleDisconnect(peerId: string, reason: string) {
-    if (!this.connections.has(peerId)) return; // Already handled
+    if (!this.connections.has(peerId)) return;
 
     console.log(`Disconnected from ${peerId}. Reason: ${reason}`);
     this.connections.delete(peerId);
