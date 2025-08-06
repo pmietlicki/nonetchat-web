@@ -36,6 +36,7 @@ class PeerService extends EventEmitter {
   public peer: Peer | null = null;
   private connections: Map<string, DataConnection> = new Map();
   private myProfile: Partial<User> = {};
+  private discoveryInterval: NodeJS.Timeout | null = null;
 
   public static getInstance(): PeerService {
     if (!PeerService.instance) {
@@ -56,6 +57,12 @@ class PeerService extends EventEmitter {
       port: parseInt(url.port) || (url.protocol === 'wss:' ? 443 : 80),
       path: url.pathname,
       secure: url.protocol === 'wss:',
+      config: {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+        ]
+      }
     };
 
     this.peer = new Peer(userId, peerOptions);
@@ -64,6 +71,8 @@ class PeerService extends EventEmitter {
       console.log('My peer ID is: ' + id);
       this.emit('open', id);
       this.discoverPeers();
+      if (this.discoveryInterval) clearInterval(this.discoveryInterval);
+      this.discoveryInterval = setInterval(() => this.discoverPeers(), 15000);
     });
 
     this.peer.on('connection', (conn) => {
@@ -88,9 +97,9 @@ class PeerService extends EventEmitter {
   }
 
   public connect(peerId: string) {
-    if (this.connections.has(peerId)) return;
+    if (this.connections.has(peerId) || !this.peer) return;
     console.log(`Connecting to peer: ${peerId}`);
-    const conn = this.peer!.connect(peerId);
+    const conn = this.peer.connect(peerId);
     this.setupConnection(conn);
   }
 
@@ -123,6 +132,20 @@ class PeerService extends EventEmitter {
       console.log(`Connection closed with ${conn.peer}`);
       this.connections.delete(conn.peer);
       this.emit('peer-left', conn.peer);
+      setTimeout(() => {
+        console.log(`Attempting to reconnect to ${conn.peer}`);
+        this.connect(conn.peer);
+      }, 5000);
+    });
+
+    conn.on('error', (err) => {
+        console.error(`Connection error with ${conn.peer}:`, err);
+        this.connections.delete(conn.peer);
+        this.emit('peer-left', conn.peer);
+        setTimeout(() => {
+            console.log(`Attempting to reconnect to ${conn.peer} after error`);
+            this.connect(conn.peer);
+        }, 7000);
     });
   }
 
@@ -150,6 +173,7 @@ class PeerService extends EventEmitter {
   }
 
   public destroy() {
+    if (this.discoveryInterval) clearInterval(this.discoveryInterval);
     this.connections.clear();
     this.peer?.destroy();
     this.peer = null;
