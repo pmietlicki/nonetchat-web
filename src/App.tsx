@@ -95,6 +95,10 @@ function App() {
     peerService.on('data', onData);
 
     return () => {
+      peerService.removeListener('open', onOpen);
+      peerService.removeListener('peer-joined', onPeerJoined);
+      peerService.removeListener('peer-left', onPeerLeft);
+      peerService.removeListener('data', onData);
       peerService.destroy();
     };
   }, [signalingUrl]);
@@ -102,9 +106,15 @@ function App() {
   const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) => {
     const newProfile = { ...userProfile, ...profileData, id: myId };
     await profileService.saveProfile(newProfile, avatarFile);
+    
+    // Forcer un délai pour s'assurer que IndexedDB a terminé la sauvegarde
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     const updatedProfile = await profileService.getProfile();
     setUserProfile(updatedProfile);
-    peerService.updateProfile(updatedProfile);
+    await peerService.updateProfile(updatedProfile);
+    
+    console.log('Profile updated:', updatedProfile);
   };
 
   const handleSaveSettings = () => {
@@ -117,6 +127,38 @@ function App() {
     peerService.connect(peerId);
     setSelectedPeerId(peerId);
     setActiveTab('conversations');
+  };
+
+  const handleSelectConversation = async (participantId: string) => {
+    setSelectedPeerId(participantId);
+    
+    // Si le peer n'est pas dans la liste des peers connectés, créer un objet User temporaire
+    if (!peers.has(participantId)) {
+      try {
+        const dbService = IndexedDBService.getInstance();
+        const conversations = await dbService.getAllConversations();
+        const conversation = conversations.find(c => c.participantId === participantId);
+        
+        if (conversation) {
+          // Créer un peer temporaire avec les données de la conversation
+          const tempPeer: User = {
+            id: participantId,
+            name: conversation.participantName,
+            avatar: conversation.participantAvatar,
+            status: 'offline', // Le peer n'est pas connecté
+            joinedAt: new Date().toISOString(),
+          };
+          
+          setPeers(prev => {
+            const newMap = new Map(prev);
+            newMap.set(participantId, tempPeer);
+            return newMap;
+          });
+        }
+      } catch (error) {
+        console.error('Error loading conversation data:', error);
+      }
+    }
   };
 
   const createBaseUser = (peerId: string): User => ({
@@ -207,7 +249,10 @@ function App() {
           <div className="flex items-center gap-4">
             <ConnectionStatus 
               isConnected={isConnected} 
-              onReconnect={() => { /* TODO */ }}
+              onReconnect={async () => {
+                // Reconnect logic - reinitialize the peer service
+                await peerService.initialize(myId, userProfile, signalingUrl);
+              }}
             />
             
             <div className="flex bg-gray-100 rounded-lg p-1">
@@ -256,12 +301,12 @@ function App() {
           />
         ) : (
           <ConversationList
-            onSelectConversation={setSelectedPeerId}
+            onSelectConversation={handleSelectConversation}
             selectedConversationId={selectedPeerId}
           />
         )}
 
-        {selectedPeer && isConnected ? (
+        {selectedPeer ? (
           <ChatWindow selectedPeer={selectedPeer} myId={myId} />
         ) : (
           <div className="flex-1 flex items-center justify-center bg-gray-50">

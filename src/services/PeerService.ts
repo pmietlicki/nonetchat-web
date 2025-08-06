@@ -9,7 +9,7 @@ export interface PeerMessage {
 
 // Utilisation d'un EventEmitter simple pour découpler le service de l'UI
 class EventEmitter {
-  private events: { [key: string]: Function[] } = {};
+  protected events: { [key: string]: Function[] } = {};
 
   on(event: string, listener: Function) {
     if (!this.events[event]) {
@@ -95,13 +95,23 @@ class PeerService extends EventEmitter {
   }
 
   private setupConnection(conn: DataConnection) {
-    conn.on('open', () => {
+    conn.on('open', async () => {
       console.log(`Connection opened with ${conn.peer}`);
       this.connections.set(conn.peer, conn);
       this.emit('peer-joined', conn.peer);
+      
+      // Préparer le profil avec l'avatar en Base64 pour la transmission
+      const profileToSend = { ...this.myProfile };
+      const ProfileService = (await import('./ProfileService')).default;
+      const profileService = ProfileService.getInstance();
+      const avatarBase64 = await profileService.getAvatarAsBase64();
+      if (avatarBase64) {
+        profileToSend.avatar = avatarBase64;
+      }
+      
       this.sendMessage(conn.peer, {
         type: 'profile',
-        payload: this.myProfile,
+        payload: profileToSend,
       });
     });
 
@@ -124,13 +134,27 @@ class PeerService extends EventEmitter {
     this.connections.forEach(conn => conn.send(message));
   }
 
-  public updateProfile(profile: Partial<User>) {
+  public async updateProfile(profile: Partial<User>) {
     this.myProfile = profile;
-    this.broadcast({ type: 'profile', payload: profile });
+    
+    // Préparer le profil avec l'avatar en Base64 pour la transmission
+    const profileToSend = { ...profile };
+    const ProfileService = (await import('./ProfileService')).default;
+    const profileService = ProfileService.getInstance();
+    const avatarBase64 = await profileService.getAvatarAsBase64();
+    if (avatarBase64) {
+      profileToSend.avatar = avatarBase64;
+    }
+    
+    this.broadcast({ type: 'profile', payload: profileToSend });
   }
 
   public destroy() {
+    this.connections.clear();
     this.peer?.destroy();
+    this.peer = null;
+    // Clear all event listeners
+    this.events = {};
   }
 }
 

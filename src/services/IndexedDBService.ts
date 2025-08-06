@@ -226,17 +226,63 @@ class IndexedDBService {
 
   async saveAvatar(id: string, avatar: File): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
-    const transaction = this.db.transaction(['avatars'], 'readwrite');
-    const store = transaction.objectStore('avatars');
-    await store.put({ id, avatar });
+    
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const arrayBuffer = reader.result as ArrayBuffer;
+          const transaction = this.db!.transaction(['avatars'], 'readwrite');
+          const store = transaction.objectStore('avatars');
+          
+          const avatarData = {
+            id,
+            data: arrayBuffer,
+            name: avatar.name,
+            type: avatar.type,
+            size: avatar.size
+          };
+          
+          const request = store.put(avatarData);
+          request.onsuccess = () => {
+            console.log('Avatar saved to IndexedDB as ArrayBuffer:', avatar.name, avatar.size, 'bytes');
+            resolve();
+          };
+          request.onerror = () => reject(request.error);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsArrayBuffer(avatar);
+    });
   }
 
-  async getAvatar(id: string): Promise<File | null> {
+  async getAvatar(id: string): Promise<Blob | null> {
     if (!this.db) throw new Error('Database not initialized');
-    const transaction = this.db.transaction(['avatars'], 'readonly');
-    const store = transaction.objectStore('avatars');
-    const result = await store.get(id);
-    return result ? result.avatar : null;
+    
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['avatars'], 'readonly');
+      const store = transaction.objectStore('avatars');
+      const request = store.get(id);
+      
+      request.onsuccess = () => {
+        const result = request.result;
+        if (result && result.data) {
+          const blob = new Blob([result.data], { type: result.type });
+          console.log('Avatar loaded from IndexedDB as Blob:', result.name, blob.size, 'bytes');
+          resolve(blob);
+        } else {
+          console.log('No avatar found in IndexedDB for id:', id);
+          resolve(null);
+        }
+      };
+      
+      request.onerror = () => {
+        console.error('Error loading avatar from IndexedDB:', request.error);
+        reject(request.error);
+      };
+    });
   }
 }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { User } from '../types';
 import PeerService from '../services/PeerService';
 import IndexedDBService from '../services/IndexedDBService';
@@ -35,31 +35,34 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId }) => {
   const peerService = PeerService.getInstance();
   const dbService = IndexedDBService.getInstance();
 
+  const handleData = useCallback((peerId: string, data: any) => {
+    if (peerId !== selectedPeer.id) return;
+
+    if (data.type === 'chat-message') {
+      addMessage({
+        id: uuidv4(),
+        senderId: peerId,
+        content: data.payload,
+        timestamp: Date.now(),
+        type: 'text',
+      });
+    }
+    // Gérer la réception de fichiers ici si nécessaire
+  }, [selectedPeer.id]);
+
   useEffect(() => {
     loadMessages();
     markAsRead();
 
-    const handleData = (peerId: string, data: any) => {
-      if (peerId !== selectedPeer.id) return;
-
-      if (data.type === 'message') {
-        addMessage({
-          id: uuidv4(),
-          senderId: peerId,
-          content: data.payload,
-          timestamp: Date.now(),
-          type: 'text',
-        });
-      }
-      // Gérer la réception de fichiers ici si nécessaire
-    };
-
     peerService.on('data', handleData);
 
     return () => {
-      peerService.removeListener('data', handleData);
+      // Check if peerService still exists and has removeListener method
+      if (peerService && typeof peerService.removeListener === 'function') {
+        peerService.removeListener('data', handleData);
+      }
     };
-  }, [selectedPeer.id]);
+  }, [selectedPeer.id, handleData]);
 
   useEffect(() => {
     scrollToBottom();
@@ -102,7 +105,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId }) => {
 
   const handleSendMessage = async () => {
     if (newMessage.trim()) {
-      peerService.sendMessage(selectedPeer.id, newMessage);
+      peerService.sendMessage(selectedPeer.id, {
+        type: 'chat-message',
+        payload: newMessage
+      });
       addMessage({
         id: uuidv4(),
         senderId: myId,
@@ -132,7 +138,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId }) => {
           <img src={selectedPeer.avatar || `https://i.pravatar.cc/150?u=${selectedPeer.id}`} alt={selectedPeer.name} className="w-10 h-10 rounded-full object-cover" />
           <div>
             <h3 className="font-semibold text-gray-900">{selectedPeer.name}</h3>
-            <p className="text-sm text-gray-500">{selectedPeer.status}</p>
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${
+                selectedPeer.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
+              }`}></div>
+              <p className="text-sm text-gray-500">
+                {selectedPeer.status === 'online' ? 'En ligne' : 'Hors ligne'}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -152,19 +165,27 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId }) => {
 
       {/* Input */}
       <div className="p-4 border-t border-gray-200 bg-white">
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Tapez votre message..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button onClick={handleSendMessage} className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700">
-            <Send size={20} />
-          </button>
-        </div>
+        {selectedPeer.status === 'online' ? (
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Tapez votre message..."
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button onClick={handleSendMessage} className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700">
+              <Send size={20} />
+            </button>
+          </div>
+        ) : (
+          <div className="text-center py-3">
+            <p className="text-sm text-gray-500">
+              {selectedPeer.name} n'est pas en ligne. Vous pouvez consulter l'historique des messages mais ne pouvez pas envoyer de nouveaux messages.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

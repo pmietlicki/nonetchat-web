@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { User } from '../types';
-import { Users, Circle, Wifi, MessageSquare } from 'lucide-react';
+import { Users, Circle, Wifi, MessageSquare, Info, User as UserIcon, X } from 'lucide-react';
 
 interface PeerListProps {
   peers: User[];
@@ -9,12 +9,190 @@ interface PeerListProps {
   isConnected: boolean;
 }
 
+interface ProfileDetailModalProps {
+  peer: User;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const formatJoinTime = (joinedAt: string) => {
+  const date = new Date(joinedAt);
+  const now = new Date();
+  const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+  
+  if (diffInMinutes < 1) return 'À l\'instant';
+  if (diffInMinutes < 60) return `Il y a ${diffInMinutes}min`;
+  
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `Il y a ${diffInHours}h`;
+  
+  return date.toLocaleDateString('fr-FR');
+};
+
+interface ProfileTooltipProps {
+  peer: User;
+  children: React.ReactNode;
+}
+
+const ProfileTooltip: React.FC<ProfileTooltipProps> = ({ peer, children }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const isCompleteProfile = peer.age !== undefined || peer.gender !== undefined || !peer.name.startsWith('Peer-');
+
+  return (
+    <div 
+      className="relative"
+      onMouseEnter={() => setIsVisible(true)}
+      onMouseLeave={() => setIsVisible(false)}
+    >
+      {children}
+      {isVisible && (
+        <div className="absolute left-full ml-2 top-0 z-50 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+          <div className="flex items-center gap-3 mb-3">
+            <img
+              src={peer.avatar}
+              alt={peer.name}
+              className="w-10 h-10 rounded-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = `https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400`;
+              }}
+            />
+            <div>
+              <h4 className="font-semibold text-gray-900">{peer.name}</h4>
+              {!isCompleteProfile && (
+                <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded-full">
+                  Profil temporaire
+                </span>
+              )}
+            </div>
+          </div>
+          
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Statut :</span>
+              <span className={`capitalize font-medium ${peer.status === 'online' ? 'text-green-600' : peer.status === 'busy' ? 'text-yellow-600' : 'text-gray-400'}`}>
+                {peer.status}
+              </span>
+            </div>
+            
+            {peer.age && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">Âge :</span>
+                <span className="font-medium">{peer.age} ans</span>
+              </div>
+            )}
+            
+            {peer.gender && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">Genre :</span>
+                <div className="flex items-center gap-2">
+                   <span className="text-lg" style={{color: peer.gender === 'female' ? '#ec4899' : peer.gender === 'male' ? '#3b82f6' : '#6b7280'}}>
+                     {peer.gender === 'male' ? '♂' : peer.gender === 'female' ? '♀' : '⚧'}
+                   </span>
+                   <span className="font-medium capitalize">
+                     {peer.gender === 'male' ? 'Homme' : peer.gender === 'female' ? 'Femme' : peer.gender === 'other' ? 'Autre' : peer.gender}
+                   </span>
+                 </div>
+              </div>
+            )}
+            
+            <div className="flex justify-between">
+              <span className="text-gray-600">Connecté :</span>
+              <span className="font-medium">{formatJoinTime(peer.joinedAt)}</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ peer, isOpen, onClose }) => {
+  if (!isOpen) return null;
+
+  const isCompleteProfile = peer.age !== undefined || peer.gender !== undefined || !peer.name.startsWith('Peer-');
+
+  return (
+    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-bold">Profil de {peer.name}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+             <X size={24} />
+           </button>
+        </div>
+
+        <div className="flex flex-col items-center mb-6">
+          <img
+            src={peer.avatar}
+            alt={peer.name}
+            className="w-24 h-24 rounded-full object-cover border-2 border-gray-200 mb-4"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = `https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400`;
+            }}
+          />
+          <h4 className="text-lg font-semibold">{peer.name}</h4>
+          {!isCompleteProfile && (
+            <span className="text-sm text-orange-600 bg-orange-50 px-2 py-1 rounded-full mt-2">
+              Profil temporaire
+            </span>
+          )}
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex justify-between">
+            <span className="text-gray-600">Statut :</span>
+            <span className={`capitalize font-medium ${peer.status === 'online' ? 'text-green-600' : peer.status === 'busy' ? 'text-yellow-600' : 'text-gray-400'}`}>
+              {peer.status}
+            </span>
+          </div>
+          
+          {peer.age && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">Âge :</span>
+              <span className="font-medium">{peer.age} ans</span>
+            </div>
+          )}
+          
+          {peer.gender && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">Genre :</span>
+              <div className="flex items-center gap-2">
+                   <span className="text-lg" style={{color: peer.gender === 'female' ? '#ec4899' : peer.gender === 'male' ? '#3b82f6' : '#6b7280'}}>
+                     {peer.gender === 'male' ? '♂' : peer.gender === 'female' ? '♀' : '⚧'}
+                   </span>
+                   <span className="font-medium capitalize">
+                     {peer.gender === 'male' ? 'Homme' : peer.gender === 'female' ? 'Femme' : peer.gender === 'other' ? 'Autre' : peer.gender}
+                   </span>
+                 </div>
+            </div>
+          )}
+          
+          <div className="flex justify-between">
+            <span className="text-gray-600">Connecté depuis :</span>
+            <span className="font-medium">{new Date(peer.joinedAt).toLocaleString('fr-FR')}</span>
+          </div>
+        </div>
+
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+          >
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const PeerList: React.FC<PeerListProps> = ({ 
   peers, 
   onSelectPeer, 
   selectedPeerId, 
   isConnected 
 }) => {
+  const [selectedProfilePeer, setSelectedProfilePeer] = useState<User | null>(null);
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'online': return 'text-green-500';
@@ -22,20 +200,6 @@ const PeerList: React.FC<PeerListProps> = ({
       case 'offline': return 'text-gray-400';
       default: return 'text-gray-400';
     }
-  };
-
-  const formatJoinTime = (joinedAt: string) => {
-    const date = new Date(joinedAt);
-    const now = new Date();
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-    
-    if (diffInMinutes < 1) return 'À l\'instant';
-    if (diffInMinutes < 60) return `Il y a ${diffInMinutes}min`;
-    
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `Il y a ${diffInHours}h`;
-    
-    return date.toLocaleDateString('fr-FR');
   };
 
   return (
@@ -71,15 +235,15 @@ const PeerList: React.FC<PeerListProps> = ({
         ) : (
           <div className="space-y-1">
             {peers.map(peer => (
-              <div
-                key={peer.id}
-                onClick={() => onSelectPeer(peer.id)}
-                className={`p-3 mx-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                  selectedPeerId === peer.id
-                    ? 'bg-blue-50 border border-blue-200 shadow-sm'
-                    : 'hover:bg-gray-50'
-                }`}
-              >
+              <ProfileTooltip key={peer.id} peer={peer}>
+                <div
+                  onClick={() => onSelectPeer(peer.id)}
+                  className={`p-3 mx-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                    selectedPeerId === peer.id
+                      ? 'bg-blue-50 border border-blue-200 shadow-sm'
+                      : 'hover:bg-gray-50'
+                  }`}
+                >
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <img
@@ -97,19 +261,54 @@ const PeerList: React.FC<PeerListProps> = ({
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">
-                      {peer.name}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-gray-900 truncate">
+                        {peer.name}
+                      </p>
+                      {(peer.age !== undefined || peer.gender !== undefined || !peer.name.startsWith('Peer-')) ? (
+                        <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full" title="Profil complet">
+                          ✓
+                        </span>
+                      ) : (
+                        <span className="text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full" title="Profil temporaire">
+                          ⏳
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <span className={`capitalize ${getStatusColor(peer.status)}`}>
                         {peer.status}
                       </span>
+
+                      {peer.gender && (
+                        <>
+                          <span>•</span>
+                          <div className="flex items-center gap-1" title={`Genre: ${peer.gender === 'male' ? 'Homme' : peer.gender === 'female' ? 'Femme' : 'Autre'}`}>
+                            <span className="text-sm" style={{color: peer.gender === 'female' ? '#ec4899' : peer.gender === 'male' ? '#3b82f6' : '#6b7280'}}>
+                              {peer.gender === 'male' ? '♂' : peer.gender === 'female' ? '♀' : '⚧'}
+                            </span>
+                            <span className="text-xs">
+                              {peer.age && `${peer.age} ans`}
+                            </span>
+                          </div>
+                        </>
+                      )}
                       <span>•</span>
                       <span>{formatJoinTime(peer.joinedAt)}</span>
                     </div>
                   </div>
 
                   <div className="flex flex-col items-end gap-1">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedProfilePeer(peer);
+                      }}
+                      className="text-gray-600 hover:text-gray-700 p-1 rounded hover:bg-gray-50 transition-colors"
+                      title="Voir le profil"
+                    >
+                      <Info size={16} />
+                    </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -121,12 +320,19 @@ const PeerList: React.FC<PeerListProps> = ({
                       <MessageSquare size={16} />
                     </button>
                   </div>
+                 </div>
                 </div>
-              </div>
+               </ProfileTooltip>
             ))}
           </div>
         )}
       </div>
+      
+      <ProfileDetailModal
+        peer={selectedProfilePeer!}
+        isOpen={selectedProfilePeer !== null}
+        onClose={() => setSelectedProfilePeer(null)}
+      />
     </div>
   );
 };
