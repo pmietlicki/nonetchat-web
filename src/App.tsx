@@ -246,7 +246,7 @@ function App() {
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-4">
             <ConnectionStatus 
               isConnected={isConnected} 
               onReconnect={async () => {
@@ -291,40 +291,52 @@ function App() {
         </div>
       </header>
 
-      <div className="flex-1 flex">
-        {activeTab === 'peers' ? (
-          <PeerList 
-            peers={peerList}
-            onSelectPeer={handleSelectPeer}
-            selectedPeerId={selectedPeerId}
-            isConnected={isConnected}
-          />
-        ) : (
-          <ConversationList
-            onSelectConversation={handleSelectConversation}
-            selectedConversationId={selectedPeerId}
-          />
-        )}
+      <div className="flex-1 flex overflow-hidden">
+        <div className={`w-full md:w-80 flex-shrink-0 border-r border-gray-200 bg-white ${
+          selectedPeer ? 'hidden md:flex' : 'flex'
+        } flex-col`}>
+          {activeTab === 'peers' ? (
+            <PeerList 
+              peers={peerList}
+              onSelectPeer={handleSelectPeer}
+              selectedPeerId={selectedPeerId}
+              isConnected={isConnected}
+            />
+          ) : (
+            <ConversationList
+              onSelectConversation={handleSelectConversation}
+              selectedConversationId={selectedPeerId}
+            />
+          )}
+        </div>
 
-        {selectedPeer ? (
-          <ChatWindow selectedPeer={selectedPeer} myId={myId} />
-        ) : (
-          <div className="flex-1 flex items-center justify-center bg-gray-50">
-            <div className="text-center text-gray-500">
-              <MessageSquare size={64} className="mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-medium mb-2">NoNetChat Web</h3>
-              {!isConnected ? (
-                <p className="max-w-md mb-4">
-                  Connexion au serveur de signalisation en cours...
-                </p>
-              ) : (
-                <p className="max-w-md">
-                  Sélectionnez un pair dans la liste pour commencer une conversation directe et sécurisée.
-                </p>
-              )}
+        <div className={`flex-1 flex flex-col ${
+          selectedPeer ? 'flex' : 'hidden md:flex'
+        }`}>
+          {selectedPeer ? (
+            <ChatWindow 
+              selectedPeer={selectedPeer} 
+              myId={myId} 
+              onBack={() => setSelectedPeerId(undefined)}
+            />
+          ) : (
+            <div className="flex-1 flex items-center justify-center bg-gray-50">
+              <div className="text-center text-gray-500">
+                <MessageSquare size={64} className="mx-auto mb-4 text-gray-300" />
+                <h3 className="text-lg font-medium mb-2">NoNetChat Web</h3>
+                {!isConnected ? (
+                  <p className="max-w-md mb-4">
+                    Connexion au serveur de signalisation en cours...
+                  </p>
+                ) : (
+                  <p className="max-w-md">
+                    Sélectionnez un pair dans la liste pour commencer une conversation directe et sécurisée.
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <StatusBar 

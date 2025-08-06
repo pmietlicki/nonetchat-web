@@ -2,12 +2,13 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { User } from '../types';
 import PeerService from '../services/PeerService';
 import IndexedDBService from '../services/IndexedDBService';
-import { Send, Paperclip, Download, FileText, Image as ImageIcon } from 'lucide-react';
+import { Send, Paperclip, Download, FileText, Image as ImageIcon, ArrowLeft } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
 interface ChatWindowProps {
   selectedPeer: User;
   myId: string;
+  onBack: () => void;
 }
 
 interface Message {
@@ -24,7 +25,7 @@ interface Message {
   };
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -83,7 +84,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId }) => {
       await dbService.saveMessage({
         ...message,
         receiverId: message.senderId === myId ? selectedPeer.id : myId,
-        encrypted: false,
+        encrypted: true, // Les messages sont maintenant chiffrés
       }, selectedPeer.id);
       await dbService.updateConversationParticipant(selectedPeer.id, selectedPeer.name, selectedPeer.avatar);
     } catch (error) {
@@ -105,10 +106,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId }) => {
 
   const handleSendMessage = async () => {
     if (newMessage.trim()) {
-      peerService.sendMessage(selectedPeer.id, {
-        type: 'chat-message',
-        payload: newMessage
-      });
+      peerService.sendMessage(selectedPeer.id, newMessage);
       addMessage({
         id: uuidv4(),
         senderId: myId,
@@ -135,6 +133,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId }) => {
       {/* Header */}
       <div className="p-4 border-b border-gray-200 bg-white">
         <div className="flex items-center gap-3">
+          <button onClick={onBack} className="md:hidden p-2 -ml-2 text-gray-600 hover:text-gray-800">
+            <ArrowLeft size={20} />
+          </button>
           <img src={selectedPeer.avatar || `https://i.pravatar.cc/150?u=${selectedPeer.id}`} alt={selectedPeer.name} className="w-10 h-10 rounded-full object-cover" />
           <div>
             <h3 className="font-semibold text-gray-900">{selectedPeer.name}</h3>
