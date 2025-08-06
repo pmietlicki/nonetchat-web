@@ -28,7 +28,7 @@ class IndexedDBService {
   private static instance: IndexedDBService;
   private db: IDBDatabase | null = null;
   private readonly dbName = 'NoNetChatWeb';
-  private readonly version = 2;
+  private readonly version = 3; // Version incrémentée pour la migration
 
   public static getInstance(): IndexedDBService {
     if (!IndexedDBService.instance) {
@@ -50,30 +50,49 @@ class IndexedDBService {
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
 
-        // Messages store
         if (!db.objectStoreNames.contains('messages')) {
           const messageStore = db.createObjectStore('messages', { keyPath: 'id' });
           messageStore.createIndex('conversationId', 'conversationId', { unique: false });
           messageStore.createIndex('timestamp', 'timestamp', { unique: false });
         }
 
-        // Conversations store
         if (!db.objectStoreNames.contains('conversations')) {
           const conversationStore = db.createObjectStore('conversations', { keyPath: 'id' });
           conversationStore.createIndex('updatedAt', 'updatedAt', { unique: false });
         }
 
-        // Files store
         if (!db.objectStoreNames.contains('files')) {
           const fileStore = db.createObjectStore('files', { keyPath: 'id' });
           fileStore.createIndex('messageId', 'messageId', { unique: false });
         }
 
-        // Avatar store
         if (!db.objectStoreNames.contains('avatars')) {
           db.createObjectStore('avatars', { keyPath: 'id' });
         }
+
+        // Ajout du store pour les clés de chiffrement
+        if (!db.objectStoreNames.contains('cryptoKeys')) {
+          db.createObjectStore('cryptoKeys', { keyPath: 'id' });
+        }
       };
+    });
+  }
+
+  async saveCryptoKeys(keys: { publicKey: JsonWebKey, privateKey: JsonWebKey }): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    const transaction = this.db.transaction(['cryptoKeys'], 'readwrite');
+    const store = transaction.objectStore('cryptoKeys');
+    await store.put({ id: 'user-keys', ...keys });
+  }
+
+  async getCryptoKeys(): Promise<{ publicKey: JsonWebKey, privateKey: JsonWebKey } | null> {
+    if (!this.db) throw new Error('Database not initialized');
+    return new Promise((resolve, reject) => {
+        const transaction = this.db!.transaction(['cryptoKeys'], 'readonly');
+        const store = transaction.objectStore('cryptoKeys');
+        const request = store.get('user-keys');
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
     });
   }
 
@@ -84,7 +103,6 @@ class IndexedDBService {
     const messageStore = transaction.objectStore('messages');
     const conversationStore = transaction.objectStore('conversations');
 
-    // La transaction ne se fermera pas tant que toutes les requêtes ne sont pas terminées.
     const getRequest = conversationStore.get(conversationId);
 
     getRequest.onsuccess = () => {
@@ -100,18 +118,13 @@ class IndexedDBService {
             updatedAt: Date.now()
         };
 
-        // Ces opérations sont ajoutées à la file d'attente de la même transaction
         conversationStore.put(updatedConversation);
         messageStore.put({ ...message, conversationId });
     };
 
     return new Promise((resolve, reject) => {
-        transaction.oncomplete = () => {
-            resolve();
-        };
-        transaction.onerror = () => {
-            reject(transaction.error);
-        };
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
     });
   }
 
@@ -215,12 +228,13 @@ class IndexedDBService {
   async clearAllData(): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
 
-    const transaction = this.db.transaction(['messages', 'conversations', 'files'], 'readwrite');
+    const transaction = this.db.transaction(['messages', 'conversations', 'files', 'cryptoKeys'], 'readwrite');
     
     await Promise.all([
       transaction.objectStore('messages').clear(),
       transaction.objectStore('conversations').clear(),
-      transaction.objectStore('files').clear()
+      transaction.objectStore('files').clear(),
+      transaction.objectStore('cryptoKeys').clear()
     ]);
   }
 

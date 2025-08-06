@@ -1,6 +1,14 @@
+import IndexedDBService from './IndexedDBService';
+
 class CryptoService {
   private static instance: CryptoService;
-  private keys: { publicKey: string; privateKey: string } | null = null;
+  private dbService: IndexedDBService;
+  private keyPair: CryptoKeyPair | null = null;
+  private sharedSecrets: Map<string, CryptoKey> = new Map();
+
+  private constructor() {
+    this.dbService = IndexedDBService.getInstance();
+  }
 
   public static getInstance(): CryptoService {
     if (!CryptoService.instance) {
@@ -9,54 +17,110 @@ class CryptoService {
     return CryptoService.instance;
   }
 
-  async generateKeys(): Promise<void> {
-    // Simulation des clés cryptographiques
-    this.keys = {
-      publicKey: this.generateRandomKey(),
-      privateKey: this.generateRandomKey()
-    };
-  }
-
-  private generateRandomKey(): string {
-    return Array.from({ length: 32 }, () => 
-      Math.floor(Math.random() * 16).toString(16)
-    ).join('');
-  }
-
-  async encryptMessage(message: string): Promise<string> {
-    if (!this.keys) await this.generateKeys();
-    
-    // Simulation du chiffrement AES
-    const encrypted = btoa(message + '_encrypted_' + Date.now());
-    return encrypted;
-  }
-
-  async decryptMessage(encryptedMessage: string): Promise<string> {
-    if (!this.keys) await this.generateKeys();
-    
-    // Simulation du déchiffrement
-    try {
-      const decrypted = atob(encryptedMessage);
-      return decrypted.split('_encrypted_')[0];
-    } catch {
-      return encryptedMessage;
+  async initialize(): Promise<void> {
+    const storedKeys = await this.dbService.getCryptoKeys();
+    if (storedKeys) {
+      const publicKey = await window.crypto.subtle.importKey(
+        'jwk',
+        storedKeys.publicKey,
+        { name: 'ECDH', namedCurve: 'P-256' },
+        true,
+        []
+      );
+      const privateKey = await window.crypto.subtle.importKey(
+        'jwk',
+        storedKeys.privateKey,
+        { name: 'ECDH', namedCurve: 'P-256' },
+        true,
+        ['deriveKey']
+      );
+      this.keyPair = { publicKey, privateKey };
+    } else {
+      await this.generateKeys();
     }
   }
 
-  getPublicKey(): string {
-    return this.keys?.publicKey || '';
+  private async generateKeys(): Promise<void> {
+    this.keyPair = await window.crypto.subtle.generateKey(
+      { name: 'ECDH', namedCurve: 'P-256' },
+      true,
+      ['deriveKey']
+    );
+
+    const publicKeyJwk = await window.crypto.subtle.exportKey('jwk', this.keyPair.publicKey!);
+    const privateKeyJwk = await window.crypto.subtle.exportKey('jwk', this.keyPair.privateKey!);
+
+    await this.dbService.saveCryptoKeys({ publicKey: publicKeyJwk, privateKey: privateKeyJwk });
   }
 
-  async encryptFile(file: File): Promise<Blob> {
-    // Simulation du chiffrement de fichier
-    const arrayBuffer = await file.arrayBuffer();
-    const encrypted = new Uint8Array(arrayBuffer);
-    return new Blob([encrypted], { type: file.type });
+  async getPublicKeyJwk(): Promise<JsonWebKey | null> {
+    if (!this.keyPair) return null;
+    return await window.crypto.subtle.exportKey('jwk', this.keyPair.publicKey!);
   }
 
-  async decryptFile(encryptedBlob: Blob): Promise<Blob> {
-    // Simulation du déchiffrement de fichier
-    return encryptedBlob;
+  async deriveSharedSecret(peerId: string, peerPublicKeyJwk: JsonWebKey): Promise<void> {
+    const peerPublicKey = await window.crypto.subtle.importKey(
+      'jwk',
+      peerPublicKeyJwk,
+      { name: 'ECDH', namedCurve: 'P-256' },
+      true,
+      []
+    );
+
+    const sharedSecret = await window.crypto.subtle.deriveKey(
+      { name: 'ECDH', public: peerPublicKey },
+      this.keyPair!.privateKey!,
+      { name: 'AES-GCM', length: 256 },
+      true,
+      ['encrypt', 'decrypt']
+    );
+
+    this.sharedSecrets.set(peerId, sharedSecret);
+  }
+
+  async encryptMessage(peerId: string, message: string): Promise<string> {
+    const secretKey = this.sharedSecrets.get(peerId);
+    if (!secretKey) throw new Error('Shared secret not derived for this peer');
+
+    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+    const encodedMessage = new TextEncoder().encode(message);
+
+    const encryptedData = await window.crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv },
+      secretKey,
+      encodedMessage
+    );
+
+    const bufferToBase64 = (buffer: ArrayBuffer) => btoa(String.fromCharCode(...new Uint8Array(buffer)));
+
+    return JSON.stringify({
+      iv: bufferToBase64(iv),
+      data: bufferToBase64(encryptedData),
+    });
+  }
+
+  async decryptMessage(peerId: string, jsonPayload: string): Promise<string> {
+    const secretKey = this.sharedSecrets.get(peerId);
+    if (!secretKey) throw new Error('Shared secret not derived for this peer');
+
+    try {
+      const payload = JSON.parse(jsonPayload);
+      const base64ToBuffer = (base64: string) => Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+
+      const iv = base64ToBuffer(payload.iv);
+      const data = base64ToBuffer(payload.data);
+
+      const decryptedData = await window.crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        secretKey,
+        data
+      );
+
+      return new TextDecoder().decode(decryptedData);
+    } catch (error) {
+      console.error('Decryption failed:', error);
+      return 'Failed to decrypt message';
+    }
   }
 }
 
