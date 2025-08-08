@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User } from '../types';
-import { Users, Circle, Wifi, MessageSquare, Info, User as UserIcon, X } from 'lucide-react';
+import { Users, Circle, Wifi, MessageSquare, Info, X } from 'lucide-react';
 
 interface PeerListProps {
   peers: User[];
@@ -234,8 +234,8 @@ const PeerList: React.FC<PeerListProps> = ({
           </div>
         ) : (
           <div className="space-y-1">
-            {peers.map(peer => (
-              <ProfileTooltip key={peer.id} peer={peer}>
+            {peers.map((peer, index) => (
+              <ProfileTooltip key={`${peer.id}-${index}-${peer.joinedAt}`} peer={peer}>
                 <div
                   onClick={() => onSelectPeer(peer.id)}
                   className={`p-3 mx-2 rounded-lg cursor-pointer transition-all duration-200 ${

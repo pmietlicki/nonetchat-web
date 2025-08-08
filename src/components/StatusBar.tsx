@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Users, Signal, Settings, Server, Bug } from 'lucide-react';
+import { Users, Signal, Settings, Server, Bug } from 'lucide-react';
 
 interface StatusBarProps {
   isConnected: boolean;
@@ -18,8 +18,6 @@ const StatusBar: React.FC<StatusBarProps> = ({
   onOpenSettings,
   onOpenDiagnostic 
 }) => {
-  const connectionType = 'WebRTC';
-
   return (
     <div className="h-8 bg-gray-100 border-t border-gray-200 flex items-center justify-between px-4 text-sm text-gray-600">
       <div className="flex items-center gap-4 truncate">

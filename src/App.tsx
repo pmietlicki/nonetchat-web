@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import PeerList from './components/PeerList';
 import ConversationList from './components/ConversationList';
@@ -11,7 +11,7 @@ import { User } from './types';
 import PeerService, { PeerMessage } from './services/PeerService';
 import IndexedDBService from './services/IndexedDBService';
 import ProfileService from './services/ProfileService';
-import { MessageSquare, Users, Wifi, WifiOff, X, User as UserIcon, Bug } from 'lucide-react';
+import { MessageSquare, Users, Wifi, WifiOff, X, User as UserIcon } from 'lucide-react';
 
 const DEFAULT_SIGNALING_URL = 'wss://chat.pascal-mietlicki.fr';
 

@@ -152,6 +152,8 @@ class PeerService extends EventEmitter {
             const newUserId = `${this.initParams.userId}-${Date.now()}`;
             this.diagnosticService.log('Reinitializing with new ID', { newUserId });
             await this.initialize(newUserId, this.initParams.profile, this.initParams.signalingUrl);
+          } else {
+            this.diagnosticService.log('Cannot retry - no initialization parameters stored');
           }
         }, 1000);
         return;
@@ -267,7 +269,7 @@ class PeerService extends EventEmitter {
           this.diagnosticService.log('Connection timeout', { 
             peerId, 
             connectionId: conn.connectionId,
-            readyState: conn.readyState,
+            // readyState property doesn't exist on DataConnection, using open instead
             open: conn.open
           });
           conn.close();
@@ -311,7 +313,7 @@ class PeerService extends EventEmitter {
       connectionState: conn.open,
       connectionId: conn.connectionId,
       reliable: conn.reliable,
-      readyState: conn.readyState,
+      open: conn.open,
       type: conn.type
     });
 
@@ -357,11 +359,17 @@ class PeerService extends EventEmitter {
     }
 
     conn.on('open', async () => {
+      // Skip if already manually opened to prevent duplicate events
+      if ((conn as any)._manuallyOpened) {
+        this.diagnosticService.log('🔄 Connection open event skipped - already manually opened', { peerId });
+        return;
+      }
+      
       this.diagnosticService.log('🎉 Enhanced connection opened successfully', { 
         peerId, 
         connectionId: conn.connectionId,
         reliable: conn.reliable,
-        readyState: conn.readyState
+        open: conn.open
       });
       console.log(`🎉 Connection established with ${peerId}`);
       this.reconnectAttempts.set(peerId, 0);
@@ -376,17 +384,17 @@ class PeerService extends EventEmitter {
     
     // Add diagnostic timeout to check if connection opens
     setTimeout(() => {
-      if (!conn.open) {
+      if (!conn.open && !(conn as any)._manuallyOpened) {
         this.diagnosticService.log('⚠️ Connection never opened - diagnostic info', {
           peerId,
           connectionId: conn.connectionId,
           open: conn.open,
-          readyState: conn.readyState,
           reliable: conn.reliable,
           type: conn.type,
           connectionState: conn.peerConnection?.connectionState,
           iceConnectionState: conn.peerConnection?.iceConnectionState,
-          iceGatheringState: conn.peerConnection?.iceGatheringState
+          iceGatheringState: conn.peerConnection?.iceGatheringState,
+          manuallyOpened: (conn as any)._manuallyOpened
         });
       }
     }, 8000);
@@ -404,12 +412,29 @@ class PeerService extends EventEmitter {
           connOpen: conn.open
         });
         
-        // If WebRTC is connected but PeerJS connection isn't open, force peer-joined
-        if ((pc.connectionState === 'connected' || pc.iceConnectionState === 'connected') && !conn.open) {
-          this.diagnosticService.log('🔧 WebRTC connected but PeerJS not open - forcing peer-joined', { peerId });
+        // If WebRTC ICE is connected but PeerJS connection isn't open, force peer-joined
+        if ((pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') && !conn.open && !(conn as any)._manuallyOpened) {
+          this.diagnosticService.log('🔧 ICE connected but PeerJS not open - forcing peer-joined', { 
+            peerId, 
+            iceState: pc.iceConnectionState,
+            connectionState: pc.connectionState 
+          });
           this.reconnectAttempts.set(peerId, 0);
           this.connectionAttempts.delete(peerId);
           this.emit('peer-joined', peerId);
+          
+          // Mark connection as manually opened to prevent duplicate events
+          (conn as any)._manuallyOpened = true;
+          
+          // Send key exchange for manual connection
+          setTimeout(async () => {
+            try {
+              const myPublicKey = await this.cryptoService.getPublicKeyJwk();
+              this.send(peerId, { type: 'key-exchange', payload: myPublicKey });
+            } catch (error) {
+              this.diagnosticService.log('❌ Failed to send key exchange in manual connection', { peerId, error });
+            }
+          }, 100);
         }
       };
       
@@ -450,7 +475,7 @@ class PeerService extends EventEmitter {
         peerId, 
         connectionId: conn.connectionId,
         wasOpen: conn.open,
-        readyState: conn.readyState,
+        open: conn.open,
         remainingConnections: this.connections.size - 1
       });
       this.handleDisconnect(peerId, 'Connection closed');
@@ -462,7 +487,7 @@ class PeerService extends EventEmitter {
         connectionId: conn.connectionId,
         error: err.message,
         errorType: err.type,
-        readyState: conn.readyState,
+        open: conn.open,
         wasOpen: conn.open
       });
       console.error(`Connection error with ${peerId}:`, err);
