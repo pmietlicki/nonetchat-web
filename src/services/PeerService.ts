@@ -317,14 +317,36 @@ class PeerService extends EventEmitter {
     this.diagnosticService.log('Connection added to map', { 
       peerId, 
       totalConnections: this.connections.size,
-      connectionId: conn.connectionId
+      connectionId: conn.connectionId,
+      isAlreadyOpen: conn.open
     });
-
-    conn.on('open', async () => {
-      this.diagnosticService.log('Enhanced connection opened successfully', { peerId });
-      console.log(`Connection established with ${peerId}`);
+    
+    // Check if connection is already open (race condition)
+    if (conn.open) {
+      this.diagnosticService.log('⚡ Connection already open, emitting peer-joined immediately', { peerId });
       this.reconnectAttempts.set(peerId, 0);
       this.connectionAttempts.delete(peerId);
+      this.emit('peer-joined', peerId);
+      
+      // Send key exchange
+      (async () => {
+        const myPublicKey = await this.cryptoService.getPublicKeyJwk();
+        this.send(peerId, { type: 'key-exchange', payload: myPublicKey });
+      })();
+    }
+
+    conn.on('open', async () => {
+      this.diagnosticService.log('🎉 Enhanced connection opened successfully', { 
+        peerId, 
+        connectionId: conn.connectionId,
+        reliable: conn.reliable,
+        readyState: conn.readyState
+      });
+      console.log(`🎉 Connection established with ${peerId}`);
+      this.reconnectAttempts.set(peerId, 0);
+      this.connectionAttempts.delete(peerId);
+      
+      this.diagnosticService.log('📢 Emitting peer-joined event', { peerId });
       this.emit('peer-joined', peerId);
 
       const myPublicKey = await this.cryptoService.getPublicKeyJwk();
