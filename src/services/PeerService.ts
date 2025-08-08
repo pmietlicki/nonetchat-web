@@ -324,15 +324,17 @@ class PeerService extends EventEmitter {
       
       // Enhanced glare resolution
       if (this.peer!.id > peerId) {
-        this.diagnosticService.log('Enhanced closing incoming connection (my ID is greater)', { peerId });
-        console.log(`My ID is greater. Closing incoming connection from ${peerId}.`);
-        conn.close();
-        return;
-      } else {
-        this.diagnosticService.log('Enhanced closing existing connection (my ID is smaller)', { peerId });
-        console.log(`My ID is smaller. Closing existing connection and accepting new one from ${peerId}.`);
+        // My ID is larger, so I am "polite". I will close my existing connection and accept the new one.
+        this.diagnosticService.log('Enhanced glare resolution: closing existing connection (my ID is greater)', { peerId });
+        console.log(`My ID is greater. Closing existing connection and accepting new one from ${peerId}.`);
         existingConn.close();
         this.connections.delete(peerId);
+      } else {
+        // My ID is smaller, so I am "impolite" or the "controller". I will keep my existing connection and reject the new one.
+        this.diagnosticService.log('Enhanced glare resolution: closing incoming connection (my ID is smaller)', { peerId });
+        console.log(`My ID is smaller. Rejecting incoming connection from ${peerId} and keeping existing one.`);
+        conn.close();
+        return;
       }
     }
     
