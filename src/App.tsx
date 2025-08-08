@@ -6,11 +6,12 @@ import ChatWindow from './components/ChatWindow';
 import StatusBar from './components/StatusBar';
 import ConnectionStatus from './components/ConnectionStatus';
 import ProfileModal from './components/ProfileModal';
+import DiagnosticPanel from './components/DiagnosticPanel';
 import { User } from './types';
 import PeerService, { PeerMessage } from './services/PeerService';
 import IndexedDBService from './services/IndexedDBService';
 import ProfileService from './services/ProfileService';
-import { MessageSquare, Users, Wifi, WifiOff, X, User as UserIcon } from 'lucide-react';
+import { MessageSquare, Users, Wifi, WifiOff, X, User as UserIcon, Bug } from 'lucide-react';
 
 const DEFAULT_SIGNALING_URL = 'wss://chat.pascal-mietlicki.fr';
 
@@ -24,6 +25,7 @@ function App() {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<Partial<User>>({});
 
   const [signalingUrl, setSignalingUrl] = useState(
@@ -192,6 +194,11 @@ function App() {
         initialProfile={userProfile}
       />
 
+      <DiagnosticPanel
+        isOpen={isDiagnosticOpen}
+        onClose={() => setIsDiagnosticOpen(false)}
+      />
+
       {isSettingsOpen && (
         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
@@ -345,6 +352,7 @@ function App() {
         clientId={myId}
         signalingUrl={signalingUrl}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenDiagnostic={() => setIsDiagnosticOpen(true)}
       />
     </div>
   );

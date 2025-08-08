@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Users, Signal, Settings, Server } from 'lucide-react';
+import { Shield, Users, Signal, Settings, Server, Bug } from 'lucide-react';
 
 interface StatusBarProps {
   isConnected: boolean;
@@ -7,6 +7,7 @@ interface StatusBarProps {
   clientId?: string;
   signalingUrl: string;
   onOpenSettings: () => void;
+  onOpenDiagnostic: () => void;
 }
 
 const StatusBar: React.FC<StatusBarProps> = ({ 
@@ -14,7 +15,8 @@ const StatusBar: React.FC<StatusBarProps> = ({
   peerCount, 
   clientId, 
   signalingUrl,
-  onOpenSettings 
+  onOpenSettings,
+  onOpenDiagnostic 
 }) => {
   const connectionType = 'WebRTC';
 
@@ -40,6 +42,13 @@ const StatusBar: React.FC<StatusBarProps> = ({
       </div>
 
       <div className="flex items-center gap-2">
+        <button
+          onClick={onOpenDiagnostic}
+          className="p-1 hover:bg-gray-200 rounded transition-colors"
+          title="Ouvrir le panneau de diagnostic"
+        >
+          <Bug size={14} />
+        </button>
         <button
           onClick={onOpenSettings}
           className="p-1 hover:bg-gray-200 rounded transition-colors"
