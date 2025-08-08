@@ -39,6 +39,7 @@ class PeerService extends EventEmitter {
   private diagnosticService: DiagnosticService;
   private lastDiscoveredPeers: string[] = [];
   private connectionAttempts: Map<string, number> = new Map();
+  private initParams: { userId: string; profile: Partial<User>; signalingUrl: string } | null = null;
 
   private constructor() {
     super();
@@ -56,9 +57,14 @@ class PeerService extends EventEmitter {
   public async initialize(userId: string, profile: Partial<User>, signalingUrl: string) {
     this.diagnosticService.log('Initializing Enhanced PeerService', { userId, signalingUrl });
     
+    // Store initialization parameters
+    this.initParams = { userId, profile, signalingUrl };
+    
     if (this.peer) {
       this.diagnosticService.log('Destroying existing peer connection');
-      this.peer.destroy();
+      await this.destroy();
+      // Wait a bit to ensure complete cleanup
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
     
     this.myProfile = profile;
@@ -136,12 +142,27 @@ class PeerService extends EventEmitter {
       console.error('PeerJS Error:', err);
       this.emit('error', err);
       
+      // Handle 'ID is taken' error
+      if (err.message && err.message.includes('is taken')) {
+        this.diagnosticService.log('ID collision detected, forcing complete cleanup and retry');
+        setTimeout(async () => {
+          if (this.initParams) {
+            await this.destroy();
+            // Generate a new ID by appending timestamp
+            const newUserId = `${this.initParams.userId}-${Date.now()}`;
+            this.diagnosticService.log('Reinitializing with new ID', { newUserId });
+            await this.initialize(newUserId, this.initParams.profile, this.initParams.signalingUrl);
+          }
+        }, 1000);
+        return;
+      }
+      
       // Auto-reconnect on certain errors
       if (err.type === 'disconnected' || err.type === 'network') {
         this.diagnosticService.log('Attempting auto-reconnect due to network error');
         setTimeout(() => {
-          if (this.peer && this.peer.destroyed) {
-            this.initialize(userId, profile, signalingUrl);
+          if (this.peer && this.peer.destroyed && this.initParams) {
+            this.initialize(this.initParams.userId, this.initParams.profile, this.initParams.signalingUrl);
           }
         }, 3000);
       }
@@ -496,9 +517,10 @@ class PeerService extends EventEmitter {
     return conn ? conn.open : false;
   }
 
-  public destroy() {
+  public async destroy() {
     this.diagnosticService.log('Enhanced destroying peer service');
     
+    // Clear all intervals
     if (this.discoveryInterval) {
       clearInterval(this.discoveryInterval);
       this.discoveryInterval = null;
@@ -509,13 +531,33 @@ class PeerService extends EventEmitter {
       this.pingInterval = null;
     }
     
-    this.connections.forEach(conn => conn.close());
+    // Close all connections
+    this.connections.forEach(conn => {
+      try {
+        conn.close();
+      } catch (e) {
+        this.diagnosticService.log('Error closing connection', { error: e });
+      }
+    });
     this.connections.clear();
     
+    // Clear all state maps
+    this.reconnectAttempts.clear();
+    this.connectionAttempts.clear();
+    this.lastDiscoveredPeers = [];
+    
+    // Destroy peer connection
     if (this.peer) {
-      this.peer.destroy();
+      try {
+        this.peer.destroy();
+      } catch (e) {
+        this.diagnosticService.log('Error destroying peer', { error: e });
+      }
       this.peer = null;
     }
+    
+    // Wait for cleanup to complete
+    await new Promise(resolve => setTimeout(resolve, 100));
   }
 
   // Diagnostic methods
