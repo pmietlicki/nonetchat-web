@@ -373,6 +373,49 @@ class PeerService extends EventEmitter {
       const myPublicKey = await this.cryptoService.getPublicKeyJwk();
       this.send(peerId, { type: 'key-exchange', payload: myPublicKey });
     });
+    
+    // Add diagnostic timeout to check if connection opens
+    setTimeout(() => {
+      if (!conn.open) {
+        this.diagnosticService.log('⚠️ Connection never opened - diagnostic info', {
+          peerId,
+          connectionId: conn.connectionId,
+          open: conn.open,
+          readyState: conn.readyState,
+          reliable: conn.reliable,
+          type: conn.type,
+          connectionState: conn.peerConnection?.connectionState,
+          iceConnectionState: conn.peerConnection?.iceConnectionState,
+          iceGatheringState: conn.peerConnection?.iceGatheringState
+        });
+      }
+    }, 8000);
+    
+    // Monitor WebRTC connection state changes
+    if (conn.peerConnection) {
+      const pc = conn.peerConnection;
+      
+      const checkConnectionState = () => {
+        this.diagnosticService.log('WebRTC state update', {
+          peerId,
+          connectionState: pc.connectionState,
+          iceConnectionState: pc.iceConnectionState,
+          iceGatheringState: pc.iceGatheringState,
+          connOpen: conn.open
+        });
+        
+        // If WebRTC is connected but PeerJS connection isn't open, force peer-joined
+        if ((pc.connectionState === 'connected' || pc.iceConnectionState === 'connected') && !conn.open) {
+          this.diagnosticService.log('🔧 WebRTC connected but PeerJS not open - forcing peer-joined', { peerId });
+          this.reconnectAttempts.set(peerId, 0);
+          this.connectionAttempts.delete(peerId);
+          this.emit('peer-joined', peerId);
+        }
+      };
+      
+      pc.addEventListener('connectionstatechange', checkConnectionState);
+      pc.addEventListener('iceconnectionstatechange', checkConnectionState);
+    }
 
     conn.on('data', async (data) => {
       const message = data as PeerMessage;
