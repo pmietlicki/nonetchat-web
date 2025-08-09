@@ -84,21 +84,23 @@ function App() {
     };
 
     const onPeerJoined = (peerId: string) => {
+      console.log(`%c[APP] PEER_JOINED event for ${peerId}`, 'color: green; font-weight: bold;');
       setPeers(prev => {
         const newMap = new Map(prev);
         newMap.set(peerId, createBaseUser(peerId));
+        console.log(`%c[APP] Peers map updated. New size: ${newMap.size}`, 'color: green;', newMap);
         return newMap;
       });
     };
 
     const onPeerLeft = (peerId: string) => {
+      console.log(`%c[APP] PEER_LEFT event for ${peerId}`, 'color: red; font-weight: bold;');
       setPeers(prev => {
         const newMap = new Map(prev);
         const existingPeer = prev.get(peerId);
         if (existingPeer) {
-          // Marquer le peer comme offline au lieu de le supprimer
-          // pour préserver l'accès à l'historique des conversations
           newMap.set(peerId, { ...existingPeer, status: 'offline' });
+          console.log(`%c[APP] Peer ${peerId} marked as offline.`, 'color: red;');
         }
         return newMap;
       });
@@ -180,7 +182,7 @@ function App() {
   };
 
   const handleSelectPeer = (peerId: string) => {
-    // Connection is now automatic, so we just set the selected peer for the UI
+    console.log(`%c[APP] handleSelectPeer called with peerId: ${peerId}`, 'color: blue; font-weight: bold;');
     setSelectedPeerId(peerId);
   };
 
@@ -226,6 +228,12 @@ function App() {
 
   const peerList = Array.from(peers.values());
   const selectedPeer = peers.get(selectedPeerId || '');
+
+  console.log('%c[APP] Render Cycle', 'background: #222; color: #bada55', {
+    selectedPeerId,
+    peers,
+    selectedPeer: selectedPeer ? { ...selectedPeer } : undefined
+  });
 
   if (!isInitialized) {
     return (
@@ -463,7 +471,6 @@ function App() {
               </div>
             </div>
           )}
-        </div>
       </div>
 
       <StatusBar 
