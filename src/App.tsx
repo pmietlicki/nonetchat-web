@@ -221,6 +221,13 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
+      {geolocationError && 
+        <GeolocationError 
+          message={geolocationError} 
+          onDismiss={() => setGeolocationError(null)} 
+        />
+      }
+
       <ProfileModal
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}

@@ -1,11 +1,10 @@
-
 import { WebSocketServer } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 
 const wss = new WebSocketServer({ port: 3001 });
 const clients = new Map();
 
-console.log('Geo-Signaling Server is running on ws://localhost:3001');
+console.log('Hybrid Geo/LAN Signaling Server is running on ws://localhost:3001');
 
 // --- Helper Functions ---
 
@@ -28,35 +27,43 @@ function sendTo(ws, message) {
   }
 }
 
-function broadcastNearbyPeers() {
+function broadcastPeerUpdates() {
   clients.forEach((client, clientId) => {
     const nearbyPeers = [];
     clients.forEach((otherClient, otherClientId) => {
-      if (clientId !== otherClientId) {
+      if (clientId === otherClientId) return;
+
+      // Geo-discovery mode
+      if (client.discoveryMode === 'geo' && otherClient.discoveryMode === 'geo') {
         const distance = getDistance(client.location, otherClient.location);
-        // Check if other peer is within client's radius and vice-versa
         if (distance < client.radius && distance < otherClient.radius) {
           nearbyPeers.push({ 
             peerId: otherClientId,
             distance: distance.toFixed(2) // Distance in km
           });
         }
+      } 
+      // LAN-discovery mode
+      else if (client.discoveryMode === 'lan' && otherClient.discoveryMode === 'lan') {
+        if (client.ip === otherClient.ip) {
+          nearbyPeers.push({ peerId: otherClientId, distance: 'LAN' });
+        }
       }
     });
-    // Notify the client about the peers currently nearby
     sendTo(client.ws, { type: 'nearby-peers', peers: nearbyPeers });
   });
 }
 
 // --- WebSocket Server Logic ---
 
-wss.on('connection', (ws) => {
+wss.on('connection', (ws, req) => {
   const clientId = uuidv4();
-  // Initialize client with default values
-  clients.set(clientId, { ws, isAlive: true, radius: 1.0, location: null });
-  console.log(`Client ${clientId} connected`);
+  const ip = req.socket.remoteAddress;
+  
+  // Initialize client with default geo mode
+  clients.set(clientId, { ws, ip, isAlive: true, radius: 1.0, location: null, discoveryMode: 'geo' });
+  console.log(`Client ${clientId} connected from IP ${ip}`);
 
-  // 1. Welcome the new client and give them their ID
   sendTo(ws, { type: 'welcome', clientId });
 
   ws.on('message', (message) => {
@@ -77,9 +84,15 @@ wss.on('connection', (ws) => {
       case 'update-location':
         clientData.location = payload.location;
         clientData.radius = payload.radius || clientData.radius;
+        clientData.discoveryMode = 'geo'; // Explicitly set to geo mode
         console.log(`Client ${clientId} updated location:`, clientData.location, `radius: ${clientData.radius}km`);
-        // After updating location, broadcast the new peer lists to everyone
-        broadcastNearbyPeers();
+        broadcastPeerUpdates();
+        break;
+
+      case 'request-lan-discovery':
+        clientData.discoveryMode = 'lan';
+        console.log(`Client ${clientId} switched to LAN discovery mode.`);
+        broadcastPeerUpdates();
         break;
 
       case 'offer':
@@ -105,8 +118,7 @@ wss.on('connection', (ws) => {
   ws.on('close', () => {
     console.log(`Client ${clientId} disconnected`);
     clients.delete(clientId);
-    // Announce the departure to relevant peers
-    broadcastNearbyPeers();
+    broadcastPeerUpdates();
   });
 
   ws.on('error', (error) => {
@@ -114,12 +126,11 @@ wss.on('connection', (ws) => {
   });
 });
 
-// Heartbeat mechanism to remove dead connections
+// Heartbeat mechanism
 const heartbeatInterval = setInterval(() => {
   clients.forEach((client, id) => {
     if (!client.isAlive) {
-      console.log(`Client ${id} is not alive, terminating connection.`);
-      client.ws.terminate(); // This will trigger the 'close' event for cleanup
+      client.ws.terminate();
       return;
     }
     client.isAlive = false;

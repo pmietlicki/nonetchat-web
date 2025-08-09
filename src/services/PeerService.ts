@@ -114,8 +114,9 @@ class PeerService extends EventEmitter {
         });
       },
       (error) => {
-        this.diagnosticService.log('Geolocation Error', error);
+        this.diagnosticService.log('Geolocation Error, switching to LAN mode', error);
         this.emit('geolocation-error', error);
+        this.sendToServer({ type: 'request-lan-discovery' });
       },
       { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 }
     );
