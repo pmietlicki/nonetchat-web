@@ -94,7 +94,12 @@ function App() {
     const onPeerLeft = (peerId: string) => {
       setPeers(prev => {
         const newMap = new Map(prev);
-        newMap.delete(peerId);
+        const existingPeer = prev.get(peerId);
+        if (existingPeer) {
+          // Marquer le peer comme offline au lieu de le supprimer
+          // pour préserver l'accès à l'historique des conversations
+          newMap.set(peerId, { ...existingPeer, status: 'offline' });
+        }
         return newMap;
       });
     };
@@ -103,7 +108,14 @@ function App() {
       if (data.type === 'profile') {
         setPeers(prev => {
           const newMap = new Map(prev);
-          newMap.set(peerId, { ...prev.get(peerId)!, ...data.payload });
+          const existingPeer = prev.get(peerId);
+          // Préserver le statut 'online' pour les peers connectés
+          const updatedPeer = { 
+            ...existingPeer!, 
+            ...data.payload, 
+            status: 'online' // Forcer le statut à 'online' pour les peers connectés
+          };
+          newMap.set(peerId, updatedPeer);
           return newMap;
         });
       }
@@ -170,7 +182,6 @@ function App() {
   const handleSelectPeer = (peerId: string) => {
     // Connection is now automatic, so we just set the selected peer for the UI
     setSelectedPeerId(peerId);
-    setActiveTab('conversations');
   };
 
   const handleSelectConversation = async (participantId: string) => {

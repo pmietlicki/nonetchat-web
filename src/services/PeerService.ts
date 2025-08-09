@@ -280,7 +280,7 @@ class PeerService extends EventEmitter {
       const message = JSON.parse(event.data);
       if (message.type === 'key-exchange') {
         await this.cryptoService.deriveSharedSecret(peerId, message.payload);
-        const profileToSend = { ...this.myProfile };
+        const profileToSend = { ...this.myProfile, status: 'online' }; // Explicitly set status to online
         const ProfileService = (await import('./ProfileService')).default;
         const profileService = ProfileService.getInstance();
         const avatarBase64 = await profileService.getAvatarAsBase64();

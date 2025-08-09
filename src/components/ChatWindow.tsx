@@ -182,36 +182,45 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
       {/* Input */}
       <div className="p-4 border-t border-gray-200 bg-white">
-        {selectedPeer.status === 'online' ? (
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => fileInputRef.current?.click()}
-              className="p-2 text-gray-500 hover:text-gray-700"
-            >
-              <Paperclip size={20} />
-            </button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={(e) => setSelectedFile(e.target.files ? e.target.files[0] : null)}
-              className="hidden"
-            />
-            <input
-              type="text"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Tapez votre message..."
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button onClick={handleSendMessage} className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700">
-              <Send size={20} />
-            </button>
-          </div>
-        ) : (
-          <div className="text-center py-3">
-            <p className="text-sm text-gray-500">
-              {selectedPeer.name} n'est pas en ligne. Vous pouvez consulter l'historique des messages mais ne pouvez pas envoyer de nouveaux messages.
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => fileInputRef.current?.click()}
+            className="p-2 text-gray-500 hover:text-gray-700"
+            disabled={selectedPeer.status !== 'online'}
+            title={selectedPeer.status !== 'online' ? 'Peer hors ligne - envoi de fichiers indisponible' : 'Joindre un fichier'}
+          >
+            <Paperclip size={20} />
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={(e) => setSelectedFile(e.target.files ? e.target.files[0] : null)}
+            className="hidden"
+          />
+          <input
+            type="text"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder={selectedPeer.status === 'online' ? 'Tapez votre message...' : 'Message sera envoyé quand le peer sera en ligne...'}
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button 
+            onClick={handleSendMessage} 
+            className={`p-2 rounded-lg ${
+              selectedPeer.status === 'online' 
+                ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                : 'bg-gray-400 text-white hover:bg-gray-500'
+            }`}
+            title={selectedPeer.status !== 'online' ? 'Message sera mis en file d\'attente' : 'Envoyer le message'}
+          >
+            <Send size={20} />
+          </button>
+        </div>
+        {selectedPeer.status !== 'online' && (
+          <div className="text-center mt-2">
+            <p className="text-xs text-gray-500">
+              {selectedPeer.name} est hors ligne. Votre message sera envoyé dès qu'il se reconnectera.
             </p>
           </div>
         )}
