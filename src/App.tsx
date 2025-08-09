@@ -231,6 +231,7 @@ function App() {
 
   console.log('%c[APP] Render Cycle', 'background: #222; color: #bada55', {
     selectedPeerId,
+    peerMapKeys: Array.from(peers.keys()), // Log the keys
     peers,
     selectedPeer: selectedPeer ? { ...selectedPeer } : undefined
   });
