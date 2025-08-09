@@ -30,6 +30,10 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, in
   if (!isOpen) return null;
 
   const handleSave = () => {
+    if (!name.trim()) {
+      alert("Le nom d'utilisateur ne peut pas être vide.");
+      return;
+    }
     onSave({ name, age: Number(age) || undefined, gender }, avatarFile);
     onClose();
   };

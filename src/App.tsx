@@ -348,7 +348,7 @@ function App() {
             </div>
           </div>
           
-          <div className="hidden md:flex items-center gap-4">
+          <div className={`items-center gap-4 ${selectedPeerId ? 'hidden' : 'hidden md:flex'}`}>
             <ConnectionStatus 
               isConnected={isConnected} 
               onReconnect={async () => {

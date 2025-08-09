@@ -26,13 +26,13 @@ const StatusBar: React.FC<StatusBarProps> = ({
           <span>{peerCount} pair(s)</span>
         </div>
         
-        <div className="flex items-center gap-1">
+        <div className="hidden md:flex items-center gap-1">
           <Server size={14} className={isConnected ? 'text-green-500' : 'text-red-500'} />
           <span className="truncate">{signalingUrl}</span>
         </div>
         
         {clientId && (
-          <div className="flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-1">
             <Signal size={14} className="text-purple-500" />
             <span>ID: {clientId.slice(0, 8)}</span>
           </div>
