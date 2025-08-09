@@ -40,6 +40,7 @@ class PeerService extends EventEmitter {
   private dbService: IndexedDBService;
   private blockList: Set<string> = new Set();
   private locationWatcherId: number | null = null;
+  private searchRadius: number = 1.0; // Default 1km radius
 
   private ICE_SERVERS = {
     iceServers: [
@@ -110,7 +111,7 @@ class PeerService extends EventEmitter {
         this.diagnosticService.log('Location updated', { latitude, longitude });
         this.sendToServer({ 
           type: 'update-location', 
-          payload: { location: { latitude, longitude }, radius: 1.0 } // Radius will be configurable later
+          payload: { location: { latitude, longitude }, radius: this.searchRadius }
         });
       },
       (error) => {
@@ -148,19 +149,26 @@ class PeerService extends EventEmitter {
         break;
 
       case 'nearby-peers':
-        const allNearbyPeers = message.peers.map(p => p.peerId);
-        const filteredPeers = message.peers.filter(p => !this.blockList.has(p.peerId));
-        const filteredPeerIds = filteredPeers.map(p => p.peerId);
+        this.diagnosticService.log(`Received nearby-peers: ${message.peers.length} total peers`, message.peers);
+        const allNearbyPeers = message.peers.map((p: any) => p.peerId);
+        const filteredPeers = message.peers.filter((p: any) => !this.blockList.has(p.peerId));
+        const filteredPeerIds = filteredPeers.map((p: any) => p.peerId);
+        
+        this.diagnosticService.log(`Filtered peers: ${filteredPeers.length} (blocked: ${message.peers.length - filteredPeers.length})`);
 
         // Connect to new, unblocked peers
         for (const peer of filteredPeers) {
           if (!this.peerConnections.has(peer.peerId)) {
+            this.diagnosticService.log(`Creating new connection to peer: ${peer.peerId}`);
             this.createPeerConnection(peer.peerId, true);
+          } else {
+            this.diagnosticService.log(`Connection to peer ${peer.peerId} already exists`);
           }
         }
         // Disconnect from peers that are no longer nearby or are blocked
         this.peerConnections.forEach((_, peerId) => {
           if (!filteredPeerIds.includes(peerId)) {
+            this.diagnosticService.log(`Disconnecting from peer no longer nearby: ${peerId}`);
             this.closePeerConnection(peerId);
           }
         });
@@ -401,6 +409,20 @@ class PeerService extends EventEmitter {
 
   public getBlockList(): string[] {
     return Array.from(this.blockList);
+  }
+
+  public setSearchRadius(radius: number) {
+    this.searchRadius = Math.max(0.1, Math.min(radius, 100)); // Limit between 0.1km and 100km
+    this.diagnosticService.log(`Search radius updated to ${this.searchRadius}km`);
+  }
+
+  public getSearchRadius(): number {
+    return this.searchRadius;
+  }
+
+  public requestLanDiscovery() {
+    this.diagnosticService.log('Requesting LAN discovery');
+    this.sendToServer({ type: 'request-lan-discovery' });
   }
 
   public destroy() {

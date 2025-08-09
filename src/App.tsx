@@ -17,7 +17,7 @@ const DEFAULT_SIGNALING_URL = 'wss://chat.pascal-mietlicki.fr';
 
 import { AlertCircle } from 'lucide-react';
 
-const GeolocationError = ({ message, onDismiss }) => (
+const GeolocationError = ({ message, onDismiss }: { message: string; onDismiss: () => void }) => (
   <div className="absolute top-16 left-1/2 -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50">
     <AlertCircle className="h-5 w-5" />
     <span className="block sm:inline">{message}</span>
@@ -46,6 +46,10 @@ function App() {
     () => localStorage.getItem('signalingUrl') || DEFAULT_SIGNALING_URL
   );
   const [tempSignalingUrl, setTempSignalingUrl] = useState(signalingUrl);
+  const [searchRadius, setSearchRadius] = useState(
+    () => parseFloat(localStorage.getItem('searchRadius') || '1.0')
+  );
+  const [tempSearchRadius, setTempSearchRadius] = useState(searchRadius);
 
   const peerService = PeerService.getInstance();
   const profileService = ProfileService.getInstance();
@@ -68,6 +72,7 @@ function App() {
       }
 
       peerService.initialize(profile, signalingUrl);
+      peerService.setSearchRadius(searchRadius);
       setIsInitialized(true);
     };
 
@@ -154,7 +159,10 @@ function App() {
 
   const handleSaveSettings = () => {
     localStorage.setItem('signalingUrl', tempSignalingUrl);
+    localStorage.setItem('searchRadius', tempSearchRadius.toString());
     setSignalingUrl(tempSignalingUrl);
+    setSearchRadius(tempSearchRadius);
+    peerService.setSearchRadius(tempSearchRadius);
     setIsSettingsOpen(false);
     // This will trigger a reconnect via the useEffect hook
   };
@@ -250,19 +258,61 @@ function App() {
                 <X size={24} />
               </button>
             </div>
-            <div>
-              <label htmlFor="signaling-url" className="block text-sm font-medium text-gray-700 mb-2">
-                URL du serveur de signalisation
-              </label>
-              <input
-                type="text"
-                id="signaling-url"
-                value={tempSignalingUrl}
-                onChange={(e) => setTempSignalingUrl(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="wss://votre-serveur.com"
-              />
-            </div>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="signaling-url" className="block text-sm font-medium text-gray-700 mb-2">
+                  URL du serveur de signalisation
+                </label>
+                <input
+                  type="text"
+                  id="signaling-url"
+                  value={tempSignalingUrl}
+                  onChange={(e) => setTempSignalingUrl(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="wss://votre-serveur.com"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="search-radius" className="block text-sm font-medium text-gray-700 mb-2">
+                  Rayon de recherche (km): {tempSearchRadius}
+                </label>
+                <input
+                  type="range"
+                  id="search-radius"
+                  min="0.1"
+                  max="50"
+                  step="0.1"
+                  value={tempSearchRadius}
+                  onChange={(e) => setTempSearchRadius(parseFloat(e.target.value))}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>0.1 km</span>
+                  <span>50 km</span>
+                </div>
+                <p className="text-xs text-gray-600 mt-2">
+                   Augmentez le rayon si vous ne voyez aucun peer. Un rayon plus large peut aider à trouver d'autres utilisateurs.
+                 </p>
+               </div>
+               
+               <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                   Mode de test
+                 </label>
+                 <button
+                    onClick={() => {
+                      peerService.requestLanDiscovery();
+                    }}
+                    className="w-full px-3 py-2 bg-yellow-100 text-yellow-800 border border-yellow-300 rounded-md hover:bg-yellow-200 text-sm"
+                  >
+                   Forcer la découverte LAN
+                 </button>
+                 <p className="text-xs text-gray-600 mt-1">
+                   Essaie de découvrir des peers sur le réseau local si la géolocalisation ne fonctionne pas.
+                 </p>
+               </div>
+             </div>
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={() => setIsSettingsOpen(false)}
@@ -300,7 +350,8 @@ function App() {
               isConnected={isConnected} 
               onReconnect={async () => {
                 // Reconnect logic - reinitialize the peer service
-                await peerService.initialize(myId, userProfile, signalingUrl);
+                await peerService.initialize(userProfile, signalingUrl);
+                peerService.setSearchRadius(searchRadius);
               }}
             />
             
