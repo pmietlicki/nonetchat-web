@@ -200,11 +200,12 @@ class PeerService extends EventEmitter {
       const existingPc = this.peerConnections.get(peerId);
       this.diagnosticService.log(`Connection to ${peerId} already exists, state: ${existingPc?.connectionState}, signaling: ${existingPc?.signalingState}`);
       
-      // If the existing connection is failed or disconnected, remove it
-      if (existingPc && (existingPc.connectionState === 'failed' || existingPc.connectionState === 'disconnected')) {
-        this.diagnosticService.log(`Removing failed connection to ${peerId}`);
+      // If the existing connection is not connected, remove it and create a new one
+      if (existingPc && existingPc.connectionState !== 'connected') {
+        this.diagnosticService.log(`Removing non-connected connection to ${peerId} (state: ${existingPc.connectionState})`);
         this.closePeerConnection(peerId);
-      } else {
+      } else if (existingPc && existingPc.connectionState === 'connected') {
+        this.diagnosticService.log(`Connection to ${peerId} is already connected, skipping`);
         return;
       }
     }
