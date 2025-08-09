@@ -131,9 +131,11 @@ class PeerService extends EventEmitter {
 
     this.diagnosticService.log('Received message from server', message);
     switch (message.type) {
-      case 'all-peers':
-        const allPeers = message.peers.filter((id: string) => !this.blockList.has(id));
+      case 'nearby-peers':
+        const allPeers = message.peers.map((p: any) => p.peerId).filter((id: string) => !this.blockList.has(id));
+        
         this.lastSeen = new Map(allPeers.map((id: string) => [id, Date.now()]));
+
         for (const peerId of allPeers) {
           if (!this.peerConnections.has(peerId)) {
             this.createPeerConnection(peerId);
