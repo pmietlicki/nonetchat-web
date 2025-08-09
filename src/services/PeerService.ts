@@ -259,6 +259,12 @@ class PeerService extends EventEmitter {
     };
 
     channel.onmessage = async (event) => {
+      if (event.data instanceof ArrayBuffer) {
+        this.diagnosticService.log(`[${peerId}] Received binary file chunk`);
+        this.emit('file-chunk', peerId, event.data);
+        return;
+      }
+
       const message = JSON.parse(event.data);
       this.diagnosticService.log(`[${peerId}] Received message over data channel`, message);
 
