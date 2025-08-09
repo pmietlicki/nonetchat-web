@@ -40,7 +40,9 @@ class PeerService extends EventEmitter {
   private diagnosticService: DiagnosticService;
   private dbService: IndexedDBService;
   private blockList: Set<string> = new Set();
+  private lastSeen: Map<string, number> = new Map(); // Keep track of when a peer was last seen
   private locationWatcherId: number | null = null;
+  private pruneInterval: number | null = null;
   private searchRadius: number = 1.0; // Default 1km radius
   private connectionCheckInterval: number | null = null;
   private reconnectAttempts: Map<string, number> = new Map();
@@ -84,7 +86,7 @@ class PeerService extends EventEmitter {
     this.ws.onopen = () => {
       this.diagnosticService.log('WebSocket connection opened');
       this.startLocationUpdates();
-      this.startConnectionMonitoring();
+      this.startPruningInterval(); // Start the cleanup routine
     };
 
     this.ws.onmessage = (event) => {
@@ -132,6 +134,23 @@ class PeerService extends EventEmitter {
     if (this.locationWatcherId !== null) {
       navigator.geolocation.clearWatch(this.locationWatcherId);
     }
+  }
+
+  private startPruningInterval() {
+    const PRUNE_INTERVAL = 30000; // 30 seconds
+    const GRACE_PERIOD = 60000; // 60 seconds
+
+    this.pruneInterval = window.setInterval(() => {
+      const now = Date.now();
+      this.peerConnections.forEach((pc, peerId) => {
+        const lastSeenTime = this.lastSeen.get(peerId) || 0;
+        if (now - lastSeenTime > GRACE_PERIOD) {
+          this.diagnosticService.log(`Peer ${peerId} has not been seen for over ${GRACE_PERIOD / 1000}s. Pruning connection.`);
+          this.closePeerConnection(peerId);
+          this.lastSeen.delete(peerId);
+        }
+      });
+    }, PRUNE_INTERVAL);
   }
 
   private startConnectionMonitoring() {
@@ -184,9 +203,9 @@ class PeerService extends EventEmitter {
         this.diagnosticService.log(`Received nearby-peers: ${message.peers.length} total peers`, message.peers);
         const allNearbyPeers = message.peers.map((p: any) => p.peerId);
         const filteredPeers = message.peers.filter((p: any) => !this.blockList.has(p.peerId));
-        const filteredPeerIds = filteredPeers.map((p: any) => p.peerId);
-        
-        this.diagnosticService.log(`Filtered peers: ${filteredPeers.length} (blocked: ${message.peers.length - filteredPeers.length})`);
+
+        // Update last seen timestamp for all nearby peers
+        filteredPeers.forEach((p: any) => this.lastSeen.set(p.peerId, Date.now()));
 
         // Connect to new, unblocked peers
         for (const peer of filteredPeers) {
@@ -194,13 +213,7 @@ class PeerService extends EventEmitter {
             this.createPeerConnection(peer.peerId);
           }
         }
-        // Disconnect from peers that are no longer nearby or are blocked
-        this.peerConnections.forEach((_, peerId) => {
-          if (!filteredPeerIds.includes(peerId)) {
-            this.diagnosticService.log(`Disconnecting from peer no longer nearby: ${peerId}`);
-            this.closePeerConnection(peerId);
-          }
-        });
+        // NOTE: We no longer close connections immediately. The pruning interval will handle stale peers.
         break;
 
       case 'offer':
@@ -614,9 +627,9 @@ class PeerService extends EventEmitter {
   public destroy() {
     this.diagnosticService.log('Destroying PeerService');
     this.stopLocationUpdates();
-    if (this.connectionCheckInterval !== null) {
-      clearInterval(this.connectionCheckInterval);
-      this.connectionCheckInterval = null;
+    if (this.pruneInterval) {
+      clearInterval(this.pruneInterval);
+      this.pruneInterval = null;
     }
     this.ws?.close();
     this.peerConnections.forEach((pc, peerId) => {
@@ -624,7 +637,6 @@ class PeerService extends EventEmitter {
     });
     this.peerConnections.clear();
     this.dataChannels.clear();
-    this.reconnectAttempts.clear();
     this.myId = '';
   }
 }
