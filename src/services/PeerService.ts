@@ -312,6 +312,8 @@ class PeerService extends EventEmitter {
       }
 
       const message = JSON.parse(event.data);
+      this.diagnosticService.log(`[${peerId}] Received message over data channel`, message);
+
       if (message.type === 'key-exchange') {
         await this.cryptoService.deriveSharedSecret(peerId, message.payload);
         const profileToSend = { ...this.myProfile, status: 'online' }; // Explicitly set status to online
@@ -462,6 +464,7 @@ class PeerService extends EventEmitter {
         if (message.type === 'chat-message') {
           payload = await this.cryptoService.encryptMessage(peerId, payload);
         }
+        this.diagnosticService.log(`[${peerId}] Sending message over data channel`, { type: message.type });
         dataChannel.send(JSON.stringify({ ...message, payload }));
         return true;
       } catch (error) {
