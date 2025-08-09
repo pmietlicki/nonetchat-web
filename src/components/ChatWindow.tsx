@@ -40,6 +40,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   const peerService = PeerService.getInstance();
   const dbService = IndexedDBService.getInstance();
 
+  const fileReceivers = useRef<Map<string, { chunks: ArrayBuffer[], metadata: any }>>(new Map());
+
   const handleData = useCallback((peerId: string, data: any) => {
     if (peerId !== selectedPeer.id) return;
 
@@ -55,8 +57,47 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         encrypted: true,
         status: 'delivered',
       });
+    } else if (data.type === 'file-start') {
+      fileReceivers.current.set(data.messageId, { chunks: [], metadata: data.payload });
+      addMessage({
+        id: data.messageId,
+        senderId: peerId,
+        receiverId: myId,
+        content: `Réception du fichier: ${data.payload.name}`,
+        timestamp: Date.now(),
+        type: 'file',
+        encrypted: true,
+        status: 'delivered',
+        fileData: { ...data.payload, url: '' }
+      });
+    } else if (data.type === 'file-chunk') {
+      // This part needs to be handled carefully as raw ArrayBuffers are not sent via this event handler anymore
+    } else if (data.type === 'file-end') {
+      const receiver = fileReceivers.current.get(data.messageId);
+      if (receiver) {
+        const file = new Blob(receiver.chunks, { type: receiver.metadata.type });
+        const url = URL.createObjectURL(file);
+        // Update the message to make the file downloadable
+        setMessages(prev => prev.map(m => 
+          m.id === data.messageId ? { ...m, content: receiver.metadata.name, fileData: { ...receiver.metadata, url } } : m
+        ));
+        fileReceivers.current.delete(data.messageId);
+      }
     }
-    // Gérer la réception de fichiers ici si nécessaire
+  }, [selectedPeer.id, myId]);
+
+  const handleFileChunk = useCallback((peerId: string, chunk: ArrayBuffer) => {
+    if (peerId !== selectedPeer.id) return;
+    // This assumes we can associate the chunk with an ongoing transfer.
+    // The current protocol needs enhancement to link chunks to a fileId.
+    // For now, we find the latest active file transfer.
+    const lastFileTransferId = Array.from(fileReceivers.current.keys()).pop();
+    if (lastFileTransferId) {
+        const receiver = fileReceivers.current.get(lastFileTransferId);
+        if (receiver) {
+            receiver.chunks.push(chunk);
+        }
+    }
   }, [selectedPeer.id]);
 
   const handleMessageDelivered = useCallback((peerId: string, messageId: string) => {
@@ -86,6 +127,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     markAsRead();
 
     peerService.on('data', handleData);
+    peerService.on('file-chunk', handleFileChunk); // Listen for raw file chunks
     peerService.on('message-delivered', handleMessageDelivered);
     peerService.on('message-read', handleMessageRead);
 
@@ -93,6 +135,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       // Check if peerService still exists and has removeListener method
       if (peerService && typeof peerService.removeListener === 'function') {
         peerService.removeListener('data', handleData);
+        peerService.removeListener('file-chunk', handleFileChunk);
         peerService.removeListener('message-delivered', handleMessageDelivered);
         peerService.removeListener('message-read', handleMessageRead);
       }

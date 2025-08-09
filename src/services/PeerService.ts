@@ -353,6 +353,67 @@ class PeerService extends EventEmitter {
     this.sendToPeer(peerId, { type: 'chat-message', payload: content, messageId });
   }
 
+  public sendFile(peerId: string, file: File, messageId: string) {
+    const dataChannel = this.dataChannels.get(peerId);
+    if (!dataChannel || dataChannel.readyState !== 'open') {
+      this.diagnosticService.log(`Cannot send file to ${peerId}, data channel not open. Queuing not yet supported for files.`);
+      // TODO: Queue file transfers
+      return;
+    }
+
+    const CHUNK_SIZE = 16384; // 16 KiB
+    this.diagnosticService.log(`Starting file transfer: ${messageId}`, { name: file.name, size: file.size });
+
+    // 1. Send file metadata first
+    this.sendToPeer(peerId, { 
+      type: 'file-start', 
+      messageId,
+      payload: { name: file.name, size: file.size, type: file.type }
+    });
+
+    // 2. Send file in chunks with backpressure management
+    let offset = 0;
+    const fileReader = new FileReader();
+    
+    const readSlice = (o: number) => {
+      try {
+        const slice = file.slice(o, o + CHUNK_SIZE);
+        fileReader.readAsArrayBuffer(slice);
+      } catch (e) {
+        this.diagnosticService.log('File slice error', e);
+      }
+    };
+
+    fileReader.onload = (e) => {
+      if (!e.target?.result) {
+        this.diagnosticService.log('File read error');
+        return;
+      }
+
+      const chunk = e.target.result as ArrayBuffer;
+      
+      // Backpressure check
+      if (dataChannel.bufferedAmount > CHUNK_SIZE * 16) {
+        this.diagnosticService.log('Backpressure detected, pausing file send');
+        setTimeout(() => readSlice(offset), 100);
+        return;
+      }
+
+      offset += chunk.byteLength;
+      // Send the actual chunk as a raw ArrayBuffer
+      dataChannel.send(chunk);
+
+      if (offset < file.size) {
+        readSlice(offset);
+      } else {
+        this.diagnosticService.log(`File transfer complete: ${messageId}`);
+        this.sendToPeer(peerId, { type: 'file-end', messageId, payload: {} });
+      }
+    };
+
+    readSlice(0);
+  }
+
   public sendMessageDeliveredAck(peerId: string, messageId: string) {
     this.sendToPeer(peerId, { type: 'message-delivered', payload: null, messageId });
   }
