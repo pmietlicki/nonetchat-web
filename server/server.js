@@ -1,3 +1,4 @@
+
 import { WebSocketServer } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -33,21 +34,25 @@ function broadcastPeerUpdates() {
     clients.forEach((otherClient, otherClientId) => {
       if (clientId === otherClientId) return;
 
-      // Geo-discovery mode
-      if (client.discoveryMode === 'geo' && otherClient.discoveryMode === 'geo') {
+      let isNearby = false;
+      let distanceInfo = {};
+
+      // Priority 1: Check for same Local Area Network (LAN)
+      if (client.ip === otherClient.ip) {
+        isNearby = true;
+        distanceInfo = { distance: 'LAN' };
+      }
+      // Priority 2: Check for geolocation proximity (if not on same LAN)
+      else if (client.discoveryMode === 'geo' && otherClient.discoveryMode === 'geo') {
         const distance = getDistance(client.location, otherClient.location);
         if (distance < client.radius && distance < otherClient.radius) {
-          nearbyPeers.push({ 
-            peerId: otherClientId,
-            distance: distance.toFixed(2) // Distance in km
-          });
+          isNearby = true;
+          distanceInfo = { distance: distance.toFixed(2) + ' km' };
         }
-      } 
-      // LAN-discovery mode
-      else if (client.discoveryMode === 'lan' && otherClient.discoveryMode === 'lan') {
-        if (client.ip === otherClient.ip) {
-          nearbyPeers.push({ peerId: otherClientId, distance: 'LAN' });
-        }
+      }
+
+      if (isNearby) {
+        nearbyPeers.push({ peerId: otherClientId, ...distanceInfo });
       }
     });
     sendTo(client.ws, { type: 'nearby-peers', peers: nearbyPeers });
@@ -58,9 +63,9 @@ function broadcastPeerUpdates() {
 
 wss.on('connection', (ws, req) => {
   const clientId = uuidv4();
-  const ip = req.socket.remoteAddress;
+  // Use x-forwarded-for header if available (for proxies), otherwise fallback to remoteAddress
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   
-  // Initialize client with default geo mode
   clients.set(clientId, { ws, ip, isAlive: true, radius: 1.0, location: null, discoveryMode: 'geo' });
   console.log(`Client ${clientId} connected from IP ${ip}`);
 
@@ -84,7 +89,7 @@ wss.on('connection', (ws, req) => {
       case 'update-location':
         clientData.location = payload.location;
         clientData.radius = payload.radius || clientData.radius;
-        clientData.discoveryMode = 'geo'; // Explicitly set to geo mode
+        clientData.discoveryMode = 'geo';
         console.log(`Client ${clientId} updated location:`, clientData.location, `radius: ${clientData.radius}km`);
         broadcastPeerUpdates();
         break;
