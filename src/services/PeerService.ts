@@ -4,8 +4,9 @@ import IndexedDBService from './IndexedDBService';
 import { DiagnosticService } from './DiagnosticService';
 
 export interface PeerMessage {
-  type: 'profile' | 'chat-message' | 'key-exchange' | 'file-start' | 'file-chunk' | 'file-end';
+  type: 'profile' | 'chat-message' | 'key-exchange' | 'file-start' | 'file-chunk' | 'file-end' | 'message-delivered' | 'message-read';
   payload: any;
+  messageId?: string;
 }
 
 class EventEmitter {
@@ -276,7 +277,16 @@ class PeerService extends EventEmitter {
         this.sendToPeer(peerId, { type: 'profile', payload: profileToSend });
       } else if (message.type === 'chat-message') {
         const decrypted = await this.cryptoService.decryptMessage(peerId, message.payload);
-        this.emit('data', peerId, { type: 'chat-message', payload: decrypted });
+        this.emit('data', peerId, { type: 'chat-message', payload: decrypted, messageId: message.messageId });
+        
+        // Envoyer automatiquement un accusé de réception de livraison
+        if (message.messageId) {
+          this.sendMessageDeliveredAck(peerId, message.messageId);
+        }
+      } else if (message.type === 'message-delivered') {
+        this.emit('message-delivered', peerId, message.messageId);
+      } else if (message.type === 'message-read') {
+        this.emit('message-read', peerId, message.messageId);
       } else {
         this.emit('data', peerId, message);
       }
@@ -339,8 +349,16 @@ class PeerService extends EventEmitter {
     }
   }
 
-  public sendMessage(peerId: string, content: string) {
-    this.sendToPeer(peerId, { type: 'chat-message', payload: content });
+  public sendMessage(peerId: string, content: string, messageId?: string) {
+    this.sendToPeer(peerId, { type: 'chat-message', payload: content, messageId });
+  }
+
+  public sendMessageDeliveredAck(peerId: string, messageId: string) {
+    this.sendToPeer(peerId, { type: 'message-delivered', payload: null, messageId });
+  }
+
+  public sendMessageReadAck(peerId: string, messageId: string) {
+    this.sendToPeer(peerId, { type: 'message-read', payload: null, messageId });
   }
 
   private async loadBlockList() {

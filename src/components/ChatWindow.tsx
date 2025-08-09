@@ -4,6 +4,7 @@ import PeerService from '../services/PeerService';
 import IndexedDBService from '../services/IndexedDBService';
 import { Send, Paperclip, ArrowLeft } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
+import MessageStatusIndicator from './MessageStatusIndicator';
 
 interface ChatWindowProps {
   selectedPeer: User;
@@ -14,9 +15,12 @@ interface ChatWindowProps {
 interface Message {
   id: string;
   senderId: string;
+  receiverId: string;
   content: string;
   timestamp: number;
   type: 'text' | 'file';
+  encrypted: boolean;
+  status: 'sending' | 'sent' | 'delivered' | 'read';
   fileData?: {
     name: string;
     size: number;
@@ -40,15 +44,41 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     if (peerId !== selectedPeer.id) return;
 
     if (data.type === 'chat-message') {
+      const messageId = data.messageId || uuidv4();
       addMessage({
-        id: uuidv4(),
+        id: messageId,
         senderId: peerId,
+        receiverId: myId,
         content: data.payload,
         timestamp: Date.now(),
         type: 'text',
+        encrypted: true,
+        status: 'delivered',
       });
     }
     // Gérer la réception de fichiers ici si nécessaire
+  }, [selectedPeer.id]);
+
+  const handleMessageDelivered = useCallback((peerId: string, messageId: string) => {
+    if (peerId !== selectedPeer.id) return;
+    
+    // Mettre à jour le statut du message en base
+    dbService.updateMessageStatus(messageId, 'delivered');
+    // Mettre à jour l'état local
+    setMessages(prev => prev.map(m => 
+      m.id === messageId ? { ...m, status: 'delivered' } : m
+    ));
+  }, [selectedPeer.id]);
+
+  const handleMessageRead = useCallback((peerId: string, messageId: string) => {
+    if (peerId !== selectedPeer.id) return;
+    
+    // Mettre à jour le statut du message en base
+    dbService.updateMessageStatus(messageId, 'read');
+    // Mettre à jour l'état local
+    setMessages(prev => prev.map(m => 
+      m.id === messageId ? { ...m, status: 'read' } : m
+    ));
   }, [selectedPeer.id]);
 
   useEffect(() => {
@@ -56,11 +86,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     markAsRead();
 
     peerService.on('data', handleData);
+    peerService.on('message-delivered', handleMessageDelivered);
+    peerService.on('message-read', handleMessageRead);
 
     return () => {
       // Check if peerService still exists and has removeListener method
       if (peerService && typeof peerService.removeListener === 'function') {
         peerService.removeListener('data', handleData);
+        peerService.removeListener('message-delivered', handleMessageDelivered);
+        peerService.removeListener('message-read', handleMessageRead);
       }
     };
   }, [selectedPeer.id, handleData]);
@@ -95,6 +129,24 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   const markAsRead = async () => {
     try {
       await dbService.markConversationAsRead(selectedPeer.id);
+      
+      // Envoyer des accusés de lecture pour tous les messages non lus du peer
+      const unreadMessages = messages.filter(m => 
+        m.senderId === selectedPeer.id && 
+        (m.status === 'delivered' || m.status === 'sent')
+      );
+      
+      for (const message of unreadMessages) {
+        peerService.sendMessageReadAck(selectedPeer.id, message.id);
+        await dbService.updateMessageStatus(message.id, 'read');
+      }
+      
+      // Mettre à jour l'état local
+      setMessages(prev => prev.map(m => 
+        m.senderId === selectedPeer.id && (m.status === 'delivered' || m.status === 'sent')
+          ? { ...m, status: 'read' }
+          : m
+      ));
     } catch (error) {
       console.error('Error marking as read:', error);
     }
@@ -108,13 +160,17 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     if (selectedFile) {
       setIsUploading(true);
       try {
-        await peerService.sendFile(selectedPeer.id, selectedFile);
+        // TODO: Implémenter sendFile dans PeerService
+        // await peerService.sendFile(selectedPeer.id, selectedFile);
         addMessage({
           id: uuidv4(),
           senderId: myId,
+          receiverId: selectedPeer.id,
           content: selectedFile.name,
           timestamp: Date.now(),
           type: 'file',
+          encrypted: true,
+          status: 'sending',
           fileData: {
             name: selectedFile.name,
             size: selectedFile.size,
@@ -137,18 +193,23 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         addMessage({
           id: messageId,
           senderId: myId,
+          receiverId: selectedPeer.id,
           content: messageContent,
           timestamp: Date.now(),
           type: 'text',
+          encrypted: true,
+          status: 'sending',
         });
         setNewMessage('');
         
         try {
-          const sent = await peerService.sendMessage(selectedPeer.id, messageContent);
-          if (!sent) {
-            console.warn('Message mis en queue - connexion non disponible');
-            // Le message reste affiché, il sera envoyé quand la connexion sera rétablie
-          }
+          await peerService.sendMessage(selectedPeer.id, messageContent, messageId);
+          // Message envoyé avec succès, mettre à jour le statut
+          await dbService.updateMessageStatus(messageId, 'sent');
+          // Mettre à jour l'état local
+          setMessages(prev => prev.map(m => 
+            m.id === messageId ? { ...m, status: 'sent' } : m
+          ));
         } catch (error) {
           console.error('Erreur lors de l\'envoi du message:', error);
           // Le message sera mis en queue automatiquement par PeerService
@@ -194,7 +255,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
           <div key={msg.id} className={`flex ${msg.senderId === myId ? 'justify-end' : 'justify-start'} mb-4`}>
             <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${msg.senderId === myId ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
               <span>{msg.content}</span>
-              <div className="text-xs mt-1 opacity-75">{new Date(msg.timestamp).toLocaleTimeString()}</div>
+              <div className="flex items-center justify-between mt-1">
+                <div className="text-xs opacity-75">{new Date(msg.timestamp).toLocaleTimeString()}</div>
+                {msg.senderId === myId && (
+                  <MessageStatusIndicator status={msg.status} className="ml-2" />
+                )}
+              </div>
             </div>
           </div>
         ))}

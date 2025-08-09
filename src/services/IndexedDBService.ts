@@ -6,6 +6,7 @@ interface StoredMessage {
   timestamp: number;
   type: 'text' | 'file';
   encrypted: boolean;
+  status: 'sending' | 'sent' | 'delivered' | 'read';
   fileData?: {
     name: string;
     size: number;
@@ -28,7 +29,7 @@ class IndexedDBService {
   private static instance: IndexedDBService;
   private db: IDBDatabase | null = null;
   private readonly dbName = 'NoNetChatWeb';
-  private readonly version = 4; // Version incrémentée pour la migration
+  private readonly version = 5; // Version incrémentée pour ajouter le champ status aux messages
 
   public static getInstance(): IndexedDBService {
     if (!IndexedDBService.instance) {
@@ -78,6 +79,23 @@ class IndexedDBService {
         // Ajout du store pour la liste de blocage
         if (!db.objectStoreNames.contains('blockList')) {
           db.createObjectStore('blockList', { keyPath: 'peerId' });
+        }
+
+        // Migration pour ajouter le champ status aux messages existants
+        if (event.oldVersion < 5) {
+          const transaction = (event.target as IDBOpenDBRequest).transaction!;
+          const messageStore = transaction.objectStore('messages');
+          const getAllRequest = messageStore.getAll();
+          
+          getAllRequest.onsuccess = () => {
+            const messages = getAllRequest.result;
+            messages.forEach(message => {
+              if (!message.status) {
+                message.status = 'delivered'; // Statut par défaut pour les anciens messages
+                messageStore.put(message);
+              }
+            });
+          };
         }
       };
     });
@@ -224,6 +242,30 @@ class IndexedDBService {
       const store = transaction.objectStore('conversations');
       await store.put(conversation);
     }
+  }
+
+  async updateMessageStatus(messageId: string, status: 'sending' | 'sent' | 'delivered' | 'read'): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['messages'], 'readwrite');
+      const store = transaction.objectStore('messages');
+      const getRequest = store.get(messageId);
+
+      getRequest.onsuccess = () => {
+        const message = getRequest.result;
+        if (message) {
+          message.status = status;
+          const putRequest = store.put(message);
+          putRequest.onsuccess = () => resolve();
+          putRequest.onerror = () => reject(putRequest.error);
+        } else {
+          resolve(); // Message not found, but don't error
+        }
+      };
+
+      getRequest.onerror = () => reject(getRequest.error);
+    });
   }
 
   async updateConversationParticipant(conversationId: string, name: string, avatar: string): Promise<void> {
