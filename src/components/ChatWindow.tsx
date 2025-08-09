@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { User } from '../types';
 import PeerService from '../services/PeerService';
 import IndexedDBService from '../services/IndexedDBService';
-import { Send, Paperclip, Download, FileText, Image as ImageIcon, ArrowLeft } from 'lucide-react';
+import { Send, Paperclip, ArrowLeft } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
 interface ChatWindowProps {
@@ -29,7 +29,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
