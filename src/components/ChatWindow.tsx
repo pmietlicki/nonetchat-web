@@ -106,33 +106,54 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
   const handleSendMessage = async () => {
     if (selectedFile) {
-      peerService.sendFile(selectedPeer.id, selectedFile);
-      // We'll add a local message indicating file transfer has started
-      addMessage({
-        id: uuidv4(),
-        senderId: myId,
-        content: `Envoi du fichier: ${selectedFile.name}`,
-        timestamp: Date.now(),
-        type: 'file',
-        fileData: {
-          name: selectedFile.name,
-          size: selectedFile.size,
-          type: selectedFile.type,
-          url: '' // Will be populated on completion
-        }
-      });
-      setSelectedFile(null);
+      setIsUploading(true);
+      try {
+        await peerService.sendFile(selectedPeer.id, selectedFile);
+        addMessage({
+          id: uuidv4(),
+          senderId: myId,
+          content: selectedFile.name,
+          timestamp: Date.now(),
+          type: 'file',
+          fileData: {
+            name: selectedFile.name,
+            size: selectedFile.size,
+            type: selectedFile.type,
+            url: '' // Will be populated on completion
+          }
+        });
+        setSelectedFile(null);
+      } catch (error) {
+        console.error('Erreur lors de l\'envoi du fichier:', error);
+        // Le fichier sera mis en queue automatiquement par PeerService
+      } finally {
+        setIsUploading(false);
+      }
     } else if (newMessage.trim()) {
-      peerService.sendMessage(selectedPeer.id, newMessage);
-      addMessage({
-        id: uuidv4(),
-        senderId: myId,
-        content: newMessage,
-        timestamp: Date.now(),
-        type: 'text',
-      });
-      setNewMessage('');
-    }
+        const messageContent = newMessage;
+        const messageId = uuidv4();
+        
+        // Ajouter le message immédiatement avec un statut "en cours d'envoi"
+        addMessage({
+          id: messageId,
+          senderId: myId,
+          content: messageContent,
+          timestamp: Date.now(),
+          type: 'text',
+        });
+        setNewMessage('');
+        
+        try {
+          const sent = await peerService.sendMessage(selectedPeer.id, messageContent);
+          if (!sent) {
+            console.warn('Message mis en queue - connexion non disponible');
+            // Le message reste affiché, il sera envoyé quand la connexion sera rétablie
+          }
+        } catch (error) {
+          console.error('Erreur lors de l\'envoi du message:', error);
+          // Le message sera mis en queue automatiquement par PeerService
+        }
+      }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

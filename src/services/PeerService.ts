@@ -42,6 +42,9 @@ class PeerService extends EventEmitter {
   private blockList: Set<string> = new Set();
   private locationWatcherId: number | null = null;
   private searchRadius: number = 1.0; // Default 1km radius
+  private connectionCheckInterval: number | null = null;
+  private reconnectAttempts: Map<string, number> = new Map();
+  private readonly MAX_RECONNECT_ATTEMPTS = 3;
 
   private ICE_SERVERS = {
     iceServers: [
@@ -81,6 +84,7 @@ class PeerService extends EventEmitter {
     this.ws.onopen = () => {
       this.diagnosticService.log('WebSocket connection opened');
       this.startLocationUpdates();
+      this.startConnectionMonitoring();
     };
 
     this.ws.onmessage = (event) => {
@@ -127,6 +131,33 @@ class PeerService extends EventEmitter {
   private stopLocationUpdates() {
     if (this.locationWatcherId !== null) {
       navigator.geolocation.clearWatch(this.locationWatcherId);
+    }
+  }
+
+  private startConnectionMonitoring() {
+    // Check connection health every 30 seconds
+    this.connectionCheckInterval = window.setInterval(() => {
+      this.checkConnectionHealth();
+    }, 30000);
+  }
+
+  private checkConnectionHealth() {
+    for (const [peerId, pc] of this.peerConnections) {
+      if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+        const attempts = this.reconnectAttempts.get(peerId) || 0;
+        if (attempts < this.MAX_RECONNECT_ATTEMPTS) {
+          this.diagnosticService.log(`Connection to ${peerId} is ${pc.connectionState}, attempting reconnect (${attempts + 1}/${this.MAX_RECONNECT_ATTEMPTS})`);
+          this.reconnectAttempts.set(peerId, attempts + 1);
+          this.handleConnectionFailure(peerId);
+        } else {
+          this.diagnosticService.log(`Max reconnect attempts reached for ${peerId}, closing connection`);
+          this.closePeerConnection(peerId);
+          this.reconnectAttempts.delete(peerId);
+        }
+      } else if (pc.connectionState === 'connected') {
+        // Reset reconnect attempts on successful connection
+        this.reconnectAttempts.delete(peerId);
+      }
     }
   }
 
@@ -256,12 +287,15 @@ class PeerService extends EventEmitter {
       this.emit('peer-joined', peerId);
 
       // Send any queued messages
-      const queue = this.messageQueue.get(peerId);
-      if (queue) {
-        this.diagnosticService.log(`Sending ${queue.length} queued messages to ${peerId}`);
-        queue.forEach(message => this.sendToPeer(peerId, message));
-        this.messageQueue.delete(peerId);
-      }
+        const queue = this.messageQueue.get(peerId) || [];
+        if (queue.length > 0) {
+          this.diagnosticService.log(`Sending ${queue.length} queued messages to ${peerId}`);
+          // Process the queue sequentially, awaiting each send
+          for (const msg of queue) {
+            await this.sendToPeer(peerId, msg);
+          }
+          this.messageQueue.delete(peerId);
+        }
 
       // Exchange keys and profile info
       const myPublicKey = await this.cryptoService.getPublicKeyJwk();
@@ -296,7 +330,19 @@ class PeerService extends EventEmitter {
 
     channel.onclose = () => {
       this.diagnosticService.log(`Data channel with ${peerId} closed.`);
-      this.closePeerConnection(peerId);
+      // Emit peer-left but don't immediately close the connection
+      // The connection might recover
+      this.emit('peer-left', peerId);
+    };
+
+    channel.onerror = (error) => {
+      this.diagnosticService.log(`Data channel error with ${peerId}:`, error);
+      // Try to recover the connection
+      setTimeout(() => {
+        if (!this.dataChannels.has(peerId) || this.dataChannels.get(peerId)?.readyState !== 'open') {
+          this.handleConnectionFailure(peerId);
+        }
+      }, 1000); // Wait 1 second before attempting recovery
     };
   }
 
@@ -407,66 +453,117 @@ class PeerService extends EventEmitter {
     this.emit('peer-left', peerId);
   }
 
-  public async sendToPeer(peerId: string, message: PeerMessage) {
+  public async sendToPeer(peerId: string, message: PeerMessage): Promise<boolean> {
     const dataChannel = this.dataChannels.get(peerId);
     
     if (dataChannel && dataChannel.readyState === 'open') {
-      let payload = message.payload;
-      if (message.type === 'chat-message') {
-        payload = await this.cryptoService.encryptMessage(peerId, payload);
+      try {
+        let payload = message.payload;
+        if (message.type === 'chat-message') {
+          payload = await this.cryptoService.encryptMessage(peerId, payload);
+        }
+        dataChannel.send(JSON.stringify({ ...message, payload }));
+        return true;
+      } catch (error) {
+        this.diagnosticService.log(`Error sending message to ${peerId}:`, error);
+        // Queue the message for retry
+        if (!this.messageQueue.has(peerId)) {
+          this.messageQueue.set(peerId, []);
+        }
+        this.messageQueue.get(peerId)!.push(message);
+        return false;
       }
-      dataChannel.send(JSON.stringify({ ...message, payload }));
     } else {
       this.diagnosticService.log(`Data channel to ${peerId} not open. Queuing message.`, message.type);
       if (!this.messageQueue.has(peerId)) {
         this.messageQueue.set(peerId, []);
       }
       this.messageQueue.get(peerId)!.push(message);
+      return false;
     }
   }
 
-  public sendMessage(peerId: string, content: string) {
-    this.sendToPeer(peerId, { type: 'chat-message', payload: content });
+  public async sendMessage(peerId: string, content: string): Promise<boolean> {
+    return this.sendToPeer(peerId, { type: 'chat-message', payload: content });
   }
 
-  public async sendFile(peerId: string, file: File) {
-    const dataChannel = this.dataChannels.get(peerId);
-    if (!dataChannel || dataChannel.readyState !== 'open') {
-      this.diagnosticService.log(`Cannot send file to ${peerId}, data channel not open.`);
-      return;
-    }
-
-    const CHUNK_SIZE = 16 * 1024; // 16KB
-    const fileId = `${Date.now()}-${file.name}`;
-
-    // 1. Send file metadata
-    this.sendToPeer(peerId, { 
-      type: 'file-start', 
-      payload: { fileId, name: file.name, size: file.size, type: file.type }
-    });
-
-    // 2. Send file in chunks
-    let offset = 0;
-    const fileReader = new FileReader();
-    fileReader.onload = (e) => {
-      if (e.target?.result) {
-        this.sendToPeer(peerId, { 
-          type: 'file-chunk', 
-          payload: { fileId, chunk: e.target.result as ArrayBuffer }
-        });
-        offset += (e.target.result as ArrayBuffer).byteLength;
-        if (offset < file.size) {
-          readSlice(offset);
-        }
+  public async sendFile(peerId: string, file: File): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      const dataChannel = this.dataChannels.get(peerId);
+      if (!dataChannel || dataChannel.readyState !== 'open') {
+        this.diagnosticService.log(`Cannot send file to ${peerId}, data channel not open.`);
+        resolve(false);
+        return;
       }
-    };
 
-    const readSlice = (o: number) => {
-      const slice = file.slice(o, o + CHUNK_SIZE);
-      fileReader.readAsArrayBuffer(slice);
-    };
+      const CHUNK_SIZE = 16 * 1024; // 16KB
+      const fileId = `${Date.now()}-${file.name}`;
+      let offset = 0;
+      let hasError = false;
 
-    readSlice(0);
+      // 1. Send file metadata
+      this.sendToPeer(peerId, { 
+        type: 'file-start', 
+        payload: { fileId, name: file.name, size: file.size, type: file.type }
+      }).then(sent => {
+        if (!sent) {
+          resolve(false);
+          return;
+        }
+        
+        // 2. Send file in chunks
+        const fileReader = new FileReader();
+        
+        fileReader.onload = async (e) => {
+          if (hasError) return;
+          
+          if (e.target?.result) {
+            try {
+              const sent = await this.sendToPeer(peerId, { 
+                type: 'file-chunk', 
+                payload: { fileId, chunk: e.target.result as ArrayBuffer }
+              });
+              
+              if (!sent) {
+                hasError = true;
+                resolve(false);
+                return;
+              }
+              
+              offset += (e.target.result as ArrayBuffer).byteLength;
+              
+              if (offset >= file.size) {
+                // Send end marker
+                const endSent = await this.sendToPeer(peerId, {
+                  type: 'file-end',
+                  payload: { fileId }
+                });
+                resolve(endSent);
+              } else {
+                readSlice(offset);
+              }
+            } catch (error) {
+              hasError = true;
+              this.diagnosticService.log(`Error sending file chunk:`, error);
+              reject(error);
+            }
+          }
+        };
+        
+        fileReader.onerror = () => {
+          hasError = true;
+          reject(new Error('Erreur de lecture du fichier'));
+        };
+
+        const readSlice = (o: number) => {
+          if (hasError) return;
+          const slice = file.slice(o, o + CHUNK_SIZE);
+          fileReader.readAsArrayBuffer(slice);
+        };
+
+        readSlice(0);
+      }).catch(reject);
+    });
   }
 
   // --- Block List Management ---
@@ -514,12 +611,17 @@ class PeerService extends EventEmitter {
   public destroy() {
     this.diagnosticService.log('Destroying PeerService');
     this.stopLocationUpdates();
+    if (this.connectionCheckInterval !== null) {
+      clearInterval(this.connectionCheckInterval);
+      this.connectionCheckInterval = null;
+    }
     this.ws?.close();
     this.peerConnections.forEach((pc, peerId) => {
       this.closePeerConnection(peerId);
     });
     this.peerConnections.clear();
     this.dataChannels.clear();
+    this.reconnectAttempts.clear();
     this.myId = '';
   }
 }

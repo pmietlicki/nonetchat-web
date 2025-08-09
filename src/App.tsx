@@ -225,18 +225,7 @@ function App() {
   });
 
   const peerList = Array.from(peers.values());
-  let selectedPeer = peers.get(selectedPeerId || '');
-  
-  // Si un peer est sélectionné mais n'existe pas dans la Map, créer un peer temporaire
-  if (selectedPeerId && !selectedPeer) {
-    selectedPeer = createBaseUser(selectedPeerId);
-    // Ajouter le peer temporaire à la Map pour éviter les re-créations
-    setPeers(prev => {
-      const newMap = new Map(prev);
-      newMap.set(selectedPeerId, selectedPeer!);
-      return newMap;
-    });
-  }
+  const selectedPeer = peers.get(selectedPeerId || '');
 
   if (!isInitialized) {
     return (
@@ -433,7 +422,7 @@ function App() {
         </div>
 
         <div className={`flex-1 flex flex-col ${
-          selectedPeer ? 'flex' : 'hidden md:flex'
+          selectedPeerId ? 'flex' : 'hidden md:flex'
         }`}>
           {selectedPeer ? (
             <ChatWindow 
@@ -441,6 +430,22 @@ function App() {
               myId={myId} 
               onBack={() => setSelectedPeerId(undefined)}
             />
+          ) : selectedPeerId ? (
+            <div className="flex-1 flex items-center justify-center bg-gray-50">
+              <div className="text-center text-gray-500">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <h3 className="text-lg font-medium mb-2">Connexion en cours...</h3>
+                <p className="max-w-md mb-4">
+                  Établissement de la connexion avec le pair sélectionné.
+                </p>
+                <button 
+                  onClick={() => setSelectedPeerId(undefined)}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Annuler
+                </button>
+              </div>
+            </div>
           ) : (
             <div className="flex-1 flex items-center justify-center bg-gray-50">
               <div className="text-center text-gray-500">
