@@ -115,8 +115,9 @@ class PeerService extends EventEmitter {
       },
       (error) => {
         this.diagnosticService.log('Geolocation Error', error);
+        this.emit('geolocation-error', error);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 }
     );
   }
 

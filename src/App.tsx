@@ -15,6 +15,18 @@ import { MessageSquare, Users, Wifi, WifiOff, X, User as UserIcon } from 'lucide
 
 const DEFAULT_SIGNALING_URL = 'wss://chat.pascal-mietlicki.fr';
 
+import { AlertCircle } from 'lucide-react';
+
+const GeolocationError = ({ message, onDismiss }) => (
+  <div className="absolute top-16 left-1/2 -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50">
+    <AlertCircle className="h-5 w-5" />
+    <span className="block sm:inline">{message}</span>
+    <button onClick={onDismiss} className="absolute top-0 bottom-0 right-0 px-4 py-3">
+      <X className="h-6 w-6 text-red-500" />
+    </button>
+  </div>
+);
+
 function App() {
   const [myId, setMyId] = useState('');
   const [peers, setPeers] = useState<Map<string, User>>(new Map());
@@ -22,6 +34,8 @@ function App() {
   const [activeTab, setActiveTab] = useState<'peers' | 'conversations'>('peers');
   const [isConnected, setIsConnected] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [geolocationError, setGeolocationError] = useState<string | null>(null);
+
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -91,16 +105,35 @@ function App() {
       // Gérer les messages de chat ici
     };
 
+    const onGeolocationError = (error: GeolocationPositionError) => {
+      switch (error.code) {
+        case 1: // PERMISSION_DENIED
+          setGeolocationError("L'accès à la géolocalisation a été refusé. L'application ne peut pas trouver de pairs à proximité.");
+          break;
+        case 2: // POSITION_UNAVAILABLE
+          setGeolocationError("Impossible d'obtenir votre position actuelle. Vérifiez votre connexion réseau ou vos paramètres de localisation.");
+          break;
+        case 3: // TIMEOUT
+          setGeolocationError("La recherche de votre position a expiré. Veuillez réessayer.");
+          break;
+        default:
+          setGeolocationError("Une erreur inconnue est survenue lors de la récupération de votre position.");
+          break;
+      }
+    };
+
     peerService.on('open', onOpen);
     peerService.on('peer-joined', onPeerJoined);
     peerService.on('peer-left', onPeerLeft);
     peerService.on('data', onData);
+    peerService.on('geolocation-error', onGeolocationError);
 
     return () => {
       peerService.removeListener('open', onOpen);
       peerService.removeListener('peer-joined', onPeerJoined);
       peerService.removeListener('peer-left', onPeerLeft);
       peerService.removeListener('data', onData);
+      peerService.removeListener('geolocation-error', onGeolocationError);
       peerService.destroy();
     };
   }, [signalingUrl]);
