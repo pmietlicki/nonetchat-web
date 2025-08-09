@@ -180,6 +180,10 @@ const PeerList: React.FC<PeerListProps> = ({
   isConnected 
 }) => {
   const [selectedProfilePeer, setSelectedProfilePeer] = useState<User | null>(null);
+  
+  // Filtrer pour ne montrer que les pairs en ligne
+  const onlinePeers = peers.filter(peer => peer.status === 'online');
+  
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'online': return 'text-green-500';
@@ -193,7 +197,7 @@ const PeerList: React.FC<PeerListProps> = ({
     <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-800 mb-3">
-          Pairs connectés ({peers.length})
+          Pairs connectés ({onlinePeers.length})
         </h2>
         
         {!isConnected && (
@@ -213,15 +217,15 @@ const PeerList: React.FC<PeerListProps> = ({
             <p>Connexion requise</p>
             <p className="text-sm">Connectez-vous au serveur WebTransport</p>
           </div>
-        ) : peers.length === 0 ? (
+        ) : onlinePeers.length === 0 ? (
           <div className="p-4 text-center text-gray-500">
             <Users size={48} className="mx-auto mb-2 text-gray-300" />
-            <p>Aucun pair connecté</p>
-            <p className="text-sm">En attente d'autres utilisateurs</p>
+            <p>Aucun pair en ligne</p>
+            <p className="text-sm">En attente d'utilisateurs connectés</p>
           </div>
         ) : (
           <div className="space-y-1">
-            {peers.map((peer, index) => (
+            {onlinePeers.map((peer, index) => (
               <ProfileTooltip key={`${peer.id}-${index}-${peer.joinedAt}`} peer={peer}>
                 <div
                   onClick={() => onSelectPeer(peer.id)}
