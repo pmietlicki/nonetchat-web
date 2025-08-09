@@ -159,10 +159,7 @@ class PeerService extends EventEmitter {
         // Connect to new, unblocked peers
         for (const peer of filteredPeers) {
           if (!this.peerConnections.has(peer.peerId)) {
-            this.diagnosticService.log(`Creating new connection to peer: ${peer.peerId}`);
-            this.createPeerConnection(peer.peerId, true);
-          } else {
-            this.diagnosticService.log(`Connection to peer ${peer.peerId} already exists`);
+            this.createPeerConnection(peer.peerId);
           }
         }
         // Disconnect from peers that are no longer nearby or are blocked
@@ -192,23 +189,17 @@ class PeerService extends EventEmitter {
     }
   }
 
-  private async createPeerConnection(peerId: string, isInitiator: boolean) {
-    this.diagnosticService.log(`Creating peer connection to ${peerId}`, { isInitiator });
-    
-    // Check if connection already exists
+  private async createPeerConnection(peerId: string) {
+    this.diagnosticService.log(`Creating peer connection to ${peerId}`);
     if (this.peerConnections.has(peerId)) {
-      const existingPc = this.peerConnections.get(peerId);
-      this.diagnosticService.log(`Connection to ${peerId} already exists, state: ${existingPc?.connectionState}, signaling: ${existingPc?.signalingState}`);
-      
-      // If the existing connection is not connected, remove it and create a new one
-      if (existingPc && existingPc.connectionState !== 'connected') {
-        this.diagnosticService.log(`Removing non-connected connection to ${peerId} (state: ${existingPc.connectionState})`);
-        this.closePeerConnection(peerId);
-      } else if (existingPc && existingPc.connectionState === 'connected') {
-        this.diagnosticService.log(`Connection to ${peerId} is already connected, skipping`);
-        return;
-      }
+      this.diagnosticService.log(`Connection to ${peerId} already exists or is in progress.`);
+      return;
     }
+
+    // Glare resolution: deterministically decide which peer is the initiator.
+    // The peer with the greater ID will initiate the connection.
+    const isInitiator = this.myId > peerId;
+    this.diagnosticService.log(`Is initiator: ${isInitiator}`, { myId: this.myId, peerId });
 
     const pc = new RTCPeerConnection(this.ICE_SERVERS);
     this.peerConnections.set(peerId, pc);
@@ -292,22 +283,8 @@ class PeerService extends EventEmitter {
   private async handleOffer(from: string, offer: RTCSessionDescriptionInit) {
     this.diagnosticService.log(`Handling offer from ${from}`);
     
-    // Check if we already have a connection with this peer
-    const existingPc = this.peerConnections.get(from);
-    if (existingPc) {
-      this.diagnosticService.log(`Connection already exists with ${from}, state: ${existingPc.signalingState}`);
-      
-      // If we're already in a stable state or have an ongoing negotiation, ignore this offer
-      if (existingPc.signalingState !== 'stable') {
-        this.diagnosticService.log(`Ignoring offer from ${from} - connection not stable`);
-        return;
-      }
-      
-      // Close existing connection to start fresh
-      this.closePeerConnection(from);
-    }
-    
-    await this.createPeerConnection(from, false);
+    // If we receive an offer, we are by definition the non-initiator.
+    await this.createPeerConnection(from);
     const pc = this.peerConnections.get(from);
     if (pc) {
       try {
