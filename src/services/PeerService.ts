@@ -194,9 +194,19 @@ class PeerService extends EventEmitter {
 
   private async createPeerConnection(peerId: string, isInitiator: boolean) {
     this.diagnosticService.log(`Creating peer connection to ${peerId}`, { isInitiator });
+    
+    // Check if connection already exists
     if (this.peerConnections.has(peerId)) {
-      this.diagnosticService.log(`Connection to ${peerId} already exists.`);
-      return;
+      const existingPc = this.peerConnections.get(peerId);
+      this.diagnosticService.log(`Connection to ${peerId} already exists, state: ${existingPc?.connectionState}, signaling: ${existingPc?.signalingState}`);
+      
+      // If the existing connection is failed or disconnected, remove it
+      if (existingPc && (existingPc.connectionState === 'failed' || existingPc.connectionState === 'disconnected')) {
+        this.diagnosticService.log(`Removing failed connection to ${peerId}`);
+        this.closePeerConnection(peerId);
+      } else {
+        return;
+      }
     }
 
     const pc = new RTCPeerConnection(this.ICE_SERVERS);
@@ -280,16 +290,38 @@ class PeerService extends EventEmitter {
 
   private async handleOffer(from: string, offer: RTCSessionDescriptionInit) {
     this.diagnosticService.log(`Handling offer from ${from}`);
+    
+    // Check if we already have a connection with this peer
+    const existingPc = this.peerConnections.get(from);
+    if (existingPc) {
+      this.diagnosticService.log(`Connection already exists with ${from}, state: ${existingPc.signalingState}`);
+      
+      // If we're already in a stable state or have an ongoing negotiation, ignore this offer
+      if (existingPc.signalingState !== 'stable') {
+        this.diagnosticService.log(`Ignoring offer from ${from} - connection not stable`);
+        return;
+      }
+      
+      // Close existing connection to start fresh
+      this.closePeerConnection(from);
+    }
+    
     await this.createPeerConnection(from, false);
     const pc = this.peerConnections.get(from);
     if (pc) {
-      await pc.setRemoteDescription(new RTCSessionDescription(offer));
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      this.sendToServer({ 
-        type: 'answer', 
-        payload: { to: from, from: this.myId, payload: pc.localDescription }
-      });
+      try {
+        await pc.setRemoteDescription(new RTCSessionDescription(offer));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        this.sendToServer({ 
+          type: 'answer', 
+          payload: { to: from, from: this.myId, payload: pc.localDescription }
+        });
+        this.diagnosticService.log(`Successfully handled offer from ${from}`);
+      } catch (error) {
+        this.diagnosticService.log(`Error handling offer from ${from}:`, error);
+        this.closePeerConnection(from);
+      }
     }
   }
 
@@ -297,7 +329,21 @@ class PeerService extends EventEmitter {
     this.diagnosticService.log(`Handling answer from ${from}`);
     const pc = this.peerConnections.get(from);
     if (pc) {
-      await pc.setRemoteDescription(new RTCSessionDescription(answer));
+      this.diagnosticService.log(`Connection state: ${pc.connectionState}, Signaling state: ${pc.signalingState}`);
+      
+      // Only set remote description if we're in the correct state
+      if (pc.signalingState === 'have-local-offer') {
+        try {
+          await pc.setRemoteDescription(new RTCSessionDescription(answer));
+          this.diagnosticService.log(`Successfully set remote description for ${from}`);
+        } catch (error) {
+          this.diagnosticService.log(`Error setting remote description for ${from}:`, error);
+          // If there's an error, close and recreate the connection
+          this.closePeerConnection(from);
+        }
+      } else {
+        this.diagnosticService.log(`Ignoring answer from ${from} - wrong signaling state: ${pc.signalingState}`);
+      }
     }
   }
 
@@ -305,11 +351,23 @@ class PeerService extends EventEmitter {
     this.diagnosticService.log(`Handling ICE candidate from ${from}`);
     const pc = this.peerConnections.get(from);
     if (pc && candidate) {
-      try {
-        await pc.addIceCandidate(new RTCIceCandidate(candidate));
-      } catch (e) {
-        this.diagnosticService.log('Error adding received ICE candidate', e);
+      this.diagnosticService.log(`Connection state: ${pc.connectionState}, Signaling state: ${pc.signalingState}`);
+      
+      // Only add ICE candidates if we have a remote description set
+      if (pc.remoteDescription) {
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+          this.diagnosticService.log(`Successfully added ICE candidate from ${from}`);
+        } catch (e) {
+          this.diagnosticService.log(`Error adding ICE candidate from ${from}:`, e);
+        }
+      } else {
+        this.diagnosticService.log(`Ignoring ICE candidate from ${from} - no remote description set yet`);
       }
+    } else if (!pc) {
+      this.diagnosticService.log(`No peer connection found for ${from}`);
+    } else {
+      this.diagnosticService.log(`Invalid candidate received from ${from}`);
     }
   }
 
