@@ -225,7 +225,18 @@ function App() {
   });
 
   const peerList = Array.from(peers.values());
-  const selectedPeer = peers.get(selectedPeerId || '');
+  let selectedPeer = peers.get(selectedPeerId || '');
+  
+  // Si un peer est sélectionné mais n'existe pas dans la Map, créer un peer temporaire
+  if (selectedPeerId && !selectedPeer) {
+    selectedPeer = createBaseUser(selectedPeerId);
+    // Ajouter le peer temporaire à la Map pour éviter les re-créations
+    setPeers(prev => {
+      const newMap = new Map(prev);
+      newMap.set(selectedPeerId, selectedPeer!);
+      return newMap;
+    });
+  }
 
   if (!isInitialized) {
     return (
