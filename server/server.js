@@ -1,10 +1,26 @@
-
 import { WebSocketServer } from 'ws';
 
 const wss = new WebSocketServer({ port: 3001 });
 const clients = new Map();
 
 console.log('Robust Geo-Signaling Server is running on ws://localhost:3001');
+
+// Heartbeat interval to keep connections alive
+const HEARTBEAT_INTERVAL = 30000; // 30 seconds
+const heartbeatInterval = setInterval(() => {
+  clients.forEach((client, clientId) => {
+    if (client.isAlive === false) {
+      console.log(`Client ${clientId} failed heartbeat, terminating connection`);
+      client.ws.terminate();
+      clients.delete(clientId);
+      broadcastPeerUpdates();
+      return;
+    }
+    
+    client.isAlive = false;
+    client.ws.ping();
+  });
+}, HEARTBEAT_INTERVAL);
 
 // --- Helper Functions ---
 
@@ -105,6 +121,11 @@ wss.on('connection', (ws, req) => {
         broadcastPeerUpdates();
         break;
 
+      case 'heartbeat':
+        // Heartbeat received - client is alive, no action needed
+        // The pong response will be handled automatically by WebSocket
+        break;
+
       case 'offer':
       case 'answer':
       case 'candidate':
@@ -130,5 +151,16 @@ wss.on('connection', (ws, req) => {
 
   ws.on('error', (error) => {
     console.error(`Error with client ${clientId || 'unregistered'}:`, error);
+  });
+
+  ws.on('pong', () => {
+    if (clientId && clients.has(clientId)) {
+      clients.get(clientId).isAlive = true;
+    }
+  });
+
+  ws.isAlive = true;
+  ws.on('ping', () => {
+    ws.pong();
   });
 });

@@ -46,6 +46,10 @@ function App() {
     () => localStorage.getItem('signalingUrl') || DEFAULT_SIGNALING_URL
   );
   const [tempSignalingUrl, setTempSignalingUrl] = useState(signalingUrl);
+  const [searchRadius, setSearchRadius] = useState(
+    () => parseFloat(localStorage.getItem('searchRadius') || '1.0')
+  );
+  const [tempSearchRadius, setTempSearchRadius] = useState(searchRadius);
 
   const peerService = PeerService.getInstance();
   const profileService = ProfileService.getInstance();
@@ -68,6 +72,7 @@ function App() {
       }
 
       peerService.initialize(profile, signalingUrl);
+      peerService.setSearchRadius(searchRadius);
       setIsInitialized(true);
     };
 
@@ -168,7 +173,10 @@ function App() {
 
   const handleSaveSettings = () => {
     localStorage.setItem('signalingUrl', tempSignalingUrl);
+    localStorage.setItem('searchRadius', tempSearchRadius.toString());
     setSignalingUrl(tempSignalingUrl);
+    setSearchRadius(tempSearchRadius);
+    peerService.setSearchRadius(tempSearchRadius);
     setIsSettingsOpen(false);
   };
 
@@ -282,6 +290,26 @@ function App() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   placeholder="wss://votre-serveur.com"
                 />
+              </div>
+              
+              <div>
+                <label htmlFor="search-radius" className="block text-sm font-medium text-gray-700 mb-2">
+                  Rayon de recherche (km): {tempSearchRadius}
+                </label>
+                <input
+                  type="range"
+                  id="search-radius"
+                  min="0.1"
+                  max="50"
+                  step="0.1"
+                  value={tempSearchRadius}
+                  onChange={(e) => setTempSearchRadius(parseFloat(e.target.value))}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>0.1 km</span>
+                  <span>50 km</span>
+                </div>
               </div>
              </div>
             <div className="mt-6 flex justify-end gap-3">

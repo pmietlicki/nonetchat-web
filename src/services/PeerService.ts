@@ -41,6 +41,8 @@ class PeerService extends EventEmitter {
   private blockList: Set<string> = new Set();
   private lastSeen: Map<string, number> = new Map();
   private pruneInterval: number | null = null;
+  private heartbeatInterval: number | null = null;
+  private searchRadius: number = 1.0; // Default 1km radius
 
   private ICE_SERVERS = {
     iceServers: [
@@ -82,7 +84,9 @@ class PeerService extends EventEmitter {
       this.diagnosticService.log('WebSocket connection opened. Registering with stable ID.');
       this.sendToServer({ type: 'register', payload: { id: this.myId } });
       this.emit('open', this.myId);
+      this.startLocationUpdates(); // Location updates will now send radius
       this.startPruningInterval();
+      this.startHeartbeat();
     };
 
     this.ws.onmessage = (event) => {
@@ -98,7 +102,48 @@ class PeerService extends EventEmitter {
     this.ws.onclose = () => {
       this.diagnosticService.log('WebSocket connection closed');
       this.emit('disconnected');
+      if (this.pruneInterval) {
+        clearInterval(this.pruneInterval);
+        this.pruneInterval = null;
+      }
+      if (this.heartbeatInterval) {
+        clearInterval(this.heartbeatInterval);
+        this.heartbeatInterval = null;
+      }
     };
+  }
+
+  public setSearchRadius(radius: number) {
+    this.searchRadius = radius;
+    this.diagnosticService.log(`Search radius updated to ${radius}km`);
+    // Trigger a location update to refresh peers with the new radius
+    this.startLocationUpdates();
+  }
+
+  private startLocationUpdates() {
+    if (!('geolocation' in navigator)) {
+      this.diagnosticService.log('Geolocation is not supported by this browser.');
+      this.sendToServer({ type: 'request-lan-discovery' });
+      return;
+    }
+
+    // Get a single, fresh location update
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        this.diagnosticService.log('Location obtained', { latitude, longitude });
+        this.sendToServer({ 
+          type: 'update-location', 
+          payload: { location: { latitude, longitude }, radius: this.searchRadius }
+        });
+      },
+      (error) => {
+        this.diagnosticService.log('Geolocation Error, switching to LAN mode', error);
+        this.emit('geolocation-error', error);
+        this.sendToServer({ type: 'request-lan-discovery' });
+      },
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+    );
   }
 
   private startPruningInterval() {
@@ -107,7 +152,7 @@ class PeerService extends EventEmitter {
 
     this.pruneInterval = window.setInterval(() => {
       const now = Date.now();
-      this.peerConnections.forEach((pc, peerId) => {
+      this.peerConnections.forEach((_, peerId) => {
         if (!this.lastSeen.has(peerId)) return;
         if (now - this.lastSeen.get(peerId)! > GRACE_PERIOD) {
           this.diagnosticService.log(`Peer ${peerId} has not been seen for over ${GRACE_PERIOD / 1000}s. Pruning connection.`);
@@ -116,6 +161,16 @@ class PeerService extends EventEmitter {
         }
       });
     }, PRUNE_INTERVAL);
+  }
+
+  private startHeartbeat() {
+    // Send heartbeat every 25 seconds to keep connection alive
+    this.heartbeatInterval = window.setInterval(() => {
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        this.sendToServer({ type: 'heartbeat', payload: { timestamp: Date.now() } });
+        this.diagnosticService.log('Heartbeat sent to maintain connection');
+      }
+    }, 25000); // 25 seconds - slightly less than server timeout
   }
 
   private sendToServer(message: object) {
@@ -306,8 +361,12 @@ class PeerService extends EventEmitter {
 
   public destroy() {
     if (this.pruneInterval) clearInterval(this.pruneInterval);
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+    }
     this.ws?.close();
-    this.peerConnections.forEach((pc, peerId) => this.closePeerConnection(peerId));
+    this.peerConnections.forEach((_, peerId) => this.closePeerConnection(peerId));
     this.peerConnections.clear();
     this.dataChannels.clear();
     this.messageQueue.clear();
