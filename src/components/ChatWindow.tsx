@@ -157,6 +157,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   };
 
   const handleSendMessage = async () => {
+    // Empêcher l'envoi si le peer est hors ligne
+    if (selectedPeer.status !== 'online') {
+      return;
+    }
+    
     if (selectedFile) {
       setIsUploading(true);
       try {
@@ -220,7 +225,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      // Empêcher l'envoi si le peer est hors ligne
+      if (selectedPeer.status === 'online') {
+        handleSendMessage();
+      }
     }
   };
 
@@ -289,25 +297,29 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder={selectedPeer.status === 'online' ? 'Tapez votre message...' : 'Message sera envoyé quand le peer sera en ligne...'}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder={selectedPeer.status === 'online' ? 'Tapez votre message...' : 'Utilisateur hors ligne - envoi de messages désactivé'}
+            disabled={selectedPeer.status !== 'online'}
+            className={`flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              selectedPeer.status !== 'online' ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+            }`}
           />
           <button 
             onClick={handleSendMessage} 
+            disabled={selectedPeer.status !== 'online'}
             className={`p-2 rounded-lg ${
               selectedPeer.status === 'online' 
                 ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                : 'bg-gray-400 text-white hover:bg-gray-500'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
-            title={selectedPeer.status !== 'online' ? 'Message sera mis en file d\'attente' : 'Envoyer le message'}
+            title={selectedPeer.status !== 'online' ? 'Utilisateur hors ligne - envoi désactivé' : 'Envoyer le message'}
           >
             <Send size={20} />
           </button>
         </div>
         {selectedPeer.status !== 'online' && (
           <div className="text-center mt-2">
-            <p className="text-xs text-gray-500">
-              {selectedPeer.name} est hors ligne. Votre message sera envoyé dès qu'il se reconnectera.
+            <p className="text-xs text-red-500">
+              {selectedPeer.name} est hors ligne. L'envoi de messages est désactivé.
             </p>
           </div>
         )}
