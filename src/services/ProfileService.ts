@@ -1,8 +1,10 @@
+import { v4 as uuidv4 } from 'uuid';
 import { User } from '../types';
 import IndexedDBService from './IndexedDBService';
 
 const PROFILE_KEY = 'userProfile';
 const AVATAR_KEY = 'userAvatar';
+const DEVICE_ID_KEY = 'deviceId';
 
 class ProfileService {
   private static instance: ProfileService;
@@ -20,10 +22,18 @@ class ProfileService {
   }
 
   async getProfile(): Promise<Partial<User>> {
+    // Get or create stable device ID
+    let deviceId = localStorage.getItem(DEVICE_ID_KEY);
+    if (!deviceId) {
+      deviceId = uuidv4();
+      localStorage.setItem(DEVICE_ID_KEY, deviceId);
+    }
+
     // Récupérer les données textuelles du localStorage
     const profileData = localStorage.getItem(PROFILE_KEY);
     const profile: Partial<User> = profileData ? JSON.parse(profileData) : {};
-    console.log('Profile loaded from localStorage:', profile);
+    profile.id = deviceId; // Ensure the profile always has the stable ID
+    console.log('Profile loaded with stable ID:', profile);
 
     // Récupérer l'avatar depuis IndexedDB
     try {
