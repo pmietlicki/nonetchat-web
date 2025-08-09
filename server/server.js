@@ -103,8 +103,8 @@ function broadcastPeerUpdates() {
 
 wss.on('connection', (ws, req) => {
   const clientId = uuidv4();
-  // Use x-forwarded-for header if available (for proxies), otherwise fallback to remoteAddress
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  // Get the real client IP address, even behind proxies like Cloudflare
+  const ip = req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress;
   
   console.log(`\n🔗 NEW CONNECTION:`);
   console.log(`  Client ID: ${clientId}`);

@@ -33,6 +33,7 @@ class PeerService extends EventEmitter {
   private ws: WebSocket | null = null;
   private peerConnections: Map<string, RTCPeerConnection> = new Map();
   private dataChannels: Map<string, RTCDataChannel> = new Map();
+  private messageQueue: Map<string, PeerMessage[]> = new Map();
   private myId: string = '';
   private myProfile: Partial<User> = {};
   private cryptoService: CryptoService;
@@ -214,10 +215,20 @@ class PeerService extends EventEmitter {
     };
 
     pc.onconnectionstatechange = () => {
-      if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
-        this.closePeerConnection(peerId);
+      this.diagnosticService.log(`Connection state with ${peerId} changed to: ${pc.connectionState}`);
+      if (pc.connectionState === 'failed') {
+        this.handleConnectionFailure(peerId);
       }
+      // Note: 'disconnected' can be a temporary state during network changes, 
+      // so we rely on 'failed' for definitive action.
     };
+
+    pc.oniceconnectionstatechange = () => {
+        if(pc.iceConnectionState === 'disconnected') {
+            this.diagnosticService.log(`ICE connection with ${peerId} disconnected. Attempting ICE restart.`);
+            this.handleConnectionFailure(peerId); // Attempt a reconnect
+        }
+    }
 
     if (isInitiator) {
       const dataChannel = pc.createDataChannel('chat');
@@ -243,6 +254,15 @@ class PeerService extends EventEmitter {
     channel.onopen = async () => {
       this.diagnosticService.log(`Data channel with ${peerId} opened.`);
       this.emit('peer-joined', peerId);
+
+      // Send any queued messages
+      const queue = this.messageQueue.get(peerId);
+      if (queue) {
+        this.diagnosticService.log(`Sending ${queue.length} queued messages to ${peerId}`);
+        queue.forEach(message => this.sendToPeer(peerId, message));
+        this.messageQueue.delete(peerId);
+      }
+
       // Exchange keys and profile info
       const myPublicKey = await this.cryptoService.getPublicKeyJwk();
       this.sendToPeer(peerId, { type: 'key-exchange', payload: myPublicKey });
@@ -349,6 +369,31 @@ class PeerService extends EventEmitter {
     }
   }
 
+  private async handleConnectionFailure(peerId: string) {
+    const pc = this.peerConnections.get(peerId);
+    if (!pc) return;
+
+    // Only the initiator should attempt to restart the connection to avoid conflicts
+    const isInitiator = this.myId > peerId;
+    if (!isInitiator) {
+        this.closePeerConnection(peerId);
+        return;
+    }
+
+    this.diagnosticService.log(`Attempting ICE restart for peer ${peerId}`);
+    try {
+        const offer = await pc.createOffer({ iceRestart: true });
+        await pc.setLocalDescription(offer);
+        this.sendToServer({ 
+            type: 'offer', 
+            payload: { to: peerId, from: this.myId, payload: pc.localDescription }
+        });
+    } catch (error) {
+        this.diagnosticService.log(`ICE restart failed for ${peerId}, closing connection.`, error);
+        this.closePeerConnection(peerId);
+    }
+  }
+
   private closePeerConnection(peerId: string) {
     this.diagnosticService.log(`Closing connection with ${peerId}`);
     const pc = this.peerConnections.get(peerId);
@@ -364,6 +409,7 @@ class PeerService extends EventEmitter {
 
   public async sendToPeer(peerId: string, message: PeerMessage) {
     const dataChannel = this.dataChannels.get(peerId);
+    
     if (dataChannel && dataChannel.readyState === 'open') {
       let payload = message.payload;
       if (message.type === 'chat-message') {
@@ -371,7 +417,11 @@ class PeerService extends EventEmitter {
       }
       dataChannel.send(JSON.stringify({ ...message, payload }));
     } else {
-      this.diagnosticService.log(`Cannot send to ${peerId}, data channel not open.`);
+      this.diagnosticService.log(`Data channel to ${peerId} not open. Queuing message.`, message.type);
+      if (!this.messageQueue.has(peerId)) {
+        this.messageQueue.set(peerId, []);
+      }
+      this.messageQueue.get(peerId)!.push(message);
     }
   }
 
