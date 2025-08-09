@@ -28,7 +28,7 @@ class IndexedDBService {
   private static instance: IndexedDBService;
   private db: IDBDatabase | null = null;
   private readonly dbName = 'NoNetChatWeb';
-  private readonly version = 3; // Version incrémentée pour la migration
+  private readonly version = 4; // Version incrémentée pour la migration
 
   public static getInstance(): IndexedDBService {
     if (!IndexedDBService.instance) {
@@ -74,7 +74,41 @@ class IndexedDBService {
         if (!db.objectStoreNames.contains('cryptoKeys')) {
           db.createObjectStore('cryptoKeys', { keyPath: 'id' });
         }
+
+        // Ajout du store pour la liste de blocage
+        if (!db.objectStoreNames.contains('blockList')) {
+          db.createObjectStore('blockList', { keyPath: 'peerId' });
+        }
       };
+    });
+  }
+
+  // --- Block List Methods ---
+
+  async addToBlockList(peerId: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    const transaction = this.db.transaction(['blockList'], 'readwrite');
+    const store = transaction.objectStore('blockList');
+    await store.put({ peerId });
+  }
+
+  async removeFromBlockList(peerId: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    const transaction = this.db.transaction(['blockList'], 'readwrite');
+    const store = transaction.objectStore('blockList');
+    await store.delete(peerId);
+  }
+
+  async getBlockList(): Promise<string[]> {
+    if (!this.db) throw new Error('Database not initialized');
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['blockList'], 'readonly');
+      const store = transaction.objectStore('blockList');
+      const request = store.getAll();
+      request.onsuccess = () => {
+        resolve(request.result.map(item => item.peerId));
+      };
+      request.onerror = () => reject(request.error);
     });
   }
 

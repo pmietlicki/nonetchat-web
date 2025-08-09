@@ -105,7 +105,24 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   };
 
   const handleSendMessage = async () => {
-    if (newMessage.trim()) {
+    if (selectedFile) {
+      peerService.sendFile(selectedPeer.id, selectedFile);
+      // We'll add a local message indicating file transfer has started
+      addMessage({
+        id: uuidv4(),
+        senderId: myId,
+        content: `Envoi du fichier: ${selectedFile.name}`,
+        timestamp: Date.now(),
+        type: 'file',
+        fileData: {
+          name: selectedFile.name,
+          size: selectedFile.size,
+          type: selectedFile.type,
+          url: '' // Will be populated on completion
+        }
+      });
+      setSelectedFile(null);
+    } else if (newMessage.trim()) {
       peerService.sendMessage(selectedPeer.id, newMessage);
       addMessage({
         id: uuidv4(),
@@ -116,7 +133,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       });
       setNewMessage('');
     }
-    // La logique d'envoi de fichier doit être ajoutée ici
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -168,6 +184,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       <div className="p-4 border-t border-gray-200 bg-white">
         {selectedPeer.status === 'online' ? (
           <div className="flex items-center gap-2">
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              className="p-2 text-gray-500 hover:text-gray-700"
+            >
+              <Paperclip size={20} />
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={(e) => setSelectedFile(e.target.files ? e.target.files[0] : null)}
+              className="hidden"
+            />
             <input
               type="text"
               value={newMessage}

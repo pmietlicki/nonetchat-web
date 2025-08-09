@@ -5,9 +5,10 @@ import { Bug, Download, RefreshCw, Wifi, AlertTriangle, CheckCircle } from 'luci
 interface DiagnosticPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  signalingUrl: string;
 }
 
-const DiagnosticPanel: React.FC<DiagnosticPanelProps> = ({ isOpen, onClose }) => {
+const DiagnosticPanel: React.FC<DiagnosticPanelProps> = ({ isOpen, onClose, signalingUrl }) => {
   const [logs, setLogs] = useState<string[]>([]);
   const [connectivity, setConnectivity] = useState<any>(null);
   const [isTestingConnectivity, setIsTestingConnectivity] = useState(false);
@@ -26,7 +27,7 @@ const DiagnosticPanel: React.FC<DiagnosticPanelProps> = ({ isOpen, onClose }) =>
   const testConnectivity = async () => {
     setIsTestingConnectivity(true);
     try {
-      const result = await diagnosticService.testConnectivity();
+      const result = await diagnosticService.testConnectivity(signalingUrl);
       setConnectivity(result);
     } catch (error) {
       console.error('Connectivity test failed:', error);

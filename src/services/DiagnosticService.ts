@@ -29,7 +29,7 @@ export class DiagnosticService {
     this.logs = [];
   }
 
-  public async testConnectivity(): Promise<{
+  public async testConnectivity(signalingUrl: string): Promise<{
     signalingServer: boolean;
     stunServers: boolean[];
     networkInfo: any;
@@ -40,10 +40,21 @@ export class DiagnosticService {
       networkInfo: {}
     };
 
-    // Test signaling server
+    // Test signaling server via WebSocket
     try {
-      const response = await fetch('https://chat.pascal-mietlicki.fr', { method: 'HEAD' });
-      results.signalingServer = response.ok;
+      await new Promise((resolve, reject) => {
+        const ws = new WebSocket(signalingUrl);
+        ws.onopen = () => {
+          results.signalingServer = true;
+          ws.close();
+          resolve(true);
+        };
+        ws.onerror = (err) => {
+          this.log('Signaling server test failed', err);
+          reject(err);
+        };
+        setTimeout(() => reject(new Error('Timeout')), 5000); // 5 second timeout
+      });
     } catch (error) {
       this.log('Signaling server test failed', error);
     }

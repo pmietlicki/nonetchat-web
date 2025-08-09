@@ -1,12 +1,17 @@
 FROM node:18-alpine
+
+# Définir le répertoire de travail
 WORKDIR /app
 
-# Copier les dépendances du projet principal
-COPY package*.json ./
-RUN npm install
+# Copier UNIQUEMENT les fichiers de dépendances du serveur
+COPY server/package*.json ./
+
+# Installer UNIQUEMENT les dépendances de production du serveur
+RUN npm install --production
 
 # Copier le code du serveur
 COPY server/server.js .
 
+# Exposer le port et lancer le serveur
 EXPOSE 3001
 CMD ["node", "server.js"]

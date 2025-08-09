@@ -53,7 +53,7 @@ function App() {
         setIsProfileOpen(true);
       }
 
-      peerService.initialize(profile.id!, profile, signalingUrl);
+      peerService.initialize(profile, signalingUrl);
       setIsInitialized(true);
     };
 
@@ -109,13 +109,13 @@ function App() {
     const newProfile = { ...userProfile, ...profileData, id: myId };
     await profileService.saveProfile(newProfile, avatarFile);
     
-    // Forcer un délai pour s'assurer que IndexedDB a terminé la sauvegarde
     await new Promise(resolve => setTimeout(resolve, 100));
     
     const updatedProfile = await profileService.getProfile();
     setUserProfile(updatedProfile);
-    await peerService.updateProfile(updatedProfile);
-    
+    // The profile is sent automatically on connection, but we can send an update.
+    // This part needs a new method in PeerService if we want to push updates.
+    // For now, new connections will get the new profile.
     console.log('Profile updated:', updatedProfile);
   };
 
@@ -123,10 +123,11 @@ function App() {
     localStorage.setItem('signalingUrl', tempSignalingUrl);
     setSignalingUrl(tempSignalingUrl);
     setIsSettingsOpen(false);
+    // This will trigger a reconnect via the useEffect hook
   };
 
   const handleSelectPeer = (peerId: string) => {
-    peerService.connect(peerId);
+    // Connection is now automatic, so we just set the selected peer for the UI
     setSelectedPeerId(peerId);
     setActiveTab('conversations');
   };
@@ -179,7 +180,7 @@ function App() {
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Initialisation de PeerJS...</p>
+          <p className="text-gray-600">Initialisation des services...</p>
         </div>
       </div>
     );
@@ -197,6 +198,7 @@ function App() {
       <DiagnosticPanel
         isOpen={isDiagnosticOpen}
         onClose={() => setIsDiagnosticOpen(false)}
+        signalingUrl={signalingUrl}
       />
 
       {isSettingsOpen && (
