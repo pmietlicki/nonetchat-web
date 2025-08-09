@@ -36,7 +36,6 @@ interface ProfileTooltipProps {
 
 const ProfileTooltip: React.FC<ProfileTooltipProps> = ({ peer, children }) => {
   const [isVisible, setIsVisible] = useState(false);
-  const isCompleteProfile = peer.age !== undefined || peer.gender !== undefined || !peer.name.startsWith('Peer-');
 
   return (
     <div 
@@ -58,11 +57,6 @@ const ProfileTooltip: React.FC<ProfileTooltipProps> = ({ peer, children }) => {
             />
             <div>
               <h4 className="font-semibold text-gray-900">{peer.name}</h4>
-              {!isCompleteProfile && (
-                <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded-full">
-                  Profil temporaire
-                </span>
-              )}
             </div>
           </div>
           
@@ -109,8 +103,6 @@ const ProfileTooltip: React.FC<ProfileTooltipProps> = ({ peer, children }) => {
 const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ peer, isOpen, onClose }) => {
   if (!isOpen) return null;
 
-  const isCompleteProfile = peer.age !== undefined || peer.gender !== undefined || !peer.name.startsWith('Peer-');
-
   return (
     <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
@@ -131,11 +123,6 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ peer, isOpen, o
             }}
           />
           <h4 className="text-lg font-semibold">{peer.name}</h4>
-          {!isCompleteProfile && (
-            <span className="text-sm text-orange-600 bg-orange-50 px-2 py-1 rounded-full mt-2">
-              Profil temporaire
-            </span>
-          )}
         </div>
 
         <div className="space-y-3">
@@ -265,15 +252,6 @@ const PeerList: React.FC<PeerListProps> = ({
                       <p className="font-medium text-gray-900 truncate">
                         {peer.name}
                       </p>
-                      {(peer.age !== undefined || peer.gender !== undefined || !peer.name.startsWith('Peer-')) ? (
-                        <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full" title="Profil complet">
-                          ✓
-                        </span>
-                      ) : (
-                        <span className="text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full" title="Profil temporaire">
-                          ⏳
-                        </span>
-                      )}
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <span className={`capitalize ${getStatusColor(peer.status)}`}>

@@ -219,13 +219,17 @@ function App() {
 
   const createBaseUser = (peerId: string): User => ({
     id: peerId,
-    name: `Peer-${peerId.slice(0, 8)}`,
+    name: '', // Pas de nom par défaut
     avatar: `https://i.pravatar.cc/150?u=${peerId}`,
     status: 'online',
     joinedAt: new Date().toISOString(),
   });
 
-  const peerList = Array.from(peers.values());
+  // Filtrer les peers pour ne garder que ceux avec un profil complet
+  const peerList = Array.from(peers.values()).filter(peer => {
+    // Un profil est considéré comme complet s'il a un nom personnalisé, un âge ou un genre
+    return peer.name && peer.name.trim() !== '' && (peer.age !== undefined || peer.gender !== undefined);
+  });
   const selectedPeer = peers.get(selectedPeerId || '');
 
   console.log('%c[APP] Render Cycle', 'background: #222; color: #bada55', {
