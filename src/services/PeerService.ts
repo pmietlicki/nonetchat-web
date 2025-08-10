@@ -359,14 +359,6 @@ class PeerService extends EventEmitter {
     this.sendToPeer(peerId, { type: 'chat-message', payload: content, messageId });
   }
 
-  public sendMessageDeliveredAck(peerId: string, messageId: string) {
-    this.sendToPeer(peerId, { type: 'message-delivered', payload: null, messageId });
-  }
-
-  public sendMessageReadAck(peerId: string, messageId: string) {
-    this.sendToPeer(peerId, { type: 'message-read', payload: null, messageId });
-  }
-
   public sendFile(peerId: string, file: File, messageId: string) {
     const dataChannel = this.dataChannels.get(peerId);
     if (!dataChannel || dataChannel.readyState !== 'open') {
