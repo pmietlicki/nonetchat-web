@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User } from '../types';
-import { X, Camera } from 'lucide-react';
+import { X, Camera, RefreshCw } from 'lucide-react';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -17,6 +17,20 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, in
   const [avatarFile, setAvatarFile] = useState<File | undefined>();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Fonction pour générer l'avatar par défaut avec Pravatar
+  const getDefaultAvatar = () => {
+    // Générer un ID aléatoire entre 1 et 70 (nombre d'avatars disponibles sur Pravatar)
+    const randomId = Math.floor(Math.random() * 70) + 1;
+    return `https://i.pravatar.cc/150?img=${randomId}`;
+  };
+
+  // Fonction pour rafraîchir l'avatar
+  const refreshAvatar = () => {
+    if (!avatarFile) {
+      setAvatar(getDefaultAvatar());
+    }
+  };
+
   useEffect(() => {
     if (isOpen) {
       setName(initialProfile.name || '');
@@ -26,6 +40,21 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, in
       setAvatarFile(undefined);
     }
   }, [isOpen, initialProfile]);
+
+  // Effet pour mettre à jour l'avatar par défaut quand le genre change
+  useEffect(() => {
+    // Ne pas mettre à jour si l'utilisateur a uploadé une image personnalisée
+    if (avatarFile) return;
+    
+    // Ne pas mettre à jour si l'avatar actuel n'est pas un avatar par défaut (pravatar)
+    const currentAvatar = avatar || initialProfile.avatar;
+    if (currentAvatar && !currentAvatar.includes('pravatar.cc')) return;
+    
+    // Mettre à jour l'avatar par défaut selon le nouveau genre
+    if (isOpen && !avatarFile) {
+      setAvatar(getDefaultAvatar()); // Mettre à jour directement avec le nouvel avatar
+    }
+  }, [gender, name, isOpen, avatarFile, initialProfile.avatar]);
 
   if (!isOpen) return null;
 
@@ -59,7 +88,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, in
         <div className="flex flex-col items-center mb-6">
           <div className="relative">
             <img
-              src={avatar || initialProfile.avatar || `https://i.pravatar.cc/150?u=default`}
+              src={avatar || initialProfile.avatar || getDefaultAvatar()}
               alt="Avatar"
               className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
             />
@@ -70,6 +99,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, in
             >
               <Camera size={16} />
             </button>
+            {!avatarFile && (
+              <button
+                onClick={refreshAvatar}
+                className="absolute -bottom-1 -left-1 bg-green-600 text-white p-2 rounded-full hover:bg-green-700 border-2 border-white"
+                title="Générer un nouvel avatar"
+              >
+                <RefreshCw size={16} />
+              </button>
+            )}
             <input
               type="file"
               ref={fileInputRef}
@@ -119,7 +157,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, in
                 <option value="">Non spécifié</option>
                 <option value="male">Homme</option>
                 <option value="female">Femme</option>
-                <option value="other">Autre</option>
               </select>
             </div>
           </div>
