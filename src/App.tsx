@@ -87,7 +87,14 @@ function App() {
       console.log(`%c[APP] PEER_JOINED event for ${peerId}`, 'color: green; font-weight: bold;');
       setPeers(prev => {
         const newMap = new Map(prev);
-        newMap.set(peerId, createBaseUser(peerId));
+        const existingPeer = prev.get(peerId);
+        if (existingPeer) {
+          // Peer is reconnecting, just update status
+          newMap.set(peerId, { ...existingPeer, status: 'online' });
+        } else {
+          // New peer
+          newMap.set(peerId, createBaseUser(peerId));
+        }
         console.log(`%c[APP] Peers map updated. New size: ${newMap.size}`, 'color: green;', newMap);
         return newMap;
       });

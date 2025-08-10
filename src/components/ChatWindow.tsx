@@ -200,69 +200,47 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   };
 
   const handleSendMessage = async () => {
-    // Empêcher l'envoi si le peer est hors ligne
-    if (selectedPeer.status !== 'online') {
-      return;
-    }
-    
     if (selectedFile) {
-      setIsUploading(true);
-      try {
-        // TODO: Implémenter sendFile dans PeerService
-        // await peerService.sendFile(selectedPeer.id, selectedFile);
-        addMessage({
-          id: uuidv4(),
-          senderId: myId,
-          receiverId: selectedPeer.id,
-          content: selectedFile.name,
-          timestamp: Date.now(),
-          type: 'file',
-          encrypted: true,
-          status: 'sending',
-          fileData: {
-            name: selectedFile.name,
-            size: selectedFile.size,
-            type: selectedFile.type,
-            url: '' // Will be populated on completion
-          }
-        });
-        setSelectedFile(null);
-      } catch (error) {
-        console.error('Erreur lors de l\'envoi du fichier:', error);
-        // Le fichier sera mis en queue automatiquement par PeerService
-      } finally {
-        setIsUploading(false);
+      const messageId = uuidv4();
+      addMessage({
+        id: messageId,
+        senderId: myId,
+        receiverId: selectedPeer.id,
+        content: selectedFile.name,
+        timestamp: Date.now(),
+        type: 'file',
+        encrypted: true,
+        status: 'sending',
+        fileData: { name: selectedFile.name, size: selectedFile.size, type: selectedFile.type, url: '' }
+      });
+      const sent = await peerService.sendFile(selectedPeer.id, selectedFile, messageId);
+      if (sent) {
+        dbService.updateMessageStatus(messageId, 'sent');
+        setMessages(prev => prev.map(m => m.id === messageId ? { ...m, status: 'sent' } : m));
       }
+      setSelectedFile(null);
     } else if (newMessage.trim()) {
-        const messageContent = newMessage;
-        const messageId = uuidv4();
-        
-        // Ajouter le message immédiatement avec un statut "en cours d'envoi"
-        addMessage({
-          id: messageId,
-          senderId: myId,
-          receiverId: selectedPeer.id,
-          content: messageContent,
-          timestamp: Date.now(),
-          type: 'text',
-          encrypted: true,
-          status: 'sending',
-        });
-        setNewMessage('');
-        
-        try {
-          await peerService.sendMessage(selectedPeer.id, messageContent, messageId);
-          // Message envoyé avec succès, mettre à jour le statut
-          await dbService.updateMessageStatus(messageId, 'sent');
-          // Mettre à jour l'état local
-          setMessages(prev => prev.map(m => 
-            m.id === messageId ? { ...m, status: 'sent' } : m
-          ));
-        } catch (error) {
-          console.error('Erreur lors de l\'envoi du message:', error);
-          // Le message sera mis en queue automatiquement par PeerService
-        }
+      const messageContent = newMessage;
+      const messageId = uuidv4();
+      
+      addMessage({
+        id: messageId,
+        senderId: myId,
+        receiverId: selectedPeer.id,
+        content: messageContent,
+        timestamp: Date.now(),
+        type: 'text',
+        encrypted: true,
+        status: 'sending',
+      });
+      setNewMessage('');
+      
+      const sent = await peerService.sendMessage(peerId, messageContent, messageId);
+      if (sent) {
+        dbService.updateMessageStatus(messageId, 'sent');
+        setMessages(prev => prev.map(m => m.id === messageId ? { ...m, status: 'sent' } : m));
       }
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -306,10 +284,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
           <div key={msg.id} className={`flex ${msg.senderId === myId ? 'justify-end' : 'justify-start'} mb-4`}>
             <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${msg.senderId === myId ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
               <span>{msg.content}</span>
-              <div className="flex items-center justify-between mt-1">
-                <div className="text-xs opacity-75">{new Date(msg.timestamp).toLocaleTimeString()}</div>
+              <div className="flex items-center justify-end mt-1">
+                <div className="text-xs opacity-75 mr-2">{new Date(msg.timestamp).toLocaleTimeString()}</div>
                 {msg.senderId === myId && (
-                  <MessageStatusIndicator status={msg.status} className="ml-2" />
+                  <MessageStatusIndicator status={msg.status} />
                 )}
               </div>
             </div>

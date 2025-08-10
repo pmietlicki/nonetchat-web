@@ -14,7 +14,7 @@ export interface Message {
   senderId: string;
   receiverId: string;
   content: string;
-  timestamp: Date;
+  timestamp: number;
   type: 'text' | 'file' | 'image';
   encrypted: boolean;
   fileData?: FileData;

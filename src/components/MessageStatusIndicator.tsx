@@ -29,7 +29,7 @@ const MessageStatusIndicator: React.FC<MessageStatusIndicatorProps> = ({ status,
       case 'sent':
         return 'Envoyé';
       case 'delivered':
-        return 'Livré';
+        return 'Distribué';
       case 'read':
         return 'Lu';
       default:
