@@ -43,16 +43,36 @@ class PeerService extends EventEmitter {
   private lastSeen: Map<string, number> = new Map();
   private pruneInterval: number | null = null;
   private heartbeatInterval: number | null = null;
+  private turnRefreshTimer: number | null = null;
   private searchRadius: number = 1.0; // Default 1km radius
 
-  private ICE_SERVERS = {
-    iceServers: [
+  // --- TURN auth éphémère injectée depuis /api/turn-credentials ---
+  private turnAuth: { username: string; credential: string } | null = null;
+
+  private getIceConfig(): RTCConfiguration {
+    const u = this.turnAuth?.username;
+    const c = this.turnAuth?.credential;
+
+    const iceServers: RTCIceServer[] = [
+      // STUN publics
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
-      { urls: "turn:openrelay.metered.ca:80", username: "openrelayproject", credential: "openrelayproject" },
-      { urls: "turn:openrelay.metered.ca:443", username: "openrelayproject", credential: "openrelayproject" },
-    ],
-  };
+
+      // Ton STUN/TURN
+      { urls: 'stun:turn.pascal-mietlicki.fr:3478' },
+      ...(u && c ? [
+        { urls: 'turn:turn.pascal-mietlicki.fr:3478?transport=udp', username: u, credential: c },
+        { urls: 'turn:turn.pascal-mietlicki.fr:3478?transport=tcp', username: u, credential: c },
+        { urls: 'turns:turn.pascal-mietlicki.fr:5349?transport=tcp', username: u, credential: c },
+      ] : []),
+
+      // Fallback OpenRelay (pour secours uniquement)
+      { urls: 'turn:openrelay.metered.ca:80',  username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+    ];
+
+    return { iceServers, iceCandidatePoolSize: 2 };
+  }
 
   private constructor() {
     super();
@@ -68,6 +88,22 @@ class PeerService extends EventEmitter {
     return PeerService.instance;
   }
 
+  // --- Récupération + refresh auto des identifiants TURN ---
+  private async fetchTurnAuth(userId: string) {
+    const res = await fetch(`/api/turn-credentials?userId=${encodeURIComponent(userId)}`, {
+      credentials: 'include',
+    });
+    if (!res.ok) throw new Error('Failed to fetch TURN credentials');
+    const data = await res.json();
+    this.turnAuth = { username: data.username, credential: data.credential };
+
+    // planifie un rafraîchissement 60s avant expiration
+    if (this.turnRefreshTimer) { clearTimeout(this.turnRefreshTimer); }
+    const ttl = typeof data.ttl === 'number' ? data.ttl : 3600;
+    const delay = Math.max(30_000, ttl * 1000 - 60_000);
+    this.turnRefreshTimer = window.setTimeout(() => this.fetchTurnAuth(this.myId), delay);
+  }
+
   public async initialize(profile: Partial<User>, signalingUrl: string) {
     this.diagnosticService.log('Initializing PeerService with Stable ID');
     if (this.ws) {
@@ -78,6 +114,14 @@ class PeerService extends EventEmitter {
     this.myProfile = profile;
     await this.cryptoService.initialize();
     await this.loadBlockList();
+
+    // Récupère les creds TURN (sinon fallback OpenRelay prendra le relais)
+    try {
+      await this.fetchTurnAuth(this.myId);
+      this.diagnosticService.log('TURN credentials fetched');
+    } catch (e) {
+      this.diagnosticService.log('TURN credentials fetch failed, continuing with fallback', e);
+    }
 
     this.ws = new WebSocket(signalingUrl);
 
@@ -133,8 +177,8 @@ class PeerService extends EventEmitter {
       (position) => {
         const { latitude, longitude } = position.coords;
         this.diagnosticService.log('Location obtained', { latitude, longitude });
-        this.sendToServer({ 
-          type: 'update-location', 
+        this.sendToServer({
+          type: 'update-location',
           payload: { location: { latitude, longitude }, radius: this.searchRadius }
         });
       },
@@ -153,10 +197,12 @@ class PeerService extends EventEmitter {
 
     this.pruneInterval = window.setInterval(() => {
       const now = Date.now();
-      this.peerConnections.forEach((_, peerId) => {
+      this.peerConnections.forEach((pc, peerId) => {
         if (!this.lastSeen.has(peerId)) return;
         if (now - this.lastSeen.get(peerId)! > GRACE_PERIOD) {
-          this.diagnosticService.log(`Peer ${peerId} has not been seen for over ${GRACE_PERIOD / 1000}s. Pruning connection.`);
+          // ne ferme pas une PC si l’ICE est encore ok
+          if (pc && (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'checking')) return;
+          this.diagnosticService.log(`Pruning ${peerId} (stale nearby-peers & no active ICE)`);
           this.closePeerConnection(peerId);
           this.lastSeen.delete(peerId);
         }
@@ -189,9 +235,7 @@ class PeerService extends EventEmitter {
     switch (message.type) {
       case 'nearby-peers':
         const allPeers = message.peers.map((p: any) => p.peerId).filter((id: string) => !this.blockList.has(id));
-        
         this.lastSeen = new Map(allPeers.map((id: string) => [id, Date.now()]));
-
         for (const peerId of allPeers) {
           if (!this.peerConnections.has(peerId)) {
             this.createPeerConnection(peerId);
@@ -219,8 +263,57 @@ class PeerService extends EventEmitter {
     const isInitiator = this.myId > peerId;
     this.diagnosticService.log(`Creating peer connection to ${peerId}. Initiator: ${isInitiator}`);
 
-    const pc = new RTCPeerConnection(this.ICE_SERVERS);
+    const pc = new RTCPeerConnection(this.getIceConfig());
     this.peerConnections.set(peerId, pc);
+
+    // Fallback relay-only si checking trop long
+    let relayFallbackTimer: number | null = window.setTimeout(() => {
+      if (pc.iceConnectionState === 'checking') {
+        const cfg = pc.getConfiguration();
+        pc.setConfiguration({ ...cfg, iceTransportPolicy: 'relay' });
+        try { pc.restartIce?.(); } catch {}
+        this.diagnosticService.log('ICE checking too long → relay-only + restartIce');
+      }
+    }, 7000);
+
+    pc.oniceconnectionstatechange = () => {
+      this.diagnosticService.log(`ICE state with ${peerId}: ${pc.iceConnectionState}`);
+
+      if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+        if (relayFallbackTimer) { clearTimeout(relayFallbackTimer); relayFallbackTimer = null; }
+        this.logSelectedPair(pc);
+      }
+
+      if (pc.iceConnectionState === 'failed') {
+        const policy = pc.getConfiguration().iceTransportPolicy;
+        if (policy !== 'relay') {
+          const cfg = pc.getConfiguration();
+          pc.setConfiguration({ ...cfg, iceTransportPolicy: 'relay' });
+          try { pc.restartIce?.(); } catch {}
+          this.diagnosticService.log('ICE failed → trying relay-only');
+        } else {
+          this.closePeerConnection(peerId);
+        }
+      }
+
+      if (pc.iceConnectionState === 'disconnected') {
+        // Laisse une chance au restart ICE (mobiles, changements réseau)
+        setTimeout(() => {
+          if (pc.iceConnectionState === 'disconnected') {
+            try { pc.restartIce?.(); } catch {}
+          }
+        }, 1500);
+      }
+    };
+
+    (pc as any).onicecandidateerror = (e: any) => {
+      this.diagnosticService.log('ICE candidate error', {
+        url: e.url, code: e.errorCode, text: e.errorText, hostCandidate: e.hostCandidate
+      });
+    };
+    pc.onicegatheringstatechange = () => {
+      this.diagnosticService.log('ICE gathering', pc.iceGatheringState);
+    };
 
     pc.onicecandidate = (event) => {
       if (event.candidate) {
@@ -230,9 +323,10 @@ class PeerService extends EventEmitter {
 
     pc.onconnectionstatechange = () => {
       this.diagnosticService.log(`Connection state with ${peerId} changed to: ${pc.connectionState}`);
-      if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+      if (pc.connectionState === 'failed') {
         this.closePeerConnection(peerId);
       }
+      // ne pas fermer sur 'disconnected' ici
     };
 
     if (isInitiator) {
@@ -248,7 +342,25 @@ class PeerService extends EventEmitter {
     }
   }
 
+  private async logSelectedPair(pc: RTCPeerConnection) {
+    try {
+      const stats = await pc.getStats();
+      stats.forEach((r: any) => {
+        if (r.type === 'transport' && r.selectedCandidatePairId) {
+          const pair = stats.get(r.selectedCandidatePairId);
+          const local = stats.get(pair.localCandidateId);
+          const remote = stats.get(pair.remoteCandidateId);
+          this.diagnosticService.log('Selected ICE pair', {
+            local:  { type: local?.candidateType,  protocol: local?.protocol },
+            remote: { type: remote?.candidateType, protocol: remote?.protocol },
+          });
+        }
+      });
+    } catch {}
+  }
+
   private setupDataChannel(peerId: string, channel: RTCDataChannel) {
+    channel.binaryType = 'arraybuffer';
     this.diagnosticService.log(`Setting up data channel with ${peerId}`);
     this.dataChannels.set(peerId, channel);
 
@@ -259,6 +371,7 @@ class PeerService extends EventEmitter {
     };
 
     channel.onmessage = async (event) => {
+      // Binaire (chunks de fichiers)
       if (event.data instanceof ArrayBuffer) {
         this.diagnosticService.log(`[${peerId}] Received binary file chunk`);
         this.emit('file-chunk', peerId, event.data);
@@ -284,8 +397,8 @@ class PeerService extends EventEmitter {
       } else if (message.type === 'chat-message') {
         const decrypted = await this.cryptoService.decryptMessage(peerId, message.payload);
         this.emit('data', peerId, { type: 'chat-message', payload: decrypted, messageId: message.messageId });
-        
-        // Envoyer automatiquement un accusé de réception de livraison
+
+        // Accusé de livraison
         if (message.messageId) {
           this.sendMessageDeliveredAck(peerId, message.messageId);
         }
@@ -370,17 +483,21 @@ class PeerService extends EventEmitter {
     const CHUNK_SIZE = 16384; // 16 KiB
     this.diagnosticService.log(`Starting file transfer: ${messageId}`, { name: file.name, size: file.size });
 
-    // 1. Send file metadata first
-    this.sendToPeer(peerId, { 
-      type: 'file-start', 
+    // 1) Métadonnées
+    this.sendToPeer(peerId, {
+      type: 'file-start',
       messageId,
       payload: { name: file.name, size: file.size, type: file.type }
     });
 
-    // 2. Send file in chunks with backpressure management
+    // 2) Envoi par chunks avec backpressure événementiel
+    dataChannel.bufferedAmountLowThreshold = 1_000_000;
+    const waitBufferedLow = () =>
+      new Promise<void>(resolve => dataChannel.addEventListener('bufferedamountlow', () => resolve(), { once: true }));
+
     let offset = 0;
     const fileReader = new FileReader();
-    
+
     const readSlice = (o: number) => {
       try {
         const slice = file.slice(o, o + CHUNK_SIZE);
@@ -390,23 +507,19 @@ class PeerService extends EventEmitter {
       }
     };
 
-    fileReader.onload = (e) => {
+    fileReader.onload = async (e) => {
       if (!e.target?.result) {
         this.diagnosticService.log('File read error');
         return;
       }
 
       const chunk = e.target.result as ArrayBuffer;
-      
-      // Backpressure check
-      if (dataChannel.bufferedAmount > CHUNK_SIZE * 16) {
-        this.diagnosticService.log('Backpressure detected, pausing file send');
-        setTimeout(() => readSlice(offset), 100);
-        return;
+
+      if (dataChannel.bufferedAmount > dataChannel.bufferedAmountLowThreshold) {
+        await waitBufferedLow();
       }
 
       offset += chunk.byteLength;
-      // Send the actual chunk as a raw ArrayBuffer
       dataChannel.send(chunk);
 
       if (offset < file.size) {
@@ -449,6 +562,10 @@ class PeerService extends EventEmitter {
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval);
       this.heartbeatInterval = null;
+    }
+    if (this.turnRefreshTimer) {
+      clearTimeout(this.turnRefreshTimer);
+      this.turnRefreshTimer = null;
     }
     this.ws?.close();
     this.peerConnections.forEach((_, peerId) => this.closePeerConnection(peerId));
