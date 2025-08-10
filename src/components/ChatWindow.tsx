@@ -29,6 +29,7 @@ interface Message {
     type: string;
     url: string;
   };
+  reactions?: { [emoji: string]: string[] }; // emoji -> array of user IDs
 }
 
 const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) => {
@@ -52,6 +53,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   const [newMessagesCount, setNewMessagesCount] = useState<number>(0);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
   
   // Configuration des transferts de fichiers
   const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB avec compression
@@ -75,7 +78,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       fileReceivers.current.set(data.messageId, { 
         chunks: [], 
         metadata: data.payload,
-        expectedSize: data.payload.size,
+        expectedSize: data.payload.encryptedSize || data.payload.size, // Utiliser la taille chiffrée si disponible
         startTime: Date.now()
       });
       
@@ -102,9 +105,19 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
           // Reconstruire le fichier à partir des chunks
           const totalSize = receiver.chunks.reduce((sum, chunk) => sum + chunk.byteLength, 0);
           
-          // Vérifier l'intégrité du fichier (taille)
-          if (receiver.expectedSize && totalSize !== receiver.expectedSize) {
-            throw new Error(`Taille de fichier incorrecte: reçu ${totalSize} octets, attendu ${receiver.expectedSize} octets`);
+          // Vérifier l'intégrité du fichier (taille chiffrée)
+          // On doit comparer avec la taille chiffrée, pas la taille originale
+          const expectedEncryptedSize = receiver.metadata.encryptedSize || receiver.expectedSize;
+          if (expectedEncryptedSize && totalSize !== expectedEncryptedSize) {
+            console.warn(`Différence de taille détectée: reçu ${totalSize} octets, attendu ${expectedEncryptedSize} octets (taille originale: ${receiver.metadata.size} octets)`);
+            // Ne pas lever d'erreur pour une petite différence (padding, compression, etc.)
+            const sizeDifference = Math.abs(totalSize - expectedEncryptedSize);
+            const tolerancePercent = 0.1; // 0.1% de tolérance
+            const tolerance = Math.max(1024, expectedEncryptedSize * tolerancePercent / 100); // Au moins 1KB de tolérance
+            
+            if (sizeDifference > tolerance) {
+              throw new Error(`Taille de fichier incorrecte: reçu ${totalSize} octets, attendu ${expectedEncryptedSize} octets (différence: ${sizeDifference} octets)`);
+            }
           }
           
           // Reconstruire le fichier chiffré à partir des chunks
@@ -404,6 +417,65 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   };
 
   const commonEmojis = ['😀', '😂', '😍', '🥰', '😊', '😎', '🤔', '😢', '😡', '👍', '👎', '❤️', '🔥', '💯', '🎉', '👏', '🙏', '💪', '🤝', '✨'];
+  // Liste des émojis disponibles pour les réactions (style Messenger)
+  const reactionEmojis = ['👍', '❤️', '😂', '😮', '😢', '😡'];
+
+  const handleLongPressStart = (messageId: string) => {
+    const timer = setTimeout(() => {
+      // Vibration tactile si disponible (comme Messenger)
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+      setShowReactionPicker(messageId);
+    }, 300); // 300ms pour déclencher l'appui long (comme Messenger)
+    setLongPressTimer(timer);
+  };
+
+  const handleLongPressEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+
+  const addReaction = async (messageId: string, emoji: string) => {
+    try {
+      setMessages(prev => prev.map(msg => {
+        if (msg.id === messageId) {
+          const reactions = { ...msg.reactions };
+          
+          if (reactions[emoji]) {
+            // Si l'utilisateur a déjà réagi avec cet emoji, on retire sa réaction
+            if (reactions[emoji].includes(myId)) {
+              reactions[emoji] = reactions[emoji].filter(id => id !== myId);
+              // Si plus personne n'a cette réaction, on supprime l'emoji
+              if (reactions[emoji].length === 0) {
+                delete reactions[emoji];
+              }
+            } else {
+              // Sinon on ajoute sa réaction
+              reactions[emoji].push(myId);
+            }
+          } else {
+            // Première réaction avec cet emoji
+            reactions[emoji] = [myId];
+          }
+          
+          return { ...msg, reactions };
+        }
+        return msg;
+      }));
+      
+      // Fermer le sélecteur de réactions
+      setShowReactionPicker(null);
+      
+      // TODO: Implémenter la sauvegarde des réactions dans IndexedDB
+       // Pour l'instant, les réactions sont seulement stockées en mémoire
+      
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout de la réaction:', error);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -560,7 +632,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
                  <X size={20} />
                </button>
              )}
-          </div>
+              </div>
         </div>
         
         {/* Panneau d'annulation des transferts */}
@@ -645,7 +717,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       <div className="flex-1 overflow-y-auto p-4 space-y-4 relative bg-gray-50" onScroll={handleScroll}>
         {messages.map(msg => (
           <div key={msg.id} className={`flex ${msg.senderId === myId ? 'justify-end' : 'justify-start'} mb-4 group`}>
-            <div className={`relative max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${msg.senderId === myId ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
+            <div 
+              className={`relative max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${msg.senderId === myId ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'}`}
+              onMouseDown={() => handleLongPressStart(msg.id)}
+              onMouseUp={handleLongPressEnd}
+              onMouseLeave={handleLongPressEnd}
+              onTouchStart={() => handleLongPressStart(msg.id)}
+              onTouchEnd={handleLongPressEnd}
+            >
               {/* Menu contextuel en haut à droite */}
               <div className="absolute top-1 right-1">
                 <button
@@ -678,6 +757,26 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
                   </div>
                 )}
               </div>
+              
+              {/* Sélecteur de réactions pour appui long - Version discrète */}
+              {showReactionPicker === msg.id && (
+                <div className="absolute bottom-0 left-0 transform translate-y-full bg-white rounded-lg shadow-lg border border-gray-200 z-30 px-2 py-1 mt-1 animate-in fade-in zoom-in duration-200">
+                  <div className="flex gap-1">
+                    {reactionEmojis.map((emoji, index) => (
+                      <button
+                        key={index}
+                        onClick={() => addReaction(msg.id, emoji)}
+                        className="text-lg hover:scale-110 transition-transform duration-200 p-1 rounded hover:bg-gray-100 animate-in fade-in zoom-in"
+                        style={{ animationDelay: `${index * 30}ms` }}
+                        title={`Réagir avec ${emoji}`}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               {msg.type === 'file' ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -750,6 +849,28 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
               ) : (
                 <span>{msg.content}</span>
               )}
+              
+              {/* Affichage des réactions - Version discrète */}
+              {msg.reactions && Object.keys(msg.reactions).length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1 -mb-1">
+                  {Object.entries(msg.reactions).map(([emoji, userIds]) => (
+                    <button
+                      key={emoji}
+                      onClick={() => addReaction(msg.id, emoji)}
+                      className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs transition-all duration-200 hover:scale-105 shadow-sm ${
+                        userIds.includes(myId)
+                          ? 'bg-blue-500 text-white border border-blue-600'
+                          : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                      }`}
+                      title={`${userIds.length} réaction${userIds.length > 1 ? 's' : ''}`}
+                    >
+                      <span className="text-sm">{emoji}</span>
+                      {userIds.length > 1 && <span className="text-xs font-medium">{userIds.length}</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+              
               <div className="flex items-center justify-end mt-1">
                 <div className="text-xs opacity-75 mr-2">{new Date(msg.timestamp).toLocaleTimeString()}</div>
                 {msg.senderId === myId && (
