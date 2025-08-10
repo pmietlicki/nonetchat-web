@@ -213,11 +213,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         status: 'sending',
         fileData: { name: selectedFile.name, size: selectedFile.size, type: selectedFile.type, url: '' }
       });
-      const sent = await peerService.sendFile(selectedPeer.id, selectedFile, messageId);
-      if (sent) {
-        dbService.updateMessageStatus(messageId, 'sent');
-        setMessages(prev => prev.map(m => m.id === messageId ? { ...m, status: 'sent' } : m));
-      }
+      await peerService.sendFile(selectedPeer.id, selectedFile, messageId);
+      dbService.updateMessageStatus(messageId, 'sent');
+      setMessages(prev => prev.map(m => m.id === messageId ? { ...m, status: 'sent' } : m));
       setSelectedFile(null);
     } else if (newMessage.trim()) {
       const messageContent = newMessage;
@@ -235,11 +233,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       });
       setNewMessage('');
       
-      const sent = await peerService.sendMessage(peerId, messageContent, messageId);
-      if (sent) {
-        dbService.updateMessageStatus(messageId, 'sent');
-        setMessages(prev => prev.map(m => m.id === messageId ? { ...m, status: 'sent' } : m));
-      }
+      await peerService.sendMessage(selectedPeer.id, messageContent, messageId);
+      dbService.updateMessageStatus(messageId, 'sent');
+      setMessages(prev => prev.map(m => m.id === messageId ? { ...m, status: 'sent' } : m));
     }
   };
 
