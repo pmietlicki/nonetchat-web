@@ -122,6 +122,128 @@ class CryptoService {
       return 'Failed to decrypt message';
     }
   }
+
+  // Compresser un fichier avec gzip
+  private async compressFile(file: Blob): Promise<Blob> {
+    try {
+      const stream = new CompressionStream('gzip');
+      const compressedStream = file.stream().pipeThrough(stream);
+      return new Response(compressedStream).blob();
+    } catch (error) {
+      console.warn('Compression non supportée, fichier non compressé:', error);
+      return file;
+    }
+  }
+
+  // Décompresser un fichier avec gzip
+  private async decompressFile(compressedBlob: Blob): Promise<Blob> {
+    try {
+      const stream = new DecompressionStream('gzip');
+      const decompressedStream = compressedBlob.stream().pipeThrough(stream);
+      return new Response(decompressedStream).blob();
+    } catch (error) {
+      console.warn('Décompression échouée, retour du fichier original:', error);
+      return compressedBlob;
+    }
+  }
+
+  async encryptFile(file: File): Promise<Blob> {
+    try {
+      // Étape 1: Compresser le fichier
+      const compressedFile = await this.compressFile(file);
+      
+      console.log(`Compression: ${file.size} bytes -> ${compressedFile.size} bytes (${Math.round((1 - compressedFile.size / file.size) * 100)}% de réduction)`);
+
+      // Générer une clé symétrique pour ce fichier
+      const key = await window.crypto.subtle.generateKey(
+        { name: 'AES-GCM', length: 256 },
+        true,
+        ['encrypt', 'decrypt']
+      );
+
+      // Générer un IV aléatoire
+      const iv = window.crypto.getRandomValues(new Uint8Array(12));
+
+      // Lire le fichier compressé comme ArrayBuffer
+      const fileBuffer = await compressedFile.arrayBuffer();
+
+      // Chiffrer les données
+      const encryptedData = await window.crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        fileBuffer
+      );
+
+      // Exporter la clé
+      const exportedKey = await window.crypto.subtle.exportKey('raw', key);
+
+      // Créer l'en-tête avec IV, clé et taille originale
+      const originalSize = new Uint8Array(4);
+      new DataView(originalSize.buffer).setUint32(0, file.size, true);
+      
+      const header = new Uint8Array(12 + 32 + 4); // 12 bytes IV + 32 bytes key + 4 bytes original size
+      header.set(iv, 0);
+      header.set(new Uint8Array(exportedKey), 12);
+      header.set(originalSize, 44);
+
+      // Combiner l'en-tête et les données chiffrées
+      const result = new Uint8Array(header.length + encryptedData.byteLength);
+      result.set(header, 0);
+      result.set(new Uint8Array(encryptedData), header.length);
+
+      return new Blob([result]);
+    } catch (error) {
+      console.error('Erreur lors du chiffrement du fichier:', error);
+      throw error;
+    }
+  }
+
+  async decryptFile(encryptedBlob: Blob): Promise<Blob> {
+    try {
+      const encryptedBuffer = await encryptedBlob.arrayBuffer();
+      const encryptedArray = new Uint8Array(encryptedBuffer);
+
+      // Extraire l'IV (12 premiers bytes)
+      const iv = encryptedArray.slice(0, 12);
+
+      // Extraire la clé (32 bytes suivants)
+      const keyData = encryptedArray.slice(12, 44);
+
+      // Extraire la taille originale (4 bytes suivants)
+      const originalSizeData = encryptedArray.slice(44, 48);
+      const originalSize = new DataView(originalSizeData.buffer).getUint32(0, true);
+
+      // Extraire les données chiffrées (le reste)
+      const encryptedData = encryptedArray.slice(48);
+
+      // Importer la clé
+      const key = await window.crypto.subtle.importKey(
+        'raw',
+        keyData,
+        { name: 'AES-GCM' },
+        false,
+        ['decrypt']
+      );
+
+      // Déchiffrer les données
+      const decryptedData = await window.crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        encryptedData
+      );
+
+      // Décompresser le fichier
+      const compressedBlob = new Blob([decryptedData]);
+      const decompressedBlob = await this.decompressFile(compressedBlob);
+      
+      console.log(`Décompression: ${compressedBlob.size} bytes -> ${decompressedBlob.size} bytes`);
+
+      return decompressedBlob;
+    } catch (error) {
+      console.error('Erreur lors du déchiffrement du fichier:', error);
+      throw error;
+    }
+  }
 }
 
 export default CryptoService;

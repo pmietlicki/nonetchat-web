@@ -402,6 +402,14 @@ class PeerService extends EventEmitter {
         if (message.messageId) {
           this.sendMessageDeliveredAck(peerId, message.messageId);
         }
+      } else if (message.type === 'file-start') {
+        // Déchiffrer les métadonnées du fichier
+        const decryptedMetadata = await this.cryptoService.decryptMessage(peerId, message.payload);
+        const metadata = JSON.parse(decryptedMetadata);
+        this.emit('data', peerId, { type: 'file-start', payload: metadata, messageId: message.messageId });
+      } else if (message.type === 'file-end') {
+        // Signaler la fin du transfert de fichier
+        this.emit('data', peerId, { type: 'file-end', payload: message.payload, messageId: message.messageId });
       } else if (message.type === 'message-delivered') {
         this.emit('message-delivered', peerId, message.messageId);
       } else if (message.type === 'message-read') {
@@ -472,7 +480,7 @@ class PeerService extends EventEmitter {
     this.sendToPeer(peerId, { type: 'chat-message', payload: content, messageId });
   }
 
-  public sendFile(peerId: string, file: File, messageId: string) {
+  public async sendFile(peerId: string, file: File, messageId: string, onProgress?: (progress: number) => void) {
     const dataChannel = this.dataChannels.get(peerId);
     if (!dataChannel || dataChannel.readyState !== 'open') {
       this.diagnosticService.log(`Cannot send file to ${peerId}, data channel not open. Queuing not yet supported for files.`);
@@ -480,57 +488,82 @@ class PeerService extends EventEmitter {
       return;
     }
 
-    const CHUNK_SIZE = 16384; // 16 KiB
-    this.diagnosticService.log(`Starting file transfer: ${messageId}`, { name: file.name, size: file.size });
+    try {
+      // Chiffrer le fichier avant envoi
+      this.diagnosticService.log(`Encrypting file: ${messageId}`, { name: file.name, size: file.size });
+      const encryptedBlob = await this.cryptoService.encryptFile(file);
+      
+      const CHUNK_SIZE = 16384; // 16 KiB
+      this.diagnosticService.log(`Starting encrypted file transfer: ${messageId}`, { 
+        originalSize: file.size, 
+        encryptedSize: encryptedBlob.size 
+      });
 
-    // 1) Métadonnées
-    this.sendToPeer(peerId, {
-      type: 'file-start',
-      messageId,
-      payload: { name: file.name, size: file.size, type: file.type }
-    });
+      // 1) Métadonnées (chiffrer le nom du fichier)
+      const encryptedMetadata = await this.cryptoService.encryptMessage(peerId, JSON.stringify({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        encryptedSize: encryptedBlob.size
+      }));
+      
+      this.sendToPeer(peerId, {
+        type: 'file-start',
+        messageId,
+        payload: encryptedMetadata
+      });
 
-    // 2) Envoi par chunks avec backpressure événementiel
-    dataChannel.bufferedAmountLowThreshold = 1_000_000;
-    const waitBufferedLow = () =>
-      new Promise<void>(resolve => dataChannel.addEventListener('bufferedamountlow', () => resolve(), { once: true }));
+      // 2) Envoi par chunks avec backpressure événementiel
+      dataChannel.bufferedAmountLowThreshold = 1_000_000;
+      const waitBufferedLow = () =>
+        new Promise<void>(resolve => dataChannel.addEventListener('bufferedamountlow', () => resolve(), { once: true }));
 
-    let offset = 0;
-    const fileReader = new FileReader();
+      let offset = 0;
+      const fileReader = new FileReader();
 
-    const readSlice = (o: number) => {
-      try {
-        const slice = file.slice(o, o + CHUNK_SIZE);
-        fileReader.readAsArrayBuffer(slice);
-      } catch (e) {
-        this.diagnosticService.log('File slice error', e);
-      }
-    };
+      const readSlice = (o: number) => {
+        try {
+          const slice = encryptedBlob.slice(o, o + CHUNK_SIZE);
+          fileReader.readAsArrayBuffer(slice);
+        } catch (e) {
+          this.diagnosticService.log('File slice error', e);
+        }
+      };
 
-    fileReader.onload = async (e) => {
-      if (!e.target?.result) {
-        this.diagnosticService.log('File read error');
-        return;
-      }
+      fileReader.onload = async (e) => {
+        if (!e.target?.result) {
+          this.diagnosticService.log('File read error');
+          return;
+        }
 
-      const chunk = e.target.result as ArrayBuffer;
+        const chunk = e.target.result as ArrayBuffer;
 
-      if (dataChannel.bufferedAmount > dataChannel.bufferedAmountLowThreshold) {
-        await waitBufferedLow();
-      }
+        if (dataChannel.bufferedAmount > dataChannel.bufferedAmountLowThreshold) {
+          await waitBufferedLow();
+        }
 
-      offset += chunk.byteLength;
-      dataChannel.send(chunk);
+        offset += chunk.byteLength;
+        dataChannel.send(chunk);
 
-      if (offset < file.size) {
-        readSlice(offset);
-      } else {
-        this.diagnosticService.log(`File transfer complete: ${messageId}`);
-        this.sendToPeer(peerId, { type: 'file-end', messageId, payload: {} });
-      }
-    };
+        // Callback de progression
+        if (onProgress) {
+          const progress = Math.round((offset / encryptedBlob.size) * 100);
+          onProgress(progress);
+        }
 
-    readSlice(0);
+        if (offset < encryptedBlob.size) {
+          readSlice(offset);
+        } else {
+          this.diagnosticService.log(`Encrypted file transfer complete: ${messageId}`);
+          this.sendToPeer(peerId, { type: 'file-end', messageId, payload: {} });
+        }
+      };
+
+      readSlice(0);
+    } catch (error) {
+      this.diagnosticService.log(`File encryption failed: ${messageId}`, error);
+      throw error;
+    }
   }
 
   public sendMessageDeliveredAck(peerId: string, messageId: string) {

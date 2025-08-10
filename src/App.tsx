@@ -355,7 +355,7 @@ function App() {
             </div>
           </div>
           
-          <div className={`items-center gap-4 ${selectedPeerId ? 'hidden' : 'hidden md:flex'}`}>
+          <div className="flex items-center gap-4">
             <ConnectionStatus 
               isConnected={isConnected} 
               onReconnect={async () => {
@@ -402,9 +402,9 @@ function App() {
       </header>
 
       <div className="flex-1 flex overflow-hidden">
-        <div className={`w-full md:w-80 flex-shrink-0 border-r border-gray-200 bg-white ${
+        <div className={`w-full md:w-80 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col ${
           selectedPeer ? 'hidden md:flex' : 'flex'
-        } flex-col`}>
+        }`}>
           {activeTab === 'peers' ? (
             <PeerList 
               peers={peerList}
@@ -421,7 +421,7 @@ function App() {
         </div>
 
         <div className={`flex-1 flex flex-col ${
-          selectedPeerId ? 'flex' : 'hidden md:flex'
+          selectedPeer ? 'flex' : 'hidden md:flex'
         }`}>
           {selectedPeer ? (
             <ChatWindow 
