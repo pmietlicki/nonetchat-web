@@ -3,6 +3,7 @@ import { User } from '../types';
 import PeerService from '../services/PeerService';
 import IndexedDBService from '../services/IndexedDBService';
 import CryptoService from '../services/CryptoService';
+import NotificationService from '../services/NotificationService';
 import { Send, Paperclip, ArrowLeft, X } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import MessageStatusIndicator from './MessageStatusIndicator';
@@ -40,12 +41,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
   const peerService = PeerService.getInstance();
   const dbService = IndexedDBService.getInstance();
+  const notificationService = NotificationService.getInstance();
 
   const fileReceivers = useRef<Map<string, { chunks: ArrayBuffer[], metadata: any, expectedSize?: number, startTime: number }>>(new Map());
   const activeFileTransfers = useRef<Set<string>>(new Set());
   const [sendingProgress, setSendingProgress] = useState<Map<string, number>>(new Map());
   const [receivingProgress, setReceivingProgress] = useState<Map<string, number>>(new Map());
   const [showCancelOptions, setShowCancelOptions] = useState<boolean>(false);
+  const [isAtBottom, setIsAtBottom] = useState<boolean>(true);
+  const [newMessagesCount, setNewMessagesCount] = useState<number>(0);
   
   // Configuration des transferts de fichiers
   const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB avec compression
@@ -235,6 +239,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     peerService.on('message-delivered', handleMessageDelivered);
     peerService.on('message-read', handleMessageRead);
 
+    // Gérer la visibilité pour le marquage automatique
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isAtBottom) {
+        markAsRead();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       // Check if peerService still exists and has removeListener method
       if (peerService && typeof peerService.removeListener === 'function') {
@@ -243,8 +256,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         peerService.removeListener('message-delivered', handleMessageDelivered);
         peerService.removeListener('message-read', handleMessageRead);
       }
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [selectedPeer.id, handleData]);
+  }, [selectedPeer.id, handleData, isAtBottom]);
 
   useEffect(() => {
     scrollToBottom();
@@ -261,6 +275,20 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
   const addMessage = async (message: Message) => {
     setMessages(prev => [...prev, message]);
+    
+    // Gérer les nouveaux messages reçus
+    if (message.senderId !== myId) {
+      if (!isAtBottom) {
+        setNewMessagesCount(prev => prev + 1);
+      } else if (document.visibilityState === 'visible') {
+        // Auto-scroll si on est en bas et que la fenêtre est visible
+        setTimeout(() => scrollToBottom(), 100);
+      }
+    } else {
+      // Pour les messages envoyés, toujours scroller en bas
+      setTimeout(() => scrollToBottom(), 100);
+    }
+    
     try {
       await dbService.saveMessage({
         ...message,
@@ -268,6 +296,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         encrypted: true, // Les messages sont maintenant chiffrés
       }, selectedPeer.id);
       await dbService.updateConversationParticipant(selectedPeer.id, selectedPeer.name, selectedPeer.avatar);
+      
+      // Notifier le service de notifications si c'est un message reçu
+      if (message.senderId !== myId) {
+        notificationService.addMessage(selectedPeer.id, {
+          id: message.id,
+          conversationId: selectedPeer.id,
+          content: message.content,
+          timestamp: message.timestamp,
+          type: message.type,
+          senderName: selectedPeer.name
+        });
+      }
     } catch (error) {
       console.error('Error saving message:', error);
     }
@@ -294,6 +334,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
           ? { ...m, status: 'read' }
           : m
       ));
+      
+      // Marquer les messages comme lus dans le service de notifications
+      notificationService.markConversationAsRead(selectedPeer.id);
     } catch (error) {
       console.error('Error marking as read:', error);
     }
@@ -301,6 +344,23 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setIsAtBottom(true);
+    setNewMessagesCount(0);
+  };
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+    
+    setIsAtBottom(isNearBottom);
+    
+    if (isNearBottom) {
+      setNewMessagesCount(0);
+      // Marquer comme lu si on est en bas et que la fenêtre est visible
+      if (document.visibilityState === 'visible') {
+        markAsRead();
+      }
+    }
   };
 
   const handleSendMessage = async () => {
@@ -510,7 +570,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 relative bg-gray-50" onScroll={handleScroll}>
         {messages.map(msg => (
           <div key={msg.id} className={`flex ${msg.senderId === myId ? 'justify-end' : 'justify-start'} mb-4`}>
             <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${msg.senderId === myId ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
@@ -596,6 +656,23 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
           </div>
         ))}
         <div ref={messagesEndRef} />
+        
+        {/* Indicateur de nouveaux messages */}
+        {newMessagesCount > 0 && !isAtBottom && (
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
+            <button
+              onClick={scrollToBottom}
+              className="bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-600 transition-colors flex items-center gap-2 animate-pulse"
+            >
+              <span className="text-sm font-medium">
+                {newMessagesCount} nouveau{newMessagesCount > 1 ? 'x' : ''} message{newMessagesCount > 1 ? 's' : ''}
+              </span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Input */}

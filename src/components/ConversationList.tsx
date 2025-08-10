@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, MessageSquare } from 'lucide-react';
 import IndexedDBService from '../services/IndexedDBService';
 import PeerService from '../services/PeerService';
+import NotificationService from '../services/NotificationService';
 
 interface ConversationListProps {
   onSelectConversation: (participantId: string) => void;
@@ -30,9 +31,11 @@ const ConversationList: React.FC<ConversationListProps> = ({
   const [conversations, setConversations] = useState<StoredConversation[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [conversationUnreadCounts, setConversationUnreadCounts] = useState<Map<string, number>>(new Map());
   
   const dbService = IndexedDBService.getInstance();
   const peerService = PeerService.getInstance();
+  const notificationService = NotificationService.getInstance();
 
   useEffect(() => {
     loadConversations();
@@ -41,12 +44,36 @@ const ConversationList: React.FC<ConversationListProps> = ({
       loadConversations();
     };
 
+    const handleUnreadChanged = (conversationId: string, count: number) => {
+      setConversationUnreadCounts(prev => {
+        const newMap = new Map(prev);
+        if (count > 0) {
+          newMap.set(conversationId, count);
+        } else {
+          newMap.delete(conversationId);
+        }
+        return newMap;
+      });
+    };
+
     peerService.on('data', handleMessage);
+    notificationService.on('conversation-unread-changed', handleUnreadChanged);
+
+    // Initialiser les compteurs
+    const initialCounts = new Map<string, number>();
+    conversations.forEach(conv => {
+      const count = notificationService.getConversationUnreadCount(conv.participantId);
+      if (count > 0) {
+        initialCounts.set(conv.participantId, count);
+      }
+    });
+    setConversationUnreadCounts(initialCounts);
 
     return () => {
       peerService.removeListener('data', handleMessage);
+      notificationService.off('conversation-unread-changed', handleUnreadChanged);
     }
-  }, []);
+  }, [conversations.length]);
 
   const loadConversations = async () => {
     try {
@@ -95,6 +122,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
 
   const renderConversation = (conversation: StoredConversation) => {
     const isSelected = selectedConversationId === conversation.participantId;
+    const unreadCount = conversationUnreadCounts.get(conversation.participantId) || 0;
     
     return (
       <div
@@ -103,6 +131,8 @@ const ConversationList: React.FC<ConversationListProps> = ({
         className={`p-3 cursor-pointer transition-colors ${
           isSelected 
             ? 'bg-blue-50 border-r-2 border-blue-500' 
+            : unreadCount > 0
+            ? 'bg-blue-25 hover:bg-blue-50'
             : 'hover:bg-gray-50'
         }`}
       >
@@ -113,16 +143,18 @@ const ConversationList: React.FC<ConversationListProps> = ({
               alt={conversation.participantName}
               className="w-12 h-12 rounded-full object-cover"
             />
-            {conversation.unreadCount > 0 && (
+            {unreadCount > 0 && (
               <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
+                {unreadCount > 99 ? '99+' : unreadCount}
               </div>
             )}
           </div>
           
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
-              <h4 className="font-medium text-gray-900 truncate">
+              <h4 className={`font-medium truncate ${
+                unreadCount > 0 ? 'text-gray-900 font-semibold' : 'text-gray-900'
+              }`}>
                 {conversation.participantName}
               </h4>
               {conversation.lastMessage && (
@@ -132,8 +164,10 @@ const ConversationList: React.FC<ConversationListProps> = ({
               )}
             </div>
             
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <span className="truncate">{getLastMessagePreview(conversation)}</span>
+            <div className="flex items-center gap-2 text-sm">
+              <span className={`truncate ${
+                unreadCount > 0 ? 'text-gray-800 font-medium' : 'text-gray-500'
+              }`}>{getLastMessagePreview(conversation)}</span>
             </div>
           </div>
         </div>

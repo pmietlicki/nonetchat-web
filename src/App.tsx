@@ -7,11 +7,13 @@ import StatusBar from './components/StatusBar';
 import ConnectionStatus from './components/ConnectionStatus';
 import ProfileModal from './components/ProfileModal';
 import DiagnosticPanel from './components/DiagnosticPanel';
+import NotificationSettings from './components/NotificationSettings';
 import { User } from './types';
 import PeerService, { PeerMessage } from './services/PeerService';
 import IndexedDBService from './services/IndexedDBService';
 import ProfileService from './services/ProfileService';
-import { MessageSquare, Users, Wifi, WifiOff, X, User as UserIcon } from 'lucide-react';
+import NotificationService from './services/NotificationService';
+import { MessageSquare, Users, Wifi, WifiOff, X, User as UserIcon, Bell } from 'lucide-react';
 
 const DEFAULT_SIGNALING_URL = 'wss://chat.pascal-mietlicki.fr';
 
@@ -35,6 +37,9 @@ function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [geolocationError, setGeolocationError] = useState<string | null>(null);
+  const [totalUnreadCount, setTotalUnreadCount] = useState(0);
+  const [unreadConversationsCount, setUnreadConversationsCount] = useState(0);
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
 
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -54,6 +59,7 @@ function App() {
   const peerService = PeerService.getInstance();
   const profileService = ProfileService.getInstance();
   const dbService = IndexedDBService.getInstance();
+  const notificationService = NotificationService.getInstance();
 
   useEffect(() => {
     const initialize = async () => {
@@ -154,12 +160,39 @@ function App() {
     peerService.on('data', onData);
     peerService.on('geolocation-error', onGeolocationError);
 
+    // Listeners pour les notifications
+    const onUnreadCountChanged = (count: number) => {
+      setTotalUnreadCount(count);
+    };
+
+    const onUnreadConversationsChanged = () => {
+      setUnreadConversationsCount(notificationService.getUnreadConversationsCount());
+    };
+
+    const onNotificationClicked = (conversationId: string) => {
+      setSelectedPeerId(conversationId);
+      setActiveTab('conversations');
+    };
+
+    notificationService.on('unread-count-changed', onUnreadCountChanged);
+    notificationService.on('conversation-unread-changed', onUnreadConversationsChanged);
+    notificationService.on('notification-clicked', onNotificationClicked);
+
+    // Initialiser les compteurs
+    setTotalUnreadCount(notificationService.getTotalUnreadCount());
+    setUnreadConversationsCount(notificationService.getUnreadConversationsCount());
+
     return () => {
       peerService.removeListener('open', onOpen);
       peerService.removeListener('peer-joined', onPeerJoined);
       peerService.removeListener('peer-left', onPeerLeft);
       peerService.removeListener('data', onData);
       peerService.removeListener('geolocation-error', onGeolocationError);
+      
+      notificationService.off('unread-count-changed', onUnreadCountChanged);
+      notificationService.off('conversation-unread-changed', onUnreadConversationsChanged);
+      notificationService.off('notification-clicked', onNotificationClicked);
+      
       peerService.destroy();
     };
   }, [signalingUrl]);
@@ -379,7 +412,7 @@ function App() {
               </button>
               <button
                 onClick={() => setActiveTab('conversations')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors relative ${
                   activeTab === 'conversations' 
                     ? 'bg-white text-blue-600 shadow-sm' 
                     : 'text-gray-600 hover:text-gray-900'
@@ -387,8 +420,26 @@ function App() {
               >
                 <MessageSquare size={16} />
                 Messages
+                {totalUnreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                    {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
+                  </span>
+                )}
+                {unreadConversationsCount > 0 && totalUnreadCount === 0 && (
+                  <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                    •
+                  </span>
+                )}
               </button>
             </div>
+
+            <button
+              onClick={() => setShowNotificationSettings(true)}
+              className="p-2 rounded-full hover:bg-gray-100"
+              title="Paramètres de notifications"
+            >
+              <Bell size={20} />
+            </button>
 
             <button
               onClick={() => setIsProfileOpen(true)}
@@ -472,6 +523,12 @@ function App() {
         signalingUrl={signalingUrl}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenDiagnostic={() => setIsDiagnosticOpen(true)}
+      />
+
+      {/* Notification Settings Modal */}
+      <NotificationSettings 
+        isOpen={showNotificationSettings}
+        onClose={() => setShowNotificationSettings(false)}
       />
     </div>
   );
