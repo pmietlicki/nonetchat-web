@@ -268,6 +268,48 @@ class IndexedDBService {
     });
   }
 
+  async deleteMessage(messageId: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const transaction = this.db.transaction(['messages'], 'readwrite');
+    const store = transaction.objectStore('messages');
+    
+    return new Promise((resolve, reject) => {
+      const deleteRequest = store.delete(messageId);
+      deleteRequest.onsuccess = () => resolve();
+      deleteRequest.onerror = () => reject(deleteRequest.error);
+    });
+  }
+
+  async deleteConversation(conversationId: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const transaction = this.db.transaction(['messages', 'conversations'], 'readwrite');
+    const messagesStore = transaction.objectStore('messages');
+    const conversationsStore = transaction.objectStore('conversations');
+    
+    return new Promise((resolve, reject) => {
+      // Supprimer tous les messages de la conversation
+      const messagesIndex = messagesStore.index('conversationId');
+      const messagesRequest = messagesIndex.openCursor(IDBKeyRange.only(conversationId));
+      
+      messagesRequest.onsuccess = (event) => {
+        const cursor = (event.target as IDBRequest).result;
+        if (cursor) {
+          cursor.delete();
+          cursor.continue();
+        } else {
+          // Supprimer la conversation elle-même
+          const deleteConvRequest = conversationsStore.delete(conversationId);
+          deleteConvRequest.onsuccess = () => resolve();
+          deleteConvRequest.onerror = () => reject(deleteConvRequest.error);
+        }
+      };
+      
+      messagesRequest.onerror = () => reject(messagesRequest.error);
+    });
+  }
+
   async updateConversationParticipant(conversationId: string, name: string, avatar: string): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
 

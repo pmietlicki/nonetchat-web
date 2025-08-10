@@ -4,7 +4,7 @@ import PeerService from '../services/PeerService';
 import IndexedDBService from '../services/IndexedDBService';
 import CryptoService from '../services/CryptoService';
 import NotificationService from '../services/NotificationService';
-import { Send, Paperclip, ArrowLeft, X } from 'lucide-react';
+import { Send, Paperclip, ArrowLeft, X, Trash2, MoreVertical, Info, Smile } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import MessageStatusIndicator from './MessageStatusIndicator';
 
@@ -50,6 +50,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   const [showCancelOptions, setShowCancelOptions] = useState<boolean>(false);
   const [isAtBottom, setIsAtBottom] = useState<boolean>(true);
   const [newMessagesCount, setNewMessagesCount] = useState<number>(0);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   
   // Configuration des transferts de fichiers
   const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB avec compression
@@ -260,6 +262,22 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     };
   }, [selectedPeer.id, handleData, isAtBottom]);
 
+  // Fermer les menus quand on clique ailleurs
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.relative')) {
+        setOpenMenuId(null);
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -341,6 +359,51 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       console.error('Error marking as read:', error);
     }
   };
+
+  const deleteMessage = async (messageId: string) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce message ?')) {
+      try {
+        await dbService.deleteMessage(messageId);
+        setMessages(prev => prev.filter(m => m.id !== messageId));
+      } catch (error) {
+        console.error('Error deleting message:', error);
+      }
+    }
+  };
+
+  const deleteConversation = async () => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer toute cette conversation ?')) {
+      try {
+        await dbService.deleteConversation(selectedPeer.id);
+        setMessages([]);
+        onBack(); // Retourner à la liste des conversations
+      } catch (error) {
+        console.error('Error deleting conversation:', error);
+      }
+    }
+  };
+
+  const toggleMessageMenu = (messageId: string) => {
+    setOpenMenuId(openMenuId === messageId ? null : messageId);
+  };
+
+  const showMessageInfo = (message: Message) => {
+    const info = `ID: ${message.id}\nType: ${message.type}\nEnvoyé: ${new Date(message.timestamp).toLocaleString()}\nStatut: ${message.status || 'Envoyé'}`;
+    alert(info);
+    setOpenMenuId(null);
+  };
+
+  const deleteMessageFromMenu = async (messageId: string) => {
+    setOpenMenuId(null);
+    await deleteMessage(messageId);
+  };
+
+  const insertEmoji = (emoji: string) => {
+    setNewMessage(prev => prev + emoji);
+    setShowEmojiPicker(false);
+  };
+
+  const commonEmojis = ['😀', '😂', '😍', '🥰', '😊', '😎', '🤔', '😢', '😡', '👍', '👎', '❤️', '🔥', '💯', '🎉', '👏', '🙏', '💪', '🤝', '✨'];
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -479,16 +542,25 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
               </div>
             </div>
           </div>
-          {/* Bouton d'annulation des transferts actifs */}
-          {(activeFileTransfers.current.size > 0 || sendingProgress.size > 0 || receivingProgress.size > 0) && (
+          <div className="flex items-center gap-2">
             <button 
-              onClick={() => setShowCancelOptions(!showCancelOptions)}
+              onClick={deleteConversation}
               className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-colors"
-              title="Annuler les transferts en cours"
+              title="Supprimer la conversation"
             >
-              <X size={20} />
+              <Trash2 size={20} />
             </button>
-          )}
+            {/* Bouton d'annulation des transferts actifs */}
+             {(activeFileTransfers.current.size > 0 || sendingProgress.size > 0 || receivingProgress.size > 0) && (
+               <button 
+                 onClick={() => setShowCancelOptions(!showCancelOptions)}
+                 className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-colors"
+                 title="Annuler les transferts en cours"
+               >
+                 <X size={20} />
+               </button>
+             )}
+          </div>
         </div>
         
         {/* Panneau d'annulation des transferts */}
@@ -572,8 +644,40 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 relative bg-gray-50" onScroll={handleScroll}>
         {messages.map(msg => (
-          <div key={msg.id} className={`flex ${msg.senderId === myId ? 'justify-end' : 'justify-start'} mb-4`}>
-            <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${msg.senderId === myId ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
+          <div key={msg.id} className={`flex ${msg.senderId === myId ? 'justify-end' : 'justify-start'} mb-4 group`}>
+            <div className={`relative max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${msg.senderId === myId ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
+              {/* Menu contextuel en haut à droite */}
+              <div className="absolute top-1 right-1">
+                <button
+                   onClick={() => toggleMessageMenu(msg.id)}
+                   className={`opacity-0 group-hover:opacity-100 p-1 rounded transition-all duration-200 ${
+                     msg.senderId === myId 
+                       ? 'text-blue-200 hover:text-white hover:bg-blue-500' 
+                       : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'
+                   }`}
+                   title="Options du message"
+                 >
+                   <MoreVertical size={12} />
+                </button>
+                {openMenuId === msg.id && (
+                  <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]">
+                    <button
+                      onClick={() => showMessageInfo(msg)}
+                      className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg"
+                    >
+                      <Info size={14} className="mr-2" />
+                      Informations
+                    </button>
+                    <button
+                      onClick={() => deleteMessageFromMenu(msg.id)}
+                      className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-b-lg"
+                    >
+                      <Trash2 size={14} className="mr-2" />
+                      Supprimer
+                    </button>
+                  </div>
+                )}
+              </div>
               {msg.type === 'file' ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -742,6 +846,32 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
               selectedPeer.status !== 'online' || selectedFile ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
             }`}
           />
+          <div className="relative">
+            <button 
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className="p-2 text-gray-500 hover:text-gray-700"
+              disabled={selectedPeer.status !== 'online' || !!selectedFile}
+              title="Ajouter un émoji"
+            >
+              <Smile size={20} />
+            </button>
+            {showEmojiPicker && (
+              <div className="absolute bottom-12 right-0 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-10 w-64">
+                <div className="grid grid-cols-10 gap-1">
+                  {commonEmojis.map((emoji, index) => (
+                    <button
+                      key={index}
+                      onClick={() => insertEmoji(emoji)}
+                      className="text-lg hover:bg-gray-100 rounded p-1 transition-colors"
+                      title={emoji}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
           <button 
             onClick={handleSendMessage} 
             disabled={selectedPeer.status !== 'online' || (!selectedFile && !newMessage.trim())}

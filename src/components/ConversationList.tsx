@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MessageSquare } from 'lucide-react';
+import { Search, MessageSquare, Trash2 } from 'lucide-react';
 import IndexedDBService from '../services/IndexedDBService';
 import PeerService from '../services/PeerService';
 import NotificationService from '../services/NotificationService';
@@ -120,6 +120,24 @@ const ConversationList: React.FC<ConversationListProps> = ({
     return content.length > 50 ? content.substring(0, 50) + '...' : content;
   };
 
+  const deleteConversation = async (conversationId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Empêcher la sélection de la conversation
+    
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette conversation ?')) {
+      try {
+        await dbService.deleteConversation(conversationId);
+        setConversations(prev => prev.filter(conv => conv.participantId !== conversationId));
+        
+        // Si la conversation supprimée était sélectionnée, désélectionner
+        if (selectedConversationId === conversationId) {
+          onSelectConversation('');
+        }
+      } catch (error) {
+        console.error('Error deleting conversation:', error);
+      }
+    }
+  };
+
   const renderConversation = (conversation: StoredConversation) => {
     const isSelected = selectedConversationId === conversation.participantId;
     const unreadCount = conversationUnreadCounts.get(conversation.participantId) || 0;
@@ -127,8 +145,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
     return (
       <div
         key={conversation.id}
-        onClick={() => onSelectConversation(conversation.participantId)}
-        className={`p-3 cursor-pointer transition-colors ${
+        className={`p-3 transition-colors group ${
           isSelected 
             ? 'bg-blue-50 border-r-2 border-blue-500' 
             : unreadCount > 0
@@ -136,7 +153,10 @@ const ConversationList: React.FC<ConversationListProps> = ({
             : 'hover:bg-gray-50'
         }`}
       >
-        <div className="flex items-center gap-3">
+        <div 
+          className="flex items-center gap-3 cursor-pointer"
+          onClick={() => onSelectConversation(conversation.participantId)}
+        >
           <div className="relative">
             <img
               src={conversation.participantAvatar || `https://i.pravatar.cc/150?u=${conversation.participantId}`}
@@ -157,11 +177,20 @@ const ConversationList: React.FC<ConversationListProps> = ({
               }`}>
                 {conversation.participantName}
               </h4>
-              {conversation.lastMessage && (
-                <span className="text-xs text-gray-500">
-                  {formatTime(conversation.lastMessage.timestamp)}
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {conversation.lastMessage && (
+                  <span className="text-xs text-gray-500">
+                    {formatTime(conversation.lastMessage.timestamp)}
+                  </span>
+                )}
+                <button
+                  onClick={(e) => deleteConversation(conversation.participantId, e)}
+                  className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:text-red-700 hover:bg-red-100 rounded transition-all duration-200"
+                  title="Supprimer cette conversation"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
             </div>
             
             <div className="flex items-center gap-2 text-sm">
