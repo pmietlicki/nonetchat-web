@@ -59,11 +59,11 @@ class PeerService extends EventEmitter {
       { urls: 'stun:stun1.l.google.com:19302' },
 
       // Ton STUN/TURN
-      { urls: 'stun:turn.pascal-mietlicki.fr:3478' },
+      { urls: 'stun:turn.nonetchat.com:3478' },
       ...(u && c ? [
-        { urls: 'turn:turn.pascal-mietlicki.fr:3478?transport=udp', username: u, credential: c },
-        { urls: 'turn:turn.pascal-mietlicki.fr:3478?transport=tcp', username: u, credential: c },
-        { urls: 'turns:turn.pascal-mietlicki.fr:5349?transport=tcp', username: u, credential: c },
+        { urls: 'turn:nonetchat.com:3478?transport=udp', username: u, credential: c },
+        { urls: 'turn:nonetchat.com:3478?transport=tcp', username: u, credential: c },
+        { urls: 'turns:nonetchat.com:5349?transport=tcp', username: u, credential: c },
       ] : []),
 
       // Fallback OpenRelay (pour secours uniquement)
