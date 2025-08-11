@@ -45,6 +45,7 @@ class PeerService extends EventEmitter {
   private heartbeatInterval: number | null = null;
   private turnRefreshTimer: number | null = null;
   private searchRadius: number = 1.0; // Default 1km radius
+  private signalingUrl: string = '';
 
   // --- TURN auth éphémère injectée depuis /api/turn-credentials ---
   private turnAuth: { username: string; credential: string } | null = null;
@@ -90,7 +91,11 @@ class PeerService extends EventEmitter {
 
   // --- Récupération + refresh auto des identifiants TURN ---
   private async fetchTurnAuth(userId: string) {
-    const res = await fetch(`/api/turn-credentials?userId=${encodeURIComponent(userId)}`, {
+    // Convertir l'URL WebSocket en URL HTTP pour l'API TURN
+    const apiUrl = this.signalingUrl.replace(/^wss?:\/\//, 'https://').replace(/^ws:\/\//, 'http://');
+    const turnApiUrl = `${apiUrl}/api/turn-credentials?userId=${encodeURIComponent(userId)}`;
+    
+    const res = await fetch(turnApiUrl, {
       credentials: 'include',
     });
     if (!res.ok) throw new Error('Failed to fetch TURN credentials');
@@ -112,6 +117,7 @@ class PeerService extends EventEmitter {
 
     this.myId = profile.id!;
     this.myProfile = profile;
+    this.signalingUrl = signalingUrl;
     await this.cryptoService.initialize();
     await this.loadBlockList();
 

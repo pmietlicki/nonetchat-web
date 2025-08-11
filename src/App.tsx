@@ -15,7 +15,7 @@ import ProfileService from './services/ProfileService';
 import NotificationService from './services/NotificationService';
 import { MessageSquare, Users, Wifi, WifiOff, X, User as UserIcon, Bell } from 'lucide-react';
 
-const DEFAULT_SIGNALING_URL = 'wss://chat.pascal-mietlicki.fr';
+const DEFAULT_SIGNALING_URL = 'wss://chat.nonetchat.com';
 
 import { AlertCircle } from 'lucide-react';
 
