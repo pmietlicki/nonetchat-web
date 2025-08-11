@@ -7,4 +7,14 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  server: {
+    port: 3000,
+    proxy: {
+      '/api': {
+        target: 'https://chat.nonetchat.com',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
+  },
 });

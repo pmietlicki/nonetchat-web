@@ -91,9 +91,8 @@ class PeerService extends EventEmitter {
 
   // --- Récupération + refresh auto des identifiants TURN ---
   private async fetchTurnAuth(userId: string) {
-    // Convertir l'URL WebSocket en URL HTTP pour l'API TURN
-    const apiUrl = this.signalingUrl.replace(/^wss?:\/\//, 'https://').replace(/^ws:\/\//, 'http://');
-    const turnApiUrl = `${apiUrl}/api/turn-credentials?userId=${encodeURIComponent(userId)}`;
+    // Utiliser l'URL relative qui sera proxifiée par Vite vers le serveur de signalisation
+    const turnApiUrl = `/api/turn-credentials?userId=${encodeURIComponent(userId)}`;
     
     const res = await fetch(turnApiUrl, {
       credentials: 'include',
