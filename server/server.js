@@ -20,6 +20,7 @@ app.use((req, res, next) => {
   
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
   
   // Gérer les requêtes OPTIONS (preflight)
   if (req.method === 'OPTIONS') {
