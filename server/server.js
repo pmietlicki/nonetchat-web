@@ -9,6 +9,26 @@ const clients = new Map();
 const app = express();
 app.set('trust proxy', true);
 
+// Configuration CORS pour permettre les requêtes depuis tout sous-domaine de nonetchat.com
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  
+  // Vérifier si l'origine provient du domaine nonetchat.com (avec ou sans sous-domaine)
+  if (origin && (origin.endsWith('.nonetchat.com') || origin === 'https://nonetchat.com')) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  // Gérer les requêtes OPTIONS (preflight)
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  
+  next();
+});
+
 const {
   TURN_STATIC_SECRET,
   TURN_HOST = 'turn.nonetchat.com',
