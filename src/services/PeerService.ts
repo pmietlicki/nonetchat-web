@@ -45,6 +45,7 @@ class PeerService extends EventEmitter {
   private heartbeatInterval: number | null = null;
   private turnRefreshTimer: number | null = null;
   private searchRadius: number = 1.0; // Default 1km radius
+  private signalingUrl: string = '';
 
   // --- TURN auth éphémère injectée depuis /api/turn-credentials ---
   private turnAuth: { username: string; credential: string } | null = null;
@@ -91,7 +92,8 @@ class PeerService extends EventEmitter {
   // --- Récupération + refresh auto des identifiants TURN ---
   private async fetchTurnAuth(userId: string) {
     // Utiliser l'URL relative qui sera proxifiée par Vite vers le serveur de signalisation
-    const turnApiUrl = `/api/turn-credentials?userId=${encodeURIComponent(userId)}`;
+    const apiUrl = this.signalingUrl.replace(/^wss?:\/\//, 'https://').replace(/^ws:\/\//, 'http://');
+    const turnApiUrl = `${apiUrl}/api/turn-credentials?userId=${encodeURIComponent(userId)}`;
     
     const res = await fetch(turnApiUrl, {
       credentials: 'include',
@@ -115,6 +117,7 @@ class PeerService extends EventEmitter {
 
     this.myId = profile.id!;
     this.myProfile = profile;
+    this.signalingUrl = signalingUrl;
     await this.cryptoService.initialize();
     await this.loadBlockList();
 
