@@ -45,7 +45,6 @@ class PeerService extends EventEmitter {
   private heartbeatInterval: number | null = null;
   private turnRefreshTimer: number | null = null;
   private searchRadius: number = 1.0; // Default 1km radius
-  private signalingUrl: string = '';
 
   // --- TURN auth éphémère injectée depuis /api/turn-credentials ---
   private turnAuth: { username: string; credential: string } | null = null;
@@ -62,9 +61,9 @@ class PeerService extends EventEmitter {
       // Ton STUN/TURN
       { urls: 'stun:turn.nonetchat.com:3478' },
       ...(u && c ? [
-        { urls: 'turn:nonetchat.com:3478?transport=udp', username: u, credential: c },
-        { urls: 'turn:nonetchat.com:3478?transport=tcp', username: u, credential: c },
-        { urls: 'turns:nonetchat.com:5349?transport=tcp', username: u, credential: c },
+        { urls: 'turn:turn.nonetchat.com:3478?transport=udp', username: u, credential: c },
+        { urls: 'turn:turn.nonetchat.com:3478?transport=tcp', username: u, credential: c },
+        { urls: 'turns:turn.nonetchat.com:5349?transport=tcp', username: u, credential: c },
       ] : []),
 
       // Fallback OpenRelay (pour secours uniquement)
