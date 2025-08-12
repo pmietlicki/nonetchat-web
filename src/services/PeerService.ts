@@ -115,7 +115,6 @@ class PeerService extends EventEmitter {
 
     this.myId = profile.id!;
     this.myProfile = profile;
-    this.signalingUrl = signalingUrl;
     await this.cryptoService.initialize();
     await this.loadBlockList();
 
