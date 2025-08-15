@@ -67,26 +67,22 @@ function App() {
   const notificationService = NotificationService.getInstance();
 
   // Effet pour gérer le cycle de vie de l'URL de l'avatar local
-  useEffect(() => {
-    if (userProfile.avatarBlob) {
-      const url = URL.createObjectURL(userProfile.avatarBlob);
-      setMyAvatarUrl(url);
-      // Pas d'URL Pravatar à transmettre car on a un avatar personnalisé
-      peerService.setCurrentPravagarUrl(undefined);
-
-      // La fonction de nettoyage révoque l'URL quand le blob change ou que le composant est démonté
-      return () => {
-        URL.revokeObjectURL(url);
-        setMyAvatarUrl(null);
-      };
-    } else if (userProfile.id) {
-      // Fallback sur Pravatar si pas de blob, avec un cache buster pour le rafraîchissement
-      const pravagarUrl = `https://i.pravatar.cc/150?seed=${userProfile.id}-${Date.now()}`;
-      setMyAvatarUrl(pravagarUrl);
-      // Mettre à jour l'URL Pravatar dans PeerService pour transmission
-      peerService.setCurrentPravagarUrl(pravagarUrl);
-    }
-  }, [userProfile.avatarBlob, userProfile.id, avatarRefreshKey]);
+useEffect(() => {
+  if (userProfile.avatarBlob) {
+    const url = URL.createObjectURL(userProfile.avatarBlob);
+    setMyAvatarUrl(url);
+    peerService.setCurrentPravagarUrl(undefined); // (typo conservée si méthode s'appelle ainsi)
+    return () => {
+      URL.revokeObjectURL(url);
+      setMyAvatarUrl(null);
+    };
+  } else if (userProfile.id) {
+    // URL stable: déterministe sur l'ID, et varie seulement quand avatarRefreshKey change
+    const pravatarUrl = `https://i.pravatar.cc/150?u=${encodeURIComponent(userProfile.id)}&v=${avatarRefreshKey}`;
+    setMyAvatarUrl(pravatarUrl);
+    peerService.setCurrentPravagarUrl(pravatarUrl);
+  }
+}, [userProfile.avatarBlob, userProfile.id, avatarRefreshKey]);
 
   useEffect(() => {
     const initialize = async () => {
