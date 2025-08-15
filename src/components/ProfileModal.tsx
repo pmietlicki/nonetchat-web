@@ -66,6 +66,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, in
         <div className="flex flex-col items-center mb-6">
           <div className="relative">
             <img
+              key={currentAvatar}
               src={currentAvatar}
               alt="Avatar"
               className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"

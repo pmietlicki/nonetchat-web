@@ -71,18 +71,20 @@ useEffect(() => {
   if (userProfile.avatarBlob) {
     const url = URL.createObjectURL(userProfile.avatarBlob);
     setMyAvatarUrl(url);
-    peerService.setCurrentPravagarUrl(undefined); // (typo conservée si méthode s'appelle ainsi)
+    peerService.setCurrentPravagarUrl(undefined);
     return () => {
       URL.revokeObjectURL(url);
       setMyAvatarUrl(null);
     };
   } else if (userProfile.id) {
-    // URL stable: déterministe sur l'ID, et varie seulement quand avatarRefreshKey change
-    const pravatarUrl = `https://i.pravatar.cc/150?u=${encodeURIComponent(userProfile.id)}&v=${avatarRefreshKey}`;
+    // IMPORTANT: varier la *seed* via `u=...`
+    const seed = `${userProfile.id}-${avatarRefreshKey}`;
+    const pravatarUrl = `https://i.pravatar.cc/150?u=${encodeURIComponent(seed)}`;
     setMyAvatarUrl(pravatarUrl);
     peerService.setCurrentPravagarUrl(pravatarUrl);
   }
 }, [userProfile.avatarBlob, userProfile.id, avatarRefreshKey]);
+
 
   useEffect(() => {
     const initialize = async () => {
