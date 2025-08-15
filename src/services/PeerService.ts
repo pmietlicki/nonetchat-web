@@ -2,6 +2,7 @@ import { User } from '../types';
 import CryptoService from './CryptoService';
 import IndexedDBService from './IndexedDBService';
 import { DiagnosticService } from './DiagnosticService';
+import ProfileService from './ProfileService';
 
 export interface PeerMessage {
   type: 'profile' | 'chat-message' | 'key-exchange' | 'file-start' | 'file-chunk' | 'file-end' | 'message-delivered' | 'message-read';
@@ -39,6 +40,7 @@ class PeerService extends EventEmitter {
   private cryptoService: CryptoService;
   private diagnosticService: DiagnosticService;
   private dbService: IndexedDBService;
+  private profileService: ProfileService;
   private blockList: Set<string> = new Set();
   private lastSeen: Map<string, number> = new Map();
   private pruneInterval: number | null = null;
@@ -147,6 +149,7 @@ private async fetchGeoIP(): Promise<{latitude:number; longitude:number; accuracy
     this.cryptoService = CryptoService.getInstance();
     this.diagnosticService = DiagnosticService.getInstance();
     this.dbService = IndexedDBService.getInstance();
+    this.profileService = ProfileService.getInstance();
   }
 
   public static getInstance(): PeerService {
@@ -154,6 +157,10 @@ private async fetchGeoIP(): Promise<{latitude:number; longitude:number; accuracy
       PeerService.instance = new PeerService();
     }
     return PeerService.instance;
+  }
+
+  public setMyProfile(profile: Partial<User>) {
+    this.myProfile = profile;
   }
 
   // --- Récupération + refresh auto des identifiants TURN ---
@@ -477,8 +484,18 @@ private startLocationUpdates() {
     channel.onmessage = async (event) => {
       // Binaire (chunks de fichiers)
       if (event.data instanceof ArrayBuffer) {
-        this.diagnosticService.log(`[${peerId}] Received binary file chunk`);
-        this.emit('file-chunk', peerId, event.data);
+        try {
+          const dataView = new DataView(event.data);
+          const messageIdLength = 36; // UUID v4 length
+          const messageIdBytes = new Uint8Array(event.data.slice(0, messageIdLength));
+          const messageId = new TextDecoder().decode(messageIdBytes);
+          const chunk = event.data.slice(messageIdLength);
+
+          this.diagnosticService.log(`[${peerId}] Received binary file chunk for messageId: ${messageId}`);
+          this.emit('file-chunk', peerId, messageId, chunk);
+        } catch (error) {
+          this.diagnosticService.log('Error processing file chunk', error);
+        }
         return;
       }
 
@@ -496,7 +513,11 @@ private startLocationUpdates() {
           this.messageQueue.delete(peerId);
         }
 
-        const profileToSend = { ...this.myProfile, status: 'online' };
+        const profileToSend = { 
+          ...this.myProfile, 
+          status: 'online',
+          avatar: await this.profileService.getAvatarAsBase64()
+        };
         this.sendToPeer(peerId, { type: 'profile', payload: profileToSend });
       } else if (message.type === 'chat-message') {
         const decrypted = await this.cryptoService.decryptMessage(peerId, message.payload);
@@ -566,6 +587,22 @@ private startLocationUpdates() {
     this.emit('peer-left', peerId);
   }
 
+  public async broadcastProfileUpdate() {
+    const avatar = await this.profileService.getAvatarAsBase64();
+    const profileToSend = {
+      ...this.myProfile,
+      status: 'online',
+      avatar: avatar
+    };
+
+    this.diagnosticService.log('Broadcasting profile update to all peers');
+    this.dataChannels.forEach((channel, peerId) => {
+      if (channel.readyState === 'open') {
+        this.sendToPeer(peerId, { type: 'profile', payload: profileToSend });
+      }
+    });
+  }
+
   public async sendToPeer(peerId: string, message: PeerMessage) {
     const dataChannel = this.dataChannels.get(peerId);
     if (dataChannel && dataChannel.readyState === 'open') {
@@ -624,6 +661,7 @@ private startLocationUpdates() {
 
       let offset = 0;
       const fileReader = new FileReader();
+      const messageIdBytes = new TextEncoder().encode(messageId);
 
       const readSlice = (o: number) => {
         try {
@@ -642,12 +680,17 @@ private startLocationUpdates() {
 
         const chunk = e.target.result as ArrayBuffer;
 
+        // Préfixer le chunk avec l'ID du message
+        const combinedBuffer = new Uint8Array(messageIdBytes.length + chunk.byteLength);
+        combinedBuffer.set(messageIdBytes, 0);
+        combinedBuffer.set(new Uint8Array(chunk), messageIdBytes.length);
+
         if (dataChannel.bufferedAmount > dataChannel.bufferedAmountLowThreshold) {
           await waitBufferedLow();
         }
 
         offset += chunk.byteLength;
-        dataChannel.send(chunk);
+        dataChannel.send(combinedBuffer.buffer);
 
         // Callback de progression
         if (onProgress) {

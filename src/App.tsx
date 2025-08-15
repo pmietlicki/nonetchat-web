@@ -45,7 +45,11 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
-  const [userProfile, setUserProfile] = useState<Partial<User>>({});
+  
+  // L'objet profil contient les données textuelles + le Blob de l'avatar
+  const [userProfile, setUserProfile] = useState<Partial<User> & { avatarBlob?: Blob | null }>({});
+  // L'URL de l'avatar local est gérée séparément pour un cycle de vie correct
+  const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
 
   const [signalingUrl, setSignalingUrl] = useState(
     () => localStorage.getItem('signalingUrl') || DEFAULT_SIGNALING_URL
@@ -61,15 +65,33 @@ function App() {
   const dbService = IndexedDBService.getInstance();
   const notificationService = NotificationService.getInstance();
 
+  // Effet pour gérer le cycle de vie de l'URL de l'avatar local
+  useEffect(() => {
+    if (userProfile.avatarBlob) {
+      const url = URL.createObjectURL(userProfile.avatarBlob);
+      setMyAvatarUrl(url);
+
+      // La fonction de nettoyage révoque l'URL quand le blob change ou que le composant est démonté
+      return () => {
+        URL.revokeObjectURL(url);
+        setMyAvatarUrl(null);
+      };
+    } else if (userProfile.id) {
+      // Fallback sur Pravatar si pas de blob
+      setMyAvatarUrl(`https://i.pravatar.cc/150?u=${userProfile.id}`);
+    }
+  }, [userProfile.avatarBlob, userProfile.id]);
+
   useEffect(() => {
     const initialize = async () => {
       await dbService.initialize();
-      let profile = await profileService.getProfile();
+      const profile = await profileService.getProfile();
 
       if (!profile.id) {
-        profile = { ...profile, id: uuidv4() };
+        profile.id = uuidv4();
         await profileService.saveProfile(profile);
       }
+      
       setUserProfile(profile);
       setMyId(profile.id!);
 
@@ -95,10 +117,8 @@ function App() {
         const newMap = new Map(prev);
         const existingPeer = prev.get(peerId);
         if (existingPeer) {
-          // Peer is reconnecting, just update status
           newMap.set(peerId, { ...existingPeer, status: 'online' });
         } else {
-          // New peer
           newMap.set(peerId, createBaseUser(peerId));
         }
         console.log(`%c[APP] Peers map updated. New size: ${newMap.size}`, 'color: green;', newMap);
@@ -124,33 +144,23 @@ function App() {
         setPeers(prev => {
           const newMap = new Map(prev);
           const existingPeer = prev.get(peerId);
-          // Préserver le statut 'online' pour les peers connectés
           const updatedPeer = { 
             ...existingPeer!, 
             ...data.payload, 
-            status: 'online' // Forcer le statut à 'online' pour les peers connectés
+            status: 'online'
           };
           newMap.set(peerId, updatedPeer);
           return newMap;
         });
       }
-      // Gérer les messages de chat ici
     };
 
     const onGeolocationError = (error: GeolocationPositionError) => {
       switch (error.code) {
-        case 1: // PERMISSION_DENIED
-          setGeolocationError("L'accès à la géolocalisation a été refusé. L'application ne peut pas trouver de pairs à proximité.");
-          break;
-        case 2: // POSITION_UNAVAILABLE
-          setGeolocationError("Impossible d'obtenir votre position actuelle. Vérifiez votre connexion réseau ou vos paramètres de localisation.");
-          break;
-        case 3: // TIMEOUT
-          setGeolocationError("La recherche de votre position a expiré. Veuillez réessayer.");
-          break;
-        default:
-          setGeolocationError("Une erreur inconnue est survenue lors de la récupération de votre position.");
-          break;
+        case 1: setGeolocationError("L'accès à la géolocalisation a été refusé. L'application ne peut pas trouver de pairs à proximité."); break;
+        case 2: setGeolocationError("Impossible d'obtenir votre position actuelle. Vérifiez votre connexion réseau ou vos paramètres de localisation."); break;
+        case 3: setGeolocationError("La recherche de votre position a expiré. Veuillez réessayer."); break;
+        default: setGeolocationError("Une erreur inconnue est survenue lors de la récupération de votre position."); break;
       }
     };
 
@@ -160,15 +170,8 @@ function App() {
     peerService.on('data', onData);
     peerService.on('geolocation-error', onGeolocationError);
 
-    // Listeners pour les notifications
-    const onUnreadCountChanged = (count: number) => {
-      setTotalUnreadCount(count);
-    };
-
-    const onUnreadConversationsChanged = () => {
-      setUnreadConversationsCount(notificationService.getUnreadConversationsCount());
-    };
-
+    const onUnreadCountChanged = (count: number) => setTotalUnreadCount(count);
+    const onUnreadConversationsChanged = () => setUnreadConversationsCount(notificationService.getUnreadConversationsCount());
     const onNotificationClicked = (conversationId: string) => {
       setSelectedPeerId(conversationId);
       setActiveTab('conversations');
@@ -178,7 +181,6 @@ function App() {
     notificationService.on('conversation-unread-changed', onUnreadConversationsChanged);
     notificationService.on('notification-clicked', onNotificationClicked);
 
-    // Initialiser les compteurs
     setTotalUnreadCount(notificationService.getTotalUnreadCount());
     setUnreadConversationsCount(notificationService.getUnreadConversationsCount());
 
@@ -188,11 +190,9 @@ function App() {
       peerService.removeListener('peer-left', onPeerLeft);
       peerService.removeListener('data', onData);
       peerService.removeListener('geolocation-error', onGeolocationError);
-      
       notificationService.off('unread-count-changed', onUnreadCountChanged);
       notificationService.off('conversation-unread-changed', onUnreadConversationsChanged);
       notificationService.off('notification-clicked', onNotificationClicked);
-      
       peerService.destroy();
     };
   }, [signalingUrl]);
@@ -201,14 +201,17 @@ function App() {
     const newProfile = { ...userProfile, ...profileData, id: myId };
     await profileService.saveProfile(newProfile, avatarFile);
     
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
+    // Recharger le profil local pour mettre à jour le blob et déclencher l'effet de l'URL
     const updatedProfile = await profileService.getProfile();
     setUserProfile(updatedProfile);
-    // The profile is sent automatically on connection, but we can send an update.
-    // This part needs a new method in PeerService if we want to push updates.
-    // For now, new connections will get the new profile.
-    console.log('Profile updated:', updatedProfile);
+
+    // Mettre à jour le profil dans le service avant de diffuser
+    peerService.setMyProfile(updatedProfile);
+
+    // Diffuser le profil mis à jour aux autres pairs
+    await peerService.broadcastProfileUpdate();
+    
+    console.log('Profile updated and broadcasted:', updatedProfile);
   };
 
   const handleSaveSettings = () => {
@@ -304,6 +307,7 @@ function App() {
         onClose={() => setIsProfileOpen(false)}
         onSave={handleSaveProfile}
         initialProfile={userProfile}
+        displayAvatarUrl={myAvatarUrl}
       />
 
       <DiagnosticPanel

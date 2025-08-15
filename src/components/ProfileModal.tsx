@@ -7,54 +7,26 @@ interface ProfileModalProps {
   onClose: () => void;
   onSave: (profileData: Partial<User>, avatarFile?: File) => void;
   initialProfile: Partial<User>;
+  displayAvatarUrl: string | null; // URL gérée par le parent
 }
 
-const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, initialProfile }) => {
+const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, initialProfile, displayAvatarUrl }) => {
   const [name, setName] = useState('');
   const [age, setAge] = useState<number | ''>( '');
   const [gender, setGender] = useState('');
-  const [avatar, setAvatar] = useState<string | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | undefined>();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Fonction pour générer l'avatar par défaut avec Pravatar
-  const getDefaultAvatar = () => {
-    // Générer un ID aléatoire entre 1 et 70 (nombre d'avatars disponibles sur Pravatar)
-    const randomId = Math.floor(Math.random() * 70) + 1;
-    return `https://i.pravatar.cc/150?img=${randomId}`;
-  };
-
-  // Fonction pour rafraîchir l'avatar
-  const refreshAvatar = () => {
-    if (!avatarFile) {
-      setAvatar(getDefaultAvatar());
-    }
-  };
 
   useEffect(() => {
     if (isOpen) {
       setName(initialProfile.name || '');
       setAge(initialProfile.age || '');
       setGender(initialProfile.gender || '');
-      setAvatar(initialProfile.avatar || null);
       setAvatarFile(undefined);
+      setAvatarPreview(null); // Reset preview on open
     }
   }, [isOpen, initialProfile]);
-
-  // Effet pour mettre à jour l'avatar par défaut quand le genre change
-  useEffect(() => {
-    // Ne pas mettre à jour si l'utilisateur a uploadé une image personnalisée
-    if (avatarFile) return;
-    
-    // Ne pas mettre à jour si l'avatar actuel n'est pas un avatar par défaut (pravatar)
-    const currentAvatar = avatar || initialProfile.avatar;
-    if (currentAvatar && !currentAvatar.includes('pravatar.cc')) return;
-    
-    // Mettre à jour l'avatar par défaut selon le nouveau genre
-    if (isOpen && !avatarFile) {
-      setAvatar(getDefaultAvatar()); // Mettre à jour directement avec le nouvel avatar
-    }
-  }, [gender, name, isOpen, avatarFile, initialProfile.avatar]);
 
   if (!isOpen) return null;
 
@@ -71,9 +43,14 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, in
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setAvatarFile(file);
-      setAvatar(URL.createObjectURL(file));
+      // Créer une URL de prévisualisation temporaire
+      const previewUrl = URL.createObjectURL(file);
+      setAvatarPreview(previewUrl);
+      // Pas besoin de nettoyer ici, car le cycle de vie est court
     }
   };
+
+  const currentAvatar = avatarPreview || displayAvatarUrl || `https://i.pravatar.cc/150?u=${initialProfile.id}`;
 
   return (
     <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -88,7 +65,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, in
         <div className="flex flex-col items-center mb-6">
           <div className="relative">
             <img
-              src={avatar || initialProfile.avatar || getDefaultAvatar()}
+              src={currentAvatar}
               alt="Avatar"
               className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
             />

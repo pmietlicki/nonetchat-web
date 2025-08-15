@@ -416,6 +416,33 @@ class IndexedDBService {
       };
     });
   }
+
+  async updateMessageFileData(messageId: string, fileData: { name: string; size: number; type: string; url: string }): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['messages'], 'readwrite');
+      const store = transaction.objectStore('messages');
+      const getRequest = store.get(messageId);
+
+      getRequest.onsuccess = () => {
+        const message = getRequest.result;
+        if (message) {
+          message.fileData = fileData;
+          message.content = fileData.name; // Mettre à jour le contenu pour refléter le nom final du fichier
+          const putRequest = store.put(message);
+          putRequest.onsuccess = () => resolve();
+          putRequest.onerror = () => reject(putRequest.error);
+        } else {
+          // Ne pas rejeter si le message n'est pas trouvé, car il pourrait être en cours d'ajout.
+          // Cela peut arriver avec la nature asynchrone de l'ajout de messages.
+          console.warn(`Message with id ${messageId} not found for file data update.`);
+          resolve();
+        }
+      };
+      getRequest.onerror = () => reject(getRequest.error);
+    });
+  }
 }
 
 export default IndexedDBService;

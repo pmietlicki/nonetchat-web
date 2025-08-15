@@ -2,6 +2,7 @@ import express from 'express';
 import crypto from 'crypto';
 import { WebSocketServer } from 'ws';
 import { Reader } from '@maxmind/geoip2-node';
+import Quadtree from '@timohausmann/quadtree-js';
 
 let geoipReader = null;
 // Initialisation asynchrone, sans bloquer le serveur
@@ -19,6 +20,14 @@ let geoipReader = null;
 const wss = new WebSocketServer({ port: 3001 });
 const clients = new Map();
 
+// Initialise le Quadtree pour couvrir le monde entier en coordonnées lat/lon
+const geoTree = new Quadtree({
+  x: -180, // longitude min
+  y: -90,  // latitude min
+  width: 360, // 180 - (-180)
+  height: 180 // 90 - (-90)
+});
+
 // === HTTP API (Express) pour credentials TURN ===
 const app = express();
 app.set('trust proxy', true);
@@ -27,7 +36,6 @@ app.set('trust proxy', true);
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   
-  // Vérifier si l'origine provient du domaine nonetchat.com (avec ou sans sous-domaine)
   if (origin && (origin.endsWith('.nonetchat.com') || origin === 'https://nonetchat.com')) {
     res.header('Access-Control-Allow-Origin', origin);
   }
@@ -36,7 +44,6 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
   
-  // Gérer les requêtes OPTIONS (preflight)
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
@@ -99,17 +106,17 @@ app.get('/api/geoip', async (req, res) => {
 });
 
 
-console.log('Robust Geo-Signaling Server is running on ws://localhost:3001');
+console.log('Robust Geo-Signaling Server with Quadtree is running on ws://localhost:3001');
 
-// Heartbeat interval to keep connections alive
-const HEARTBEAT_INTERVAL = 30000; // 30 seconds
+const HEARTBEAT_INTERVAL = 30000;
+const MAX_LOCATION_AGE_MS = 30 * 60 * 1000; // 30 minutes
+
 const heartbeatInterval = setInterval(() => {
   clients.forEach((client, clientId) => {
     if (client.isAlive === false) {
       console.log(`Client ${clientId} failed heartbeat, terminating connection`);
       client.ws.terminate();
-      clients.delete(clientId);
-      broadcastPeerUpdates();
+      // La déconnexion est gérée par l'event 'close' qui nettoiera le Quadtree
       return;
     }
     client.isAlive = false;
@@ -120,7 +127,7 @@ const heartbeatInterval = setInterval(() => {
 // --- Helper Functions ---
 function getDistance(coords1, coords2) {
   if (!coords1 || !coords2) return Infinity;
-  const R = 6371;
+  const R = 6371; // Rayon de la Terre en km
   const dLat = (coords2.latitude - coords1.latitude) * (Math.PI / 180);
   const dLon = (coords2.longitude - coords1.longitude) * (Math.PI / 180);
   const a =
@@ -132,47 +139,62 @@ function getDistance(coords1, coords2) {
   return R * c;
 }
 
-const MAX_LOCATION_AGE_MS = 30 * 60 * 1000; // 30 minutes tolérées
-
 function sendTo(ws, message) {
   if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(message));
 }
 
+// --- Logique de découverte optimisée avec Quadtree ---
 function broadcastPeerUpdates() {
   clients.forEach((client, clientId) => {
-    const nearbyPeers = [];
+    const nearbyPeers = new Set();
+    const nearbyPeerIds = new Set(); // Pour éviter les doublons
+
+    // 1. Découverte LAN (même IP)
     clients.forEach((otherClient, otherClientId) => {
-      if (clientId === otherClientId) return;
-
-      let isNearby = false;
-      let distanceInfo = {};
-
-      // Priority 1: "même NAT" (IP publique identique)
-      if (client.ip === otherClient.ip) {
-        isNearby = true;
-        distanceInfo = { distance: 'LAN' };
-      } else if (client.discoveryMode === 'geo' && otherClient.discoveryMode === 'geo') {
-        // Ignorer les positions trop anciennes
-        const now = Date.now();
-        const freshA = client.location && client.location.timestamp && (now - client.location.timestamp < MAX_LOCATION_AGE_MS);
-        const freshB = otherClient.location && otherClient.location.timestamp && (now - otherClient.location.timestamp < MAX_LOCATION_AGE_MS);
-        if (freshA && freshB && client.location && otherClient.location) {
-          const distance = getDistance(client.location, otherClient.location);
-          const accAkm = (client.location.accuracyMeters || 0) / 1000;
-          const accBkm = (otherClient.location.accuracyMeters || 0) / 1000;
-          // Tolérer l'incertitude : distance <= min(rayons) + incertitudes
-          const threshold = Math.min(client.radius, otherClient.radius) + accAkm + accBkm;
-          if (distance <= threshold) {
-            isNearby = true;
-            distanceInfo = { distance: distance.toFixed(2) + ' km' };
-            distanceInfo = { distance: distance.toFixed(2) + ' km' };
-          }
-         }
-       }
-
-      if (isNearby) nearbyPeers.push({ peerId: otherClientId, ...distanceInfo });
+      if (clientId !== otherClientId && client.ip === otherClient.ip) {
+        if (nearbyPeerIds.has(otherClientId)) return;
+        nearbyPeers.add({ peerId: otherClientId, distance: 'LAN' });
+        nearbyPeerIds.add(otherClientId);
+      }
     });
-    sendTo(client.ws, { type: 'nearby-peers', peers: nearbyPeers });
+
+    // 2. Découverte Géographique (Quadtree)
+    if (client.discoveryMode === 'geo' && client.location) {
+      const now = Date.now();
+      if (now - client.location.timestamp > MAX_LOCATION_AGE_MS) return;
+
+      const searchRadiusKm = client.radius + (client.location.accuracyMeters || 0) / 1000;
+      const latDeg = searchRadiusKm / 111.0;
+      const lonDeg = searchRadiusKm / (111.0 * Math.cos(client.location.latitude * (Math.PI / 180)));
+
+      const searchBounds = {
+        x: client.location.longitude - lonDeg,
+        y: client.location.latitude - latDeg,
+        width: lonDeg * 2,
+        height: latDeg * 2
+      };
+
+      const candidates = geoTree.retrieve(searchBounds);
+
+      for (const candidate of candidates) {
+        if (candidate.clientId === clientId || nearbyPeerIds.has(candidate.clientId)) continue;
+
+        const otherClient = clients.get(candidate.clientId);
+        if (!otherClient || !otherClient.location || now - otherClient.location.timestamp > MAX_LOCATION_AGE_MS) continue;
+
+        const distance = getDistance(client.location, otherClient.location);
+        const accAkm = (client.location.accuracyMeters || 0) / 1000;
+        const accBkm = (otherClient.location.accuracyMeters || 0) / 1000;
+        const threshold = Math.min(client.radius, otherClient.radius) + accAkm + accBkm;
+
+        if (distance <= threshold) {
+          nearbyPeers.add({ peerId: candidate.clientId, distance: distance.toFixed(2) + ' km' });
+          nearbyPeerIds.add(candidate.clientId);
+        }
+      }
+    }
+
+    sendTo(client.ws, { type: 'nearby-peers', peers: Array.from(nearbyPeers) });
   });
 }
 
@@ -199,7 +221,7 @@ wss.on('connection', (ws, req) => {
         req.headers['x-forwarded-for']?.split(',')[0].trim() ||
         req.socket.remoteAddress;
 
-      clients.set(clientId, { ws, ip, isAlive: true, radius: 1.0, location: null, discoveryMode: 'geo' });
+      clients.set(clientId, { ws, ip, isAlive: true, radius: 1.0, location: null, discoveryMode: 'geo', geoPoint: null });
       console.log(`Client ${clientId} registered from IP ${ip}. Total clients: ${clients.size}`);
       broadcastPeerUpdates();
       return;
@@ -214,7 +236,10 @@ wss.on('connection', (ws, req) => {
 
     switch (type) {
       case 'update-location':
-        // payload.location: { latitude, longitude, accuracyMeters?, timestamp?, method? }
+        if (clientData.geoPoint) {
+          geoTree.remove(clientData.geoPoint);
+        }
+
         clientData.location = {
           ...payload.location,
           timestamp: payload?.location?.timestamp || Date.now(),
@@ -223,16 +248,31 @@ wss.on('connection', (ws, req) => {
         };
         clientData.radius = payload.radius || clientData.radius;
         clientData.discoveryMode = 'geo';
+
+        const newPoint = {
+          x: clientData.location.longitude,
+          y: clientData.location.latitude,
+          width: 0,
+          height: 0,
+          clientId: clientId
+        };
+        clientData.geoPoint = newPoint;
+        geoTree.insert(newPoint);
+
         broadcastPeerUpdates();
         break;
 
       case 'request-lan-discovery':
         clientData.discoveryMode = 'lan';
+        if (clientData.geoPoint) {
+          geoTree.remove(clientData.geoPoint);
+          clientData.geoPoint = null;
+        }
         broadcastPeerUpdates();
         break;
 
       case 'heartbeat':
-        // noop: le ping/pong TCP fait foi
+        clientData.isAlive = true;
         break;
 
       case 'offer':
@@ -251,6 +291,10 @@ wss.on('connection', (ws, req) => {
 
   ws.on('close', () => {
     if (clientId) {
+      const clientData = clients.get(clientId);
+      if (clientData && clientData.geoPoint) {
+        geoTree.remove(clientData.geoPoint);
+      }
       clients.delete(clientId);
       console.log(`Client ${clientId} disconnected. Total clients: ${clients.size}`);
       broadcastPeerUpdates();
@@ -266,9 +310,6 @@ wss.on('connection', (ws, req) => {
       clients.get(clientId).isAlive = true;
     }
   });
-
-  ws.isAlive = true;
-  ws.on('ping', () => ws.pong());
 });
 
 const HTTP_PORT = process.env.PORT || 3000;

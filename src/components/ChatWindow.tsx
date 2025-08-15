@@ -135,17 +135,22 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
           // Créer l'URL pour le fichier déchiffré
           const url = URL.createObjectURL(new Blob([decryptedFile], { type: receiver.metadata.type }));
           
-          // Mettre à jour le message avec le fichier téléchargeable
+          const updatedFileData = { 
+            name: receiver.metadata.name,
+            size: receiver.metadata.size,
+            type: receiver.metadata.type,
+            url 
+          };
+
+          // Mettre à jour le message dans la base de données pour persister l'URL du blob
+          await dbService.updateMessageFileData(data.messageId, updatedFileData);
+
+          // Mettre à jour le message dans l'état local avec le fichier téléchargeable
           setMessages(prev => prev.map(m => 
             m.id === data.messageId ? { 
               ...m, 
               content: receiver.metadata.name, 
-              fileData: { 
-                name: receiver.metadata.name,
-                size: receiver.metadata.size,
-                type: receiver.metadata.type,
-                url 
-              },
+              fileData: updatedFileData,
               status: 'delivered'
             } : m
           ));
@@ -186,39 +191,32 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     }
   }, [selectedPeer.id, myId]);
 
-  const handleFileChunk = useCallback((peerId: string, chunk: ArrayBuffer) => {
+  const handleFileChunk = useCallback((peerId: string, messageId: string, chunk: ArrayBuffer) => {
     if (peerId !== selectedPeer.id) return;
     
-    // Associer le chunk au transfert de fichier actif le plus récent
-    // Note: Cette approche fonctionne pour un seul transfert à la fois
-    // Pour plusieurs transferts simultanés, il faudrait un protocole plus sophistiqué
-    const activeTransfers = Array.from(activeFileTransfers.current);
-    if (activeTransfers.length > 0) {
-      const currentTransferId = activeTransfers[activeTransfers.length - 1];
-      const receiver = fileReceivers.current.get(currentTransferId);
-      if (receiver) {
-        receiver.chunks.push(chunk);
+    const receiver = fileReceivers.current.get(messageId);
+    if (receiver) {
+      receiver.chunks.push(chunk);
+      
+      // Calculer et afficher la progression si on connaît la taille attendue
+      if (receiver.expectedSize) {
+        const currentSize = receiver.chunks.reduce((total, c) => total + c.byteLength, 0);
+        const progress = Math.round((currentSize / receiver.expectedSize) * 100);
         
-        // Calculer et afficher la progression si on connaît la taille attendue
-         if (receiver.expectedSize) {
-           const currentSize = receiver.chunks.reduce((total, chunk) => total + chunk.byteLength, 0);
-           const progress = Math.round((currentSize / receiver.expectedSize) * 100);
-           
-           // Mettre à jour la progression de réception
-           setReceivingProgress(prev => {
-             const newProgress = new Map(prev);
-             newProgress.set(currentTransferId, progress);
-             return newProgress;
-           });
-           
-           // Mettre à jour le message avec la progression
-           setMessages(prev => prev.map(m => 
-             m.id === currentTransferId ? { 
-               ...m, 
-               content: `${receiver.metadata.name} (${progress}%)` 
-             } : m
-           ));
-         }
+        // Mettre à jour la progression de réception
+        setReceivingProgress(prev => {
+          const newProgress = new Map(prev);
+          newProgress.set(messageId, progress);
+          return newProgress;
+        });
+        
+        // Mettre à jour le message avec la progression
+        setMessages(prev => prev.map(m => 
+          m.id === messageId ? { 
+            ...m, 
+            content: `${receiver.metadata.name} (${progress}%)` 
+          } : m
+        ));
       }
     }
   }, [selectedPeer.id]);
@@ -250,11 +248,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     markAsRead();
 
     peerService.on('data', handleData);
-    peerService.on('file-chunk', handleFileChunk); // Listen for raw file chunks
+    peerService.on('file-chunk', handleFileChunk);
     peerService.on('message-delivered', handleMessageDelivered);
     peerService.on('message-read', handleMessageRead);
 
-    // Gérer la visibilité pour le marquage automatique
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && isAtBottom) {
         markAsRead();
@@ -263,8 +260,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
+    // --- Cleanup function for memory leaks ---
     return () => {
-      // Check if peerService still exists and has removeListener method
       if (peerService && typeof peerService.removeListener === 'function') {
         peerService.removeListener('data', handleData);
         peerService.removeListener('file-chunk', handleFileChunk);
@@ -272,8 +269,20 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         peerService.removeListener('message-read', handleMessageRead);
       }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+
+      // Clear long press timer
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+      }
+
+      // Revoke blob URLs to prevent memory leaks
+      messages.forEach(msg => {
+        if (msg.fileData?.url?.startsWith('blob:')) {
+          URL.revokeObjectURL(msg.fileData.url);
+        }
+      });
     };
-  }, [selectedPeer.id, handleData, isAtBottom]);
+  }, [selectedPeer.id, handleData, handleFileChunk, handleMessageDelivered, handleMessageRead, isAtBottom, longPressTimer, messages]);
 
   // Fermer les menus quand on clique ailleurs
   useEffect(() => {
