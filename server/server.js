@@ -33,24 +33,27 @@ const geoTree = new Quadtree({
 const app = express();
 app.set('trust proxy', true);
 
-// Configuration CORS robuste avec la bibliothèque standard
+// --- Configuration CORS robuste ---
+const whitelist = ['https://web.nonetchat.com', 'https://nonetchat.com'];
+if (process.env.NODE_ENV !== 'production') {
+  // Autoriser localhost pour le développement
+  whitelist.push('http://localhost:5173');
+  whitelist.push('http://127.0.0.1:5173');
+}
+
 const corsOptions = {
   origin: function (origin, callback) {
-    // Accepter les requêtes sans origine (ex: Postman, apps mobiles)
-    if (!origin) return callback(null, true);
-    // Regex pour autoriser nonetchat.com et tous ses sous-domaines
-    if (/^https?:\/\/(.+\.)?nonetchat\.com$/.test(origin)) {
+    if (!origin || whitelist.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      callback(new Error('Origine non autorisée par la politique CORS'));
+      callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true
 };
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Gérer les requêtes pre-flight
 
-// Gérer les requêtes pre-flight OPTIONS pour toutes les routes
-app.options('*', cors(corsOptions));
 
 const {
   TURN_STATIC_SECRET,
@@ -112,12 +115,27 @@ console.log('Robust Geo-Signaling Server with Quadtree is running on ws://localh
 const HEARTBEAT_INTERVAL = 30000;
 const MAX_LOCATION_AGE_MS = 30 * 60 * 1000; // 30 minutes
 
+// --- Fonctions de gestion du Quadtree ---
+function rebuildGeoTree() {
+  geoTree.clear();
+  clients.forEach((client, clientId) => {
+    if (client.location && client.discoveryMode === 'geo') {
+      geoTree.insert({
+        x: client.location.longitude,
+        y: client.location.latitude,
+        width: 0, // Les points n'ont pas de dimension
+        height: 0,
+        clientId: clientId
+      });
+    }
+  });
+}
+
 const heartbeatInterval = setInterval(() => {
   clients.forEach((client, clientId) => {
     if (client.isAlive === false) {
       console.log(`Client ${clientId} failed heartbeat, terminating connection`);
       client.ws.terminate();
-      // La déconnexion est gérée par l'event 'close' qui nettoiera le Quadtree
       return;
     }
     client.isAlive = false;
@@ -222,7 +240,7 @@ wss.on('connection', (ws, req) => {
         req.headers['x-forwarded-for']?.split(',')[0].trim() ||
         req.socket.remoteAddress;
 
-      clients.set(clientId, { ws, ip, isAlive: true, radius: 1.0, location: null, discoveryMode: 'geo', geoPoint: null });
+      clients.set(clientId, { ws, ip, isAlive: true, radius: 1.0, location: null, discoveryMode: 'geo' });
       console.log(`Client ${clientId} registered from IP ${ip}. Total clients: ${clients.size}`);
       broadcastPeerUpdates();
       return;
@@ -237,10 +255,6 @@ wss.on('connection', (ws, req) => {
 
     switch (type) {
       case 'update-location':
-        if (clientData.geoPoint) {
-          geoTree.remove(clientData.geoPoint);
-        }
-
         clientData.location = {
           ...payload.location,
           timestamp: payload?.location?.timestamp || Date.now(),
@@ -249,26 +263,13 @@ wss.on('connection', (ws, req) => {
         };
         clientData.radius = payload.radius || clientData.radius;
         clientData.discoveryMode = 'geo';
-
-        const newPoint = {
-          x: clientData.location.longitude,
-          y: clientData.location.latitude,
-          width: 0,
-          height: 0,
-          clientId: clientId
-        };
-        clientData.geoPoint = newPoint;
-        geoTree.insert(newPoint);
-
+        rebuildGeoTree();
         broadcastPeerUpdates();
         break;
 
       case 'request-lan-discovery':
         clientData.discoveryMode = 'lan';
-        if (clientData.geoPoint) {
-          geoTree.remove(clientData.geoPoint);
-          clientData.geoPoint = null;
-        }
+        rebuildGeoTree();
         broadcastPeerUpdates();
         break;
 
@@ -292,11 +293,8 @@ wss.on('connection', (ws, req) => {
 
   ws.on('close', () => {
     if (clientId) {
-      const clientData = clients.get(clientId);
-      if (clientData && clientData.geoPoint) {
-        geoTree.remove(clientData.geoPoint);
-      }
       clients.delete(clientId);
+      rebuildGeoTree();
       console.log(`Client ${clientId} disconnected. Total clients: ${clients.size}`);
       broadcastPeerUpdates();
     }
