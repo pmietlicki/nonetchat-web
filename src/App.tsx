@@ -50,6 +50,7 @@ function App() {
   const [userProfile, setUserProfile] = useState<Partial<User> & { avatarBlob?: Blob | null }>({});
   // L'URL de l'avatar local est gérée séparément pour un cycle de vie correct
   const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
+  const [avatarRefreshKey, setAvatarRefreshKey] = useState<number>(0);
 
   const [signalingUrl, setSignalingUrl] = useState(
     () => localStorage.getItem('signalingUrl') || DEFAULT_SIGNALING_URL
@@ -78,9 +79,9 @@ function App() {
       };
     } else if (userProfile.id) {
       // Fallback sur Pravatar si pas de blob, avec un cache buster pour le rafraîchissement
-      setMyAvatarUrl(`https://i.pravatar.cc/150?u=${userProfile.id}&t=${Date.now()}`);
+      setMyAvatarUrl(`https://i.pravatar.cc/150?seed=${userProfile.id}-${Date.now()}`);
     }
-  }, [userProfile.avatarBlob, userProfile.id]);
+  }, [userProfile.avatarBlob, userProfile.id, avatarRefreshKey]);
 
   useEffect(() => {
     const initialize = async () => {
@@ -220,6 +221,8 @@ function App() {
     // Recharger le profil, qui n'aura plus de `avatarBlob`
     const refreshedProfile = await profileService.getProfile();
     setUserProfile(refreshedProfile);
+    // Forcer le rafraîchissement de l'avatar Pravatar
+    setAvatarRefreshKey(prev => prev + 1);
     // Mettre à jour le service et diffuser le changement (qui montrera un nouvel avatar par défaut)
     peerService.setMyProfile(refreshedProfile);
     await peerService.broadcastProfileUpdate();
