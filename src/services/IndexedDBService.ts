@@ -443,6 +443,21 @@ class IndexedDBService {
       getRequest.onerror = () => reject(getRequest.error);
     });
   }
+
+  async deleteAvatar(id: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['avatars'], 'readwrite');
+      const store = transaction.objectStore('avatars');
+      const request = store.delete(id);
+      request.onsuccess = () => {
+        console.log(`Avatar with id ${id} deleted from IndexedDB.`);
+        resolve();
+      };
+      request.onerror = () => reject(request.error);
+    });
+  }
 }
 
 export default IndexedDBService;

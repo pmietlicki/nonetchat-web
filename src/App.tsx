@@ -77,8 +77,8 @@ function App() {
         setMyAvatarUrl(null);
       };
     } else if (userProfile.id) {
-      // Fallback sur Pravatar si pas de blob
-      setMyAvatarUrl(`https://i.pravatar.cc/150?u=${userProfile.id}`);
+      // Fallback sur Pravatar si pas de blob, avec un cache buster pour le rafraîchissement
+      setMyAvatarUrl(`https://i.pravatar.cc/150?u=${userProfile.id}&t=${Date.now()}`);
     }
   }, [userProfile.avatarBlob, userProfile.id]);
 
@@ -214,6 +214,17 @@ function App() {
     console.log('Profile updated and broadcasted:', updatedProfile);
   };
 
+  const handleRefreshAvatar = async () => {
+    // Supprimer l'avatar personnalisé de la base de données
+    await profileService.deleteCustomAvatar();
+    // Recharger le profil, qui n'aura plus de `avatarBlob`
+    const refreshedProfile = await profileService.getProfile();
+    setUserProfile(refreshedProfile);
+    // Mettre à jour le service et diffuser le changement (qui montrera un nouvel avatar par défaut)
+    peerService.setMyProfile(refreshedProfile);
+    await peerService.broadcastProfileUpdate();
+  };
+
   const handleSaveSettings = () => {
     localStorage.setItem('signalingUrl', tempSignalingUrl);
     localStorage.setItem('searchRadius', tempSearchRadius.toString());
@@ -308,6 +319,7 @@ function App() {
         onSave={handleSaveProfile}
         initialProfile={userProfile}
         displayAvatarUrl={myAvatarUrl}
+        onRefreshAvatar={handleRefreshAvatar}
       />
 
       <DiagnosticPanel

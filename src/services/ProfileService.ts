@@ -68,6 +68,10 @@ class ProfileService {
       return null;
     }
   }
+
+  async deleteCustomAvatar(): Promise<void> {
+    await this.dbService.deleteAvatar(AVATAR_KEY);
+  }
 }
 
 export default ProfileService;

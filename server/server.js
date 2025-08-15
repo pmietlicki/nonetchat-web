@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { WebSocketServer } from 'ws';
 import { Reader } from '@maxmind/geoip2-node';
 import Quadtree from '@timohausmann/quadtree-js';
+import cors from 'cors';
 
 let geoipReader = null;
 // Initialisation asynchrone, sans bloquer le serveur
@@ -32,24 +33,24 @@ const geoTree = new Quadtree({
 const app = express();
 app.set('trust proxy', true);
 
-// Configuration CORS pour permettre les requêtes depuis tout sous-domaine de nonetchat.com
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  
-  if (origin && (origin.endsWith('.nonetchat.com') || origin === 'https://nonetchat.com')) {
-    res.header('Access-Control-Allow-Origin', origin);
-  }
-  
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  
-  next();
-});
+// Configuration CORS robuste avec la bibliothèque standard
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Accepter les requêtes sans origine (ex: Postman, apps mobiles)
+    if (!origin) return callback(null, true);
+    // Regex pour autoriser nonetchat.com et tous ses sous-domaines
+    if (/^https?:\/\/(.+\.)?nonetchat\.com$/.test(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Origine non autorisée par la politique CORS'));
+    }
+  },
+  credentials: true
+};
+app.use(cors(corsOptions));
+
+// Gérer les requêtes pre-flight OPTIONS pour toutes les routes
+app.options('*', cors(corsOptions));
 
 const {
   TURN_STATIC_SECRET,

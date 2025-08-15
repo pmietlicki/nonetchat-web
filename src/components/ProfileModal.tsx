@@ -7,10 +7,11 @@ interface ProfileModalProps {
   onClose: () => void;
   onSave: (profileData: Partial<User>, avatarFile?: File) => void;
   initialProfile: Partial<User>;
-  displayAvatarUrl: string | null; // URL gérée par le parent
+  displayAvatarUrl: string | null;
+  onRefreshAvatar: () => void; // Nouvelle prop pour gérer le rafraîchissement
 }
 
-const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, initialProfile, displayAvatarUrl }) => {
+const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, initialProfile, displayAvatarUrl, onRefreshAvatar }) => {
   const [name, setName] = useState('');
   const [age, setAge] = useState<number | ''>( '');
   const [gender, setGender] = useState('');
@@ -78,9 +79,9 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, in
             </button>
             {!avatarFile && (
               <button
-                onClick={refreshAvatar}
+                onClick={onRefreshAvatar}
                 className="absolute -bottom-1 -left-1 bg-green-600 text-white p-2 rounded-full hover:bg-green-700 border-2 border-white"
-                title="Générer un nouvel avatar"
+                title="Générer un nouvel avatar par défaut"
               >
                 <RefreshCw size={16} />
               </button>
