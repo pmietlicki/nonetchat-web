@@ -46,6 +46,9 @@ class PeerService extends EventEmitter {
   private turnRefreshTimer: number | null = null;
   private searchRadius: number = 1.0; // Default 1km radius
   private signalingUrl: string = '';
+  private lastGoodLocationKey = 'nnc:lastGoodLocation';
+  private locRefreshTimer: number | null = null;
+  private locRefreshInterval: number = 1000 * 60 * 5; // 5 minutes
 
   // --- TURN auth éphémère injectée depuis /api/turn-credentials ---
   private turnAuth: { username: string; credential: string } | null = null;
@@ -74,6 +77,70 @@ class PeerService extends EventEmitter {
 
     return { iceServers, iceCandidatePoolSize: 2 };
   }
+
+  private saveLastGoodLocation(loc: {latitude:number; longitude:number; accuracyMeters:number; timestamp:number; method:string}) {
+  try { localStorage.setItem(this.lastGoodLocationKey, JSON.stringify(loc)); } catch {}
+}
+private loadLastGoodLocation() {
+  try {
+    const raw = localStorage.getItem(this.lastGoodLocationKey);
+    if (!raw) return null;
+    return JSON.parse(raw) as {latitude:number; longitude:number; accuracyMeters:number; timestamp:number; method:string};
+  } catch { return null; }
+}
+
+private getPositionRace(): Promise<GeolocationPosition> {
+  return new Promise((resolve, reject) => {
+    if (!('geolocation' in navigator)) return reject(new Error('no geolocation'));
+    let resolved = false;
+    const cleanup = () => { if (watchId !== null) navigator.geolocation.clearWatch(watchId); };
+    const finish = (pos: GeolocationPosition) => { if (!resolved) { resolved = true; cleanup(); resolve(pos); } };
+
+    navigator.geolocation.getCurrentPosition(
+      finish,
+      () => {},
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 5 * 60 * 1000 }
+    );
+
+    let best: GeolocationPosition | null = null;
+    const watchId = navigator.geolocation.watchPosition(
+      (p) => {
+        best = p;
+        if (p.coords.accuracy != null && p.coords.accuracy <= 100) finish(p);
+      },
+      (err) => {
+        if (!resolved && best) finish(best);
+        else if (!resolved) reject(err);
+      },
+      { enableHighAccuracy: true, maximumAge: 0 }
+    );
+
+    setTimeout(() => {
+      if (resolved) return;
+      if (best) finish(best);
+      else reject(new Error('timeout'));
+    }, 20000);
+  });
+}
+
+private async isGeoDenied(): Promise<boolean> {
+  try {
+    // @ts-ignore
+    const st = await navigator.permissions?.query?.({ name: 'geolocation' as PermissionName });
+    return st?.state === 'denied';
+  } catch { return false; }
+}
+
+private async fetchGeoIP(): Promise<{latitude:number; longitude:number; accuracyMeters:number; method:string} | null> {
+  try {
+    const apiBase = this.signalingUrl.replace(/^wss?:\/\//, 'https://').replace(/^ws:\/\//, 'http://');
+    const r = await fetch(`${apiBase}/api/geoip`, { credentials: 'include' });
+    if (!r.ok) return null;
+    const d = await r.json();
+    return { latitude: d.latitude, longitude: d.longitude, accuracyMeters: (d.accuracyKm || 25) * 1000, method: 'ip' };
+  } catch { return null; }
+}
+
 
   private constructor() {
     super();
@@ -171,31 +238,62 @@ class PeerService extends EventEmitter {
     this.startLocationUpdates();
   }
 
-  private startLocationUpdates() {
-    if (!('geolocation' in navigator)) {
-      this.diagnosticService.log('Geolocation is not supported by this browser.');
+private startLocationUpdates() {
+  const pushLocation = (loc: { latitude:number; longitude:number; accuracyMeters?:number; timestamp?:number; method?:string }) => {
+    this.sendToServer({
+      type: 'update-location',
+      payload: {
+        location: {
+          latitude: loc.latitude,
+          longitude: loc.longitude,
+          accuracyMeters: loc.accuracyMeters ?? null,
+          timestamp: loc.timestamp ?? Date.now(),
+          method: loc.method || 'gps'
+        },
+        radius: this.searchRadius
+      }
+    });
+  };
+
+  const scheduleRefresh = () => {
+    if (this.locRefreshTimer) clearTimeout(this.locRefreshTimer);
+    this.locRefreshTimer = window.setTimeout(() => this.startLocationUpdates(), 120000); // 2 min
+  };
+
+  (async () => {
+    if (await this.isGeoDenied()) {
+      const lkg = this.loadLastGoodLocation();
+      if (lkg && (Date.now() - lkg.timestamp) < 24 * 60 * 60 * 1000) { pushLocation(lkg); scheduleRefresh(); return; }
+      const ipGuess = await this.fetchGeoIP();
+      if (ipGuess) { pushLocation({ ...ipGuess, timestamp: Date.now() }); scheduleRefresh(); return; }
+      this.diagnosticService.log('Geolocation denied and no fallback → LAN');
       this.sendToServer({ type: 'request-lan-discovery' });
       return;
     }
 
-    // Get a single, fresh location update
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        this.diagnosticService.log('Location obtained', { latitude, longitude });
-        this.sendToServer({
-          type: 'update-location',
-          payload: { location: { latitude, longitude }, radius: this.searchRadius }
-        });
-      },
-      (error) => {
-        this.diagnosticService.log('Geolocation Error, switching to LAN mode', error);
-        this.emit('geolocation-error', error);
+    try {
+      const pos = await this.getPositionRace();
+      const { latitude, longitude, accuracy } = pos.coords;
+      const loc = { latitude, longitude, accuracyMeters: accuracy ?? null, timestamp: pos.timestamp, method: 'gps' };
+      this.saveLastGoodLocation(loc);
+      this.diagnosticService.log('Location obtained (race)', loc);
+      pushLocation(loc);
+      scheduleRefresh();
+    } catch (err) {
+      this.diagnosticService.log('Geolocation failed, trying LKG/IP before LAN', err);
+      const lkg = this.loadLastGoodLocation();
+      if (lkg && (Date.now() - lkg.timestamp) < 24 * 60 * 60 * 1000) { pushLocation(lkg); scheduleRefresh(); return; }
+      const ipGuess = await this.fetchGeoIP();
+      if (ipGuess) { pushLocation({ ...ipGuess, timestamp: Date.now() }); scheduleRefresh(); return; }
+      setTimeout(() => this.startLocationUpdates(), 10000);
+      setTimeout(() => {
+        this.diagnosticService.log('Geolocation still failing → LAN');
         this.sendToServer({ type: 'request-lan-discovery' });
-      },
-      { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
-    );
-  }
+      }, 25000);
+    }
+  })();
+}
+
 
   private startPruningInterval() {
     const PRUNE_INTERVAL = 30000;

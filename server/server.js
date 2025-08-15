@@ -1,6 +1,20 @@
 import express from 'express';
 import crypto from 'crypto';
 import { WebSocketServer } from 'ws';
+import { Reader } from '@maxmind/geoip2-node';
+
+let geoipReader = null;
+// Initialisation asynchrone, sans bloquer le serveur
+(async () => {
+  if (process.env.GEOIP_DB) {
+    try {
+      geoipReader = await Reader.open(process.env.GEOIP_DB);
+      console.log('GeoIP DB loaded');
+    } catch (e) {
+      console.warn('GeoIP DB failed to load:', e.message);
+    }
+  }
+})();
 
 const wss = new WebSocketServer({ port: 3001 });
 const clients = new Map();
@@ -64,6 +78,27 @@ app.get('/api/turn-credentials', (req, res) => {
   });
 });
 
+app.get('/api/geoip', async (req, res) => {
+  try {
+    if (!geoipReader) return res.status(503).json({ error: 'GeoIP disabled' });
+    const ip =
+      req.headers['cf-connecting-ip'] ||
+      req.headers['x-real-ip'] ||
+      (req.headers['x-forwarded-for']?.split(',')[0].trim()) ||
+      req.socket.remoteAddress;
+    const resp = await geoipReader.city(ip);
+    const { latitude, longitude, accuracy_radius } = resp.location || {};
+    if (latitude == null || longitude == null) return res.status(404).json({ error: 'No location' });
+    res.json({
+      latitude, longitude,
+      accuracyKm: accuracy_radius || 25
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'GeoIP error' });
+  }
+});
+
+
 console.log('Robust Geo-Signaling Server is running on ws://localhost:3001');
 
 // Heartbeat interval to keep connections alive
@@ -115,12 +150,23 @@ function broadcastPeerUpdates() {
         isNearby = true;
         distanceInfo = { distance: 'LAN' };
       } else if (client.discoveryMode === 'geo' && otherClient.discoveryMode === 'geo') {
-        const distance = getDistance(client.location, otherClient.location);
-        if (distance < client.radius && distance < otherClient.radius) {
-          isNearby = true;
-          distanceInfo = { distance: distance.toFixed(2) + ' km' };
-        }
-      }
+        // Ignorer les positions trop anciennes
+        const now = Date.now();
+        const freshA = client.location && client.location.timestamp && (now - client.location.timestamp < MAX_LOCATION_AGE_MS);
+        const freshB = otherClient.location && otherClient.location.timestamp && (now - otherClient.location.timestamp < MAX_LOCATION_AGE_MS);
+        if (freshA && freshB && client.location && otherClient.location) {
+          const distance = getDistance(client.location, otherClient.location);
+          const accAkm = (client.location.accuracyMeters || 0) / 1000;
+          const accBkm = (otherClient.location.accuracyMeters || 0) / 1000;
+          // Tolérer l'incertitude : distance <= min(rayons) + incertitudes
+          const threshold = Math.min(client.radius, otherClient.radius) + accAkm + accBkm;
+          if (distance <= threshold) {
+            isNearby = true;
+            distanceInfo = { distance: distance.toFixed(2) + ' km' };
+            distanceInfo = { distance: distance.toFixed(2) + ' km' };
+          }
+         }
+       }
 
       if (isNearby) nearbyPeers.push({ peerId: otherClientId, ...distanceInfo });
     });
@@ -166,7 +212,13 @@ wss.on('connection', (ws, req) => {
 
     switch (type) {
       case 'update-location':
-        clientData.location = payload.location;
+        // payload.location: { latitude, longitude, accuracyMeters?, timestamp?, method? }
+        clientData.location = {
+          ...payload.location,
+          timestamp: payload?.location?.timestamp || Date.now(),
+          accuracyMeters: payload?.location?.accuracyMeters ?? null,
+          method: payload?.location?.method || 'gps'
+        };
         clientData.radius = payload.radius || clientData.radius;
         clientData.discoveryMode = 'geo';
         broadcastPeerUpdates();
