@@ -132,6 +132,8 @@ function getDistance(coords1, coords2) {
   return R * c;
 }
 
+const MAX_LOCATION_AGE_MS = 30 * 60 * 1000; // 30 minutes tolérées
+
 function sendTo(ws, message) {
   if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(message));
 }
