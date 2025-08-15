@@ -72,6 +72,33 @@ class ProfileService {
   async deleteCustomAvatar(): Promise<void> {
     await this.dbService.deleteAvatar(AVATAR_KEY);
   }
+
+  // Nouvelle méthode pour obtenir l'avatar à transmettre aux peers
+  async getAvatarForTransmission(pravagarUrl?: string): Promise<string | null> {
+    try {
+      // D'abord, essayer de récupérer l'avatar personnalisé
+      const avatarBlob = await this.dbService.getAvatar(AVATAR_KEY);
+      if (avatarBlob) {
+        // Si un avatar personnalisé existe, le convertir en Base64
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            resolve(reader.result as string);
+          };
+          reader.onerror = (error) => {
+            reject(error);
+          };
+          reader.readAsDataURL(avatarBlob);
+        });
+      }
+      
+      // Si pas d'avatar personnalisé, retourner l'URL Pravatar si fournie
+      return pravagarUrl || null;
+    } catch (error) {
+      console.error('Error getting avatar for transmission:', error);
+      return pravagarUrl || null;
+    }
+  }
 }
 
 export default ProfileService;

@@ -37,6 +37,7 @@ class PeerService extends EventEmitter {
   private messageQueue: Map<string, PeerMessage[]> = new Map();
   private myId: string = '';
   private myProfile: Partial<User> = {};
+  private currentPravagarUrl: string | undefined = undefined;
   private cryptoService: CryptoService;
   private diagnosticService: DiagnosticService;
   private dbService: IndexedDBService;
@@ -50,7 +51,6 @@ class PeerService extends EventEmitter {
   private signalingUrl: string = '';
   private lastGoodLocationKey = 'nnc:lastGoodLocation';
   private locRefreshTimer: number | null = null;
-  private locRefreshInterval: number = 1000 * 60 * 5; // 5 minutes
 
   // --- TURN auth éphémère injectée depuis /api/turn-credentials ---
   private turnAuth: { username: string; credential: string } | null = null;
@@ -161,6 +161,10 @@ private async fetchGeoIP(): Promise<{latitude:number; longitude:number; accuracy
 
   public setMyProfile(profile: Partial<User>) {
     this.myProfile = profile;
+  }
+
+  public setCurrentPravagarUrl(url: string | undefined) {
+    this.currentPravagarUrl = url;
   }
 
   // --- Récupération + refresh auto des identifiants TURN ---
@@ -485,7 +489,6 @@ private startLocationUpdates() {
       // Binaire (chunks de fichiers)
       if (event.data instanceof ArrayBuffer) {
         try {
-          const dataView = new DataView(event.data);
           const messageIdLength = 36; // UUID v4 length
           const messageIdBytes = new Uint8Array(event.data.slice(0, messageIdLength));
           const messageId = new TextDecoder().decode(messageIdBytes);
@@ -516,7 +519,7 @@ private startLocationUpdates() {
         const profileToSend = { 
           ...this.myProfile, 
           status: 'online',
-          avatar: await this.profileService.getAvatarAsBase64()
+          avatar: await this.profileService.getAvatarForTransmission(this.currentPravagarUrl)
         };
         this.sendToPeer(peerId, { type: 'profile', payload: profileToSend });
       } else if (message.type === 'chat-message') {
@@ -588,7 +591,7 @@ private startLocationUpdates() {
   }
 
   public async broadcastProfileUpdate() {
-    const avatar = await this.profileService.getAvatarAsBase64();
+    const avatar = await this.profileService.getAvatarForTransmission(this.currentPravagarUrl);
     const profileToSend = {
       ...this.myProfile,
       status: 'online',

@@ -71,6 +71,8 @@ function App() {
     if (userProfile.avatarBlob) {
       const url = URL.createObjectURL(userProfile.avatarBlob);
       setMyAvatarUrl(url);
+      // Pas d'URL Pravatar à transmettre car on a un avatar personnalisé
+      peerService.setCurrentPravagarUrl(undefined);
 
       // La fonction de nettoyage révoque l'URL quand le blob change ou que le composant est démonté
       return () => {
@@ -79,7 +81,10 @@ function App() {
       };
     } else if (userProfile.id) {
       // Fallback sur Pravatar si pas de blob, avec un cache buster pour le rafraîchissement
-      setMyAvatarUrl(`https://i.pravatar.cc/150?seed=${userProfile.id}-${Date.now()}`);
+      const pravagarUrl = `https://i.pravatar.cc/150?seed=${userProfile.id}-${Date.now()}`;
+      setMyAvatarUrl(pravagarUrl);
+      // Mettre à jour l'URL Pravatar dans PeerService pour transmission
+      peerService.setCurrentPravagarUrl(pravagarUrl);
     }
   }, [userProfile.avatarBlob, userProfile.id, avatarRefreshKey]);
 
