@@ -311,6 +311,31 @@ function App() {
             </div>
 
             <div className="space-y-4">
+              {/* Raccourci profil (mobile-friendly) */}
+              <div className="rounded-lg border border-gray-200 p-3 flex items-center justify-between">
+                <div className="flex items-center gap-3 min-w-0">
+                  <img
+                    src={myAvatarUrl || `https://i.pravatar.cc/150?u=${encodeURIComponent(userProfile.id || '')}`}
+                    alt="Avatar"
+                    className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-gray-900 truncate">
+                      {userProfile.name || 'Profil non complété'}
+                    </div>
+                    <div className="text-xs text-gray-500 truncate">
+                      Modifier votre nom / avatar
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => { setIsSettingsOpen(false); setIsProfileOpen(true); }}
+                  className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
+                >
+                  Modifier
+                </button>
+              </div>
+
               <div>
                 <label htmlFor="signaling-url" className="block text-sm font-medium text-gray-700 mb-2">
                   URL du serveur de signalisation
@@ -383,6 +408,7 @@ function App() {
             </div>
           </div>
 
+          {/* Actions desktop */}
           <div className="hidden sm:flex items-center gap-3">
             <ConnectionStatus
               isConnected={isConnected}
@@ -446,6 +472,18 @@ function App() {
               className="p-2 rounded-full hover:bg-gray-100"
               title="Modifier votre profil"
               aria-label="Modifier votre profil"
+            >
+              <UserIcon size={20} />
+            </button>
+          </div>
+
+          {/* Action mobile : Profil uniquement */}
+          <div className="sm:hidden">
+            <button
+              onClick={() => setIsProfileOpen(true)}
+              className="p-2 rounded-full hover:bg-gray-100"
+              aria-label="Modifier votre profil"
+              title="Modifier votre profil"
             >
               <UserIcon size={20} />
             </button>
