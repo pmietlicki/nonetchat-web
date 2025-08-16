@@ -125,6 +125,8 @@ class NotificationService {
     
     this.emit('unread-count-changed', this.getTotalUnreadCount());
     this.emit('conversation-unread-changed', conversationId, 0);
+
+    this.updateAppBadge(); // Mettre à jour le badge après avoir lu les messages
   }
 
   markMessageAsRead(conversationId: string, messageId: string): void {
@@ -183,7 +185,7 @@ class NotificationService {
     }
 
     // Notification système
-    if (this.settings.systemNotificationsEnabled && !this.isTabVisible) {
+    if (this.settings.systemNotificationsEnabled && document.hidden) {
       this.showSystemNotification(message);
     }
 
@@ -228,7 +230,7 @@ class NotificationService {
     const count = this.getTotalUnreadCount();
     
     // App Badging API (PWA)
-    if ('setAppBadge' in navigator) {
+    if (navigator.setAppBadge) {
       if (count > 0) {
         (navigator as any).setAppBadge(count);
       } else {

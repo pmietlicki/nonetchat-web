@@ -29,7 +29,7 @@ interface Message {
     type: string;
     url: string;
   };
-  reactions?: { [emoji: string]: string[] }; // emoji -> array of user IDs
+  reactions?: { [emoji: string]: string[] };
 }
 
 const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) => {
@@ -44,7 +44,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   const dbService = IndexedDBService.getInstance();
   const notificationService = NotificationService.getInstance();
 
-  const fileReceivers = useRef<Map<string, { chunks: ArrayBuffer[], metadata: any, expectedSize?: number, startTime: number }>>(new Map());
+  const fileReceivers = useRef<Map<string, { chunks: ArrayBuffer[]; metadata: any; expectedSize?: number; startTime: number }>>(new Map());
   const activeFileTransfers = useRef<Set<string>>(new Set());
   const [sendingProgress, setSendingProgress] = useState<Map<string, number>>(new Map());
   const [receivingProgress, setReceivingProgress] = useState<Map<string, number>>(new Map());
@@ -55,9 +55,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
-  
-  // Configuration des transferts de fichiers
-  const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB avec compression
+
+  // URLs blob créées localement, pour un nettoyage fiable à l’unmount uniquement
+  const blobUrlsRef = useRef<Set<string>>(new Set());
+
+  // Limite de taille (avant chiffrement)
+  const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 
   const handleData = useCallback(async (peerId: string, data: any) => {
     if (peerId !== selectedPeer.id) return;
@@ -75,16 +78,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         status: 'delivered',
       });
     } else if (data.type === 'file-start') {
-      fileReceivers.current.set(data.messageId, { 
-        chunks: [], 
+      fileReceivers.current.set(data.messageId, {
+        chunks: [],
         metadata: data.payload,
-        expectedSize: data.payload.encryptedSize || data.payload.size, // Utiliser la taille chiffrée si disponible
-        startTime: Date.now()
+        expectedSize: data.payload.encryptedSize || data.payload.size,
+        startTime: Date.now(),
       });
-      
-      // Ajouter ce transfert aux transferts actifs
+
       activeFileTransfers.current.add(data.messageId);
-      
+
       addMessage({
         id: data.messageId,
         senderId: peerId,
@@ -94,96 +96,84 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         type: 'file',
         encrypted: true,
         status: 'delivered',
-        fileData: { ...data.payload, url: '' }
+        fileData: { ...data.payload, url: '' },
       });
     } else if (data.type === 'file-chunk') {
-      // This part needs to be handled carefully as raw ArrayBuffers are not sent via this event handler anymore
+      // Les chunks bruts arrivent via l’event 'file-chunk' dédié
     } else if (data.type === 'file-end') {
       const receiver = fileReceivers.current.get(data.messageId);
       if (receiver) {
         try {
-          // Reconstruire le fichier à partir des chunks
           const totalSize = receiver.chunks.reduce((sum, chunk) => sum + chunk.byteLength, 0);
-          
-          // Vérifier l'intégrité du fichier (taille chiffrée)
-          // On doit comparer avec la taille chiffrée, pas la taille originale
+
           const expectedEncryptedSize = receiver.metadata.encryptedSize || receiver.expectedSize;
           if (expectedEncryptedSize && totalSize !== expectedEncryptedSize) {
-            console.warn(`Différence de taille détectée: reçu ${totalSize} octets, attendu ${expectedEncryptedSize} octets (taille originale: ${receiver.metadata.size} octets)`);
-            // Ne pas lever d'erreur pour une petite différence (padding, compression, etc.)
             const sizeDifference = Math.abs(totalSize - expectedEncryptedSize);
-            const tolerancePercent = 0.1; // 0.1% de tolérance
-            const tolerance = Math.max(1024, expectedEncryptedSize * tolerancePercent / 100); // Au moins 1KB de tolérance
-            
+            const tolerancePercent = 0.1; // 0,1%
+            const tolerance = Math.max(1024, (expectedEncryptedSize * tolerancePercent) / 100);
             if (sizeDifference > tolerance) {
-              throw new Error(`Taille de fichier incorrecte: reçu ${totalSize} octets, attendu ${expectedEncryptedSize} octets (différence: ${sizeDifference} octets)`);
+              throw new Error(
+                `Taille de fichier incorrecte: reçu ${totalSize} octets, attendu ${expectedEncryptedSize} octets (diff: ${sizeDifference})`
+              );
             }
           }
-          
-          // Reconstruire le fichier chiffré à partir des chunks
+
           const encryptedFile = new Blob(receiver.chunks);
-          
-          // Déchiffrer le fichier
           const cryptoService = CryptoService.getInstance();
           const decryptedFile = await cryptoService.decryptFile(encryptedFile);
-          
-          // Vérifier que le déchiffrement a produit un fichier valide
-           if (decryptedFile.size === 0) {
-             throw new Error('Le fichier déchiffré est vide');
-           }
-          
-          // Créer l'URL pour le fichier déchiffré
+          if (decryptedFile.size === 0) throw new Error('Le fichier déchiffré est vide');
+
           const url = URL.createObjectURL(new Blob([decryptedFile], { type: receiver.metadata.type }));
-          
-          const updatedFileData = { 
+          blobUrlsRef.current.add(url);
+
+          const updatedFileData = {
             name: receiver.metadata.name,
             size: receiver.metadata.size,
             type: receiver.metadata.type,
-            url 
+            url,
           };
 
-          // Mettre à jour le message dans la base de données pour persister l'URL du blob
           await dbService.updateMessageFileData(data.messageId, updatedFileData);
 
-          // Mettre à jour le message dans l'état local avec le fichier téléchargeable
-          setMessages(prev => prev.map(m => 
-            m.id === data.messageId ? { 
-              ...m, 
-              content: receiver.metadata.name, 
-              fileData: updatedFileData,
-              status: 'delivered'
-            } : m
-          ));
-          
-          // Nettoyer les progressions
+          setMessages(prev =>
+            prev.map(m =>
+              m.id === data.messageId
+                ? {
+                    ...m,
+                    content: receiver.metadata.name,
+                    fileData: updatedFileData,
+                    status: 'delivered',
+                  }
+                : m
+            )
+          );
+
           setReceivingProgress(prev => {
-            const newProgress = new Map(prev);
-            newProgress.delete(data.messageId);
-            return newProgress;
+            const np = new Map(prev);
+            np.delete(data.messageId);
+            return np;
           });
-          
-          // Nettoyer
+
           fileReceivers.current.delete(data.messageId);
           activeFileTransfers.current.delete(data.messageId);
         } catch (error) {
           console.error('Erreur lors du déchiffrement du fichier:', error);
-          // Afficher un message d'erreur à l'utilisateur
-          setMessages(prev => prev.map(m => 
-            m.id === data.messageId ? { 
-              ...m, 
-              content: `Erreur: Impossible de déchiffrer ${receiver.metadata.name}`,
-              status: 'delivered'
-            } : m
-          ));
-          
-          // Nettoyer les progressions même en cas d'erreur
+          setMessages(prev =>
+            prev.map(m =>
+              m.id === data.messageId
+                ? {
+                    ...m,
+                    content: `Erreur: Impossible de déchiffrer ${receiver.metadata.name}`,
+                    status: 'delivered',
+                  }
+                : m
+            )
+          );
           setReceivingProgress(prev => {
-            const newProgress = new Map(prev);
-            newProgress.delete(data.messageId);
-            return newProgress;
+            const np = new Map(prev);
+            np.delete(data.messageId);
+            return np;
           });
-          
-          // Nettoyer même en cas d'erreur
           fileReceivers.current.delete(data.messageId);
           activeFileTransfers.current.delete(data.messageId);
         }
@@ -193,54 +183,40 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
   const handleFileChunk = useCallback((peerId: string, messageId: string, chunk: ArrayBuffer) => {
     if (peerId !== selectedPeer.id) return;
-    
+
     const receiver = fileReceivers.current.get(messageId);
     if (receiver) {
       receiver.chunks.push(chunk);
-      
-      // Calculer et afficher la progression si on connaît la taille attendue
+
       if (receiver.expectedSize) {
         const currentSize = receiver.chunks.reduce((total, c) => total + c.byteLength, 0);
         const progress = Math.round((currentSize / receiver.expectedSize) * 100);
-        
-        // Mettre à jour la progression de réception
+
         setReceivingProgress(prev => {
-          const newProgress = new Map(prev);
-          newProgress.set(messageId, progress);
-          return newProgress;
+          const np = new Map(prev);
+          np.set(messageId, progress);
+          return np;
         });
-        
-        // Mettre à jour le message avec la progression
-        setMessages(prev => prev.map(m => 
-          m.id === messageId ? { 
-            ...m, 
-            content: `${receiver.metadata.name} (${progress}%)` 
-          } : m
-        ));
+
+        setMessages(prev =>
+          prev.map(m => (m.id === messageId ? { ...m, content: `${receiver.metadata.name} (${progress}%)` } : m))
+        );
       }
     }
   }, [selectedPeer.id]);
 
   const handleMessageDelivered = useCallback((peerId: string, messageId: string) => {
     if (peerId !== selectedPeer.id) return;
-    
-    // Mettre à jour le statut du message en base
+
     dbService.updateMessageStatus(messageId, 'delivered');
-    // Mettre à jour l'état local
-    setMessages(prev => prev.map(m => 
-      m.id === messageId ? { ...m, status: 'delivered' } : m
-    ));
+    setMessages(prev => prev.map(m => (m.id === messageId ? { ...m, status: 'delivered' } : m)));
   }, [selectedPeer.id]);
 
   const handleMessageRead = useCallback((peerId: string, messageId: string) => {
     if (peerId !== selectedPeer.id) return;
-    
-    // Mettre à jour le statut du message en base
+
     dbService.updateMessageStatus(messageId, 'read');
-    // Mettre à jour l'état local
-    setMessages(prev => prev.map(m => 
-      m.id === messageId ? { ...m, status: 'read' } : m
-    ));
+    setMessages(prev => prev.map(m => (m.id === messageId ? { ...m, status: 'read' } : m)));
   }, [selectedPeer.id]);
 
   useEffect(() => {
@@ -257,12 +233,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         markAsRead();
       }
     };
-
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    // --- Cleanup function for memory leaks ---
+    // Cleanup unique à l’unmount
     return () => {
-      if (peerService && typeof peerService.removeListener === 'function') {
+      if (typeof peerService.removeListener === 'function') {
         peerService.removeListener('data', handleData);
         peerService.removeListener('file-chunk', handleFileChunk);
         peerService.removeListener('message-delivered', handleMessageDelivered);
@@ -270,21 +245,16 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
 
-      // Clear long press timer
-      if (longPressTimer) {
-        clearTimeout(longPressTimer);
-      }
+      if (longPressTimer) clearTimeout(longPressTimer);
 
-      // Revoke blob URLs to prevent memory leaks
-      messages.forEach(msg => {
-        if (msg.fileData?.url?.startsWith('blob:')) {
-          URL.revokeObjectURL(msg.fileData.url);
-        }
-      });
+      // Révoquer toutes les URLs blob créées par ce composant
+      blobUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+      blobUrlsRef.current.clear();
     };
-  }, [selectedPeer.id, handleData, handleFileChunk, handleMessageDelivered, handleMessageRead, isAtBottom, longPressTimer, messages]);
+    // ⚠️ On ne dépend PAS de `messages` pour éviter de ré-attacher les listeners à chaque message
+  }, [selectedPeer.id, handleData, handleFileChunk, handleMessageDelivered, handleMessageRead, isAtBottom, longPressTimer]);
 
-  // Fermer les menus quand on clique ailleurs
+  // Fermer menus/emoji quand on clique ailleurs
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
@@ -293,11 +263,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         setShowEmojiPicker(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -307,7 +274,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   const loadMessages = async () => {
     try {
       const stored = await dbService.getMessages(selectedPeer.id);
-      setMessages(stored.map(m => ({...m, id: m.id || uuidv4() })));
+      setMessages(stored.map((m: any) => ({ ...m, id: m.id || uuidv4() })));
     } catch (error) {
       console.error('Error loading messages:', error);
     }
@@ -315,29 +282,28 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
   const addMessage = async (message: Message) => {
     setMessages(prev => [...prev, message]);
-    
-    // Gérer les nouveaux messages reçus
+
     if (message.senderId !== myId) {
       if (!isAtBottom) {
         setNewMessagesCount(prev => prev + 1);
       } else if (document.visibilityState === 'visible') {
-        // Auto-scroll si on est en bas et que la fenêtre est visible
         setTimeout(() => scrollToBottom(), 100);
       }
     } else {
-      // Pour les messages envoyés, toujours scroller en bas
       setTimeout(() => scrollToBottom(), 100);
     }
-    
+
     try {
-      await dbService.saveMessage({
-        ...message,
-        receiverId: message.senderId === myId ? selectedPeer.id : myId,
-        encrypted: true, // Les messages sont maintenant chiffrés
-      }, selectedPeer.id);
+      await dbService.saveMessage(
+        {
+          ...message,
+          receiverId: message.senderId === myId ? selectedPeer.id : myId,
+          encrypted: true,
+        },
+        selectedPeer.id
+      );
       await dbService.updateConversationParticipant(selectedPeer.id, selectedPeer.name, selectedPeer.avatar);
-      
-      // Notifier le service de notifications si c'est un message reçu
+
       if (message.senderId !== myId) {
         notificationService.addMessage(selectedPeer.id, {
           id: message.id,
@@ -345,7 +311,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
           content: message.content,
           timestamp: message.timestamp,
           type: message.type,
-          senderName: selectedPeer.name
+          senderName: selectedPeer.name,
         });
       }
     } catch (error) {
@@ -356,26 +322,25 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   const markAsRead = async () => {
     try {
       await dbService.markConversationAsRead(selectedPeer.id);
-      
-      // Envoyer des accusés de lecture pour tous les messages non lus du peer
-      const unreadMessages = messages.filter(m => 
-        m.senderId === selectedPeer.id && 
-        (m.status === 'delivered' || m.status === 'sent')
+
+      const unreadMessages = messages.filter(
+        m => m.senderId === selectedPeer.id && (m.status === 'delivered' || m.status === 'sent')
       );
-      
+
       for (const message of unreadMessages) {
-        peerService.sendMessageReadAck(selectedPeer.id, message.id);
+        // Appel défensif pour éviter les erreurs si la méthode est absente dans les mocks/tests
+        (peerService as any)?.sendMessageReadAck?.(selectedPeer.id, message.id);
         await dbService.updateMessageStatus(message.id, 'read');
       }
-      
-      // Mettre à jour l'état local
-      setMessages(prev => prev.map(m => 
-        m.senderId === selectedPeer.id && (m.status === 'delivered' || m.status === 'sent')
-          ? { ...m, status: 'read' }
-          : m
-      ));
-      
-      // Marquer les messages comme lus dans le service de notifications
+
+      setMessages(prev =>
+        prev.map(m =>
+          m.senderId === selectedPeer.id && (m.status === 'delivered' || m.status === 'sent')
+            ? { ...m, status: 'read' }
+            : m
+        )
+      );
+
       notificationService.markConversationAsRead(selectedPeer.id);
     } catch (error) {
       console.error('Error marking as read:', error);
@@ -398,7 +363,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       try {
         await dbService.deleteConversation(selectedPeer.id);
         setMessages([]);
-        onBack(); // Retourner à la liste des conversations
+        onBack();
       } catch (error) {
         console.error('Error deleting conversation:', error);
       }
@@ -410,7 +375,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   };
 
   const showMessageInfo = (message: Message) => {
-    const info = `ID: ${message.id}\nType: ${message.type}\nEnvoyé: ${new Date(message.timestamp).toLocaleString()}\nStatut: ${message.status || 'Envoyé'}`;
+    const info = `ID: ${message.id}\nType: ${message.type}\nEnvoyé: ${new Date(message.timestamp).toLocaleString()}\nStatut: ${
+      message.status || 'Envoyé'
+    }`;
     alert(info);
     setOpenMenuId(null);
   };
@@ -426,17 +393,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   };
 
   const commonEmojis = ['😀', '😂', '😍', '🥰', '😊', '😎', '🤔', '😢', '😡', '👍', '👎', '❤️', '🔥', '💯', '🎉', '👏', '🙏', '💪', '🤝', '✨'];
-  // Liste des émojis disponibles pour les réactions (style Messenger)
   const reactionEmojis = ['👍', '❤️', '😂', '😮', '😢', '😡'];
 
   const handleLongPressStart = (messageId: string) => {
     const timer = setTimeout(() => {
-      // Vibration tactile si disponible (comme Messenger)
-      if (navigator.vibrate) {
-        navigator.vibrate(50);
-      }
+      if (navigator.vibrate) navigator.vibrate(50);
       setShowReactionPicker(messageId);
-    }, 300); // 300ms pour déclencher l'appui long (comme Messenger)
+    }, 300);
     setLongPressTimer(timer);
   };
 
@@ -449,40 +412,27 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
   const addReaction = async (messageId: string, emoji: string) => {
     try {
-      setMessages(prev => prev.map(msg => {
-        if (msg.id === messageId) {
-          const reactions = { ...msg.reactions };
-          
+      setMessages(prev =>
+        prev.map(msg => {
+          if (msg.id !== messageId) return msg;
+          const reactions = { ...(msg.reactions || {}) };
           if (reactions[emoji]) {
-            // Si l'utilisateur a déjà réagi avec cet emoji, on retire sa réaction
             if (reactions[emoji].includes(myId)) {
               reactions[emoji] = reactions[emoji].filter(id => id !== myId);
-              // Si plus personne n'a cette réaction, on supprime l'emoji
-              if (reactions[emoji].length === 0) {
-                delete reactions[emoji];
-              }
+              if (reactions[emoji].length === 0) delete reactions[emoji];
             } else {
-              // Sinon on ajoute sa réaction
               reactions[emoji].push(myId);
             }
           } else {
-            // Première réaction avec cet emoji
             reactions[emoji] = [myId];
           }
-          
           return { ...msg, reactions };
-        }
-        return msg;
-      }));
-      
-      // Fermer le sélecteur de réactions
+        })
+      );
       setShowReactionPicker(null);
-      
-      // TODO: Implémenter la sauvegarde des réactions dans IndexedDB
-       // Pour l'instant, les réactions sont seulement stockées en mémoire
-      
+      // TODO: persister les réactions en IndexedDB si besoin
     } catch (error) {
-      console.error('Erreur lors de l\'ajout de la réaction:', error);
+      console.error("Erreur lors de l'ajout de la réaction:", error);
     }
   };
 
@@ -494,16 +444,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
-    
-    setIsAtBottom(isNearBottom);
-    
-    if (isNearBottom) {
+    const nearBottom = scrollHeight - scrollTop - clientHeight < 100;
+    setIsAtBottom(nearBottom);
+    if (nearBottom) {
       setNewMessagesCount(0);
-      // Marquer comme lu si on est en bas et que la fenêtre est visible
-      if (document.visibilityState === 'visible') {
-        markAsRead();
-      }
+      if (document.visibilityState === 'visible') markAsRead();
     }
   };
 
@@ -519,58 +464,45 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         type: 'file',
         encrypted: true,
         status: 'sending',
-        fileData: { name: selectedFile.name, size: selectedFile.size, type: selectedFile.type, url: '' }
+        fileData: { name: selectedFile.name, size: selectedFile.size, type: selectedFile.type, url: '' },
       });
-      
+
       try {
-         // Callback de progression pour l'envoi
-         const onSendProgress = (progress: number) => {
-           setSendingProgress(prev => {
-             const newProgress = new Map(prev);
-             newProgress.set(messageId, progress);
-             return newProgress;
-           });
-           
-           setMessages(prev => prev.map(m => 
-             m.id === messageId ? { 
-               ...m, 
-               content: `${selectedFile.name} (Envoi: ${progress}%)` 
-             } : m
-           ));
-         };
-         
-         await peerService.sendFile(selectedPeer.id, selectedFile, messageId, onSendProgress);
-         
-         // Nettoyer la progression et marquer comme envoyé
-         setSendingProgress(prev => {
-           const newProgress = new Map(prev);
-           newProgress.delete(messageId);
-           return newProgress;
-         });
-         
-         dbService.updateMessageStatus(messageId, 'sent');
-         setMessages(prev => prev.map(m => m.id === messageId ? { 
-           ...m, 
-           content: selectedFile.name,
-           status: 'sent' 
-         } : m));
-         setSelectedFile(null);
-       } catch (error) {
-        console.error('Erreur lors de l\'envoi du fichier:', error);
-        
-        // Mettre à jour le statut à "erreur"
-         setMessages(prev => prev.map(m => 
-           m.id === messageId ? { 
-             ...m, 
-             content: `${selectedFile.name} (Erreur d'envoi)`
-           } : m
-         ));
+        const onSendProgress = (progress: number) => {
+          setSendingProgress(prev => {
+            const np = new Map(prev);
+            np.set(messageId, progress);
+            return np;
+          });
+          setMessages(prev =>
+            prev.map(m => (m.id === messageId ? { ...m, content: `${selectedFile.name} (Envoi: ${progress}%)` } : m))
+          );
+        };
+
+        await peerService.sendFile(selectedPeer.id, selectedFile, messageId, onSendProgress);
+
+        setSendingProgress(prev => {
+          const np = new Map(prev);
+          np.delete(messageId);
+          return np;
+        });
+
+        dbService.updateMessageStatus(messageId, 'sent');
+        setMessages(prev =>
+          prev.map(m => (m.id === messageId ? { ...m, content: selectedFile.name, status: 'sent' } : m))
+        );
+        setSelectedFile(null);
+      } catch (error) {
+        console.error("Erreur lors de l'envoi du fichier:", error);
+        setMessages(prev =>
+          prev.map(m => (m.id === messageId ? { ...m, content: `${selectedFile.name} (Erreur d'envoi)` } : m))
+        );
         setSelectedFile(null);
       }
     } else if (newMessage.trim()) {
       const messageContent = newMessage;
       const messageId = uuidv4();
-      
+
       addMessage({
         id: messageId,
         senderId: myId,
@@ -582,24 +514,29 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         status: 'sending',
       });
       setNewMessage('');
-      
+
       await peerService.sendMessage(selectedPeer.id, messageContent, messageId);
       dbService.updateMessageStatus(messageId, 'sent');
-      setMessages(prev => prev.map(m => m.id === messageId ? { ...m, status: 'sent' } : m));
+      setMessages(prev => prev.map(m => (m.id === messageId ? { ...m, status: 'sent' } : m)));
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      // Empêcher l'envoi si le peer est hors ligne
       if (selectedPeer.status === 'online') {
         handleSendMessage();
       }
     }
   };
 
-  // ... (autres fonctions utilitaires comme formatTime, etc.)
+  // Accessibilité: nom du bouton (utilisé par les tests) + titres
+  const sendAriaLabel =
+    selectedPeer.status !== 'online'
+      ? 'Utilisateur hors ligne - envoi désactivé'
+      : selectedFile
+      ? 'Envoyer le fichier'
+      : 'Envoyer le message';
 
   return (
     <div className="flex-1 flex flex-col">
@@ -607,49 +544,49 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       <div className="p-4 border-b border-gray-200 bg-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={onBack} className="md:hidden p-2 -ml-2 text-gray-600 hover:text-gray-800">
+            <button onClick={onBack} className="md:hidden p-2 -ml-2 text-gray-600 hover:text-gray-800" aria-label="Retour">
               <ArrowLeft size={20} />
             </button>
-            <img src={selectedPeer.avatar || `https://i.pravatar.cc/150?u=${selectedPeer.id}`} alt={selectedPeer.name} className="w-10 h-10 rounded-full object-cover" />
+            <img
+              src={selectedPeer.avatar || `https://i.pravatar.cc/150?u=${selectedPeer.id}`}
+              alt={selectedPeer.name}
+              className="w-10 h-10 rounded-full object-cover"
+            />
             <div>
               <h3 className="font-semibold text-gray-900">{selectedPeer.name}</h3>
               <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${
-                  selectedPeer.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
-                }`}></div>
-                <p className="text-sm text-gray-500">
-                  {selectedPeer.status === 'online' ? 'En ligne' : 'Hors ligne'}
-                </p>
+                <div className={`w-2 h-2 rounded-full ${selectedPeer.status === 'online' ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                <p className="text-sm text-gray-500">{selectedPeer.status === 'online' ? 'En ligne' : 'Hors ligne'}</p>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button 
+            <button
               onClick={deleteConversation}
               className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-colors"
               title="Supprimer la conversation"
+              aria-label="Supprimer la conversation"
             >
               <Trash2 size={20} />
             </button>
-            {/* Bouton d'annulation des transferts actifs */}
-             {(activeFileTransfers.current.size > 0 || sendingProgress.size > 0 || receivingProgress.size > 0) && (
-               <button 
-                 onClick={() => setShowCancelOptions(!showCancelOptions)}
-                 className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-colors"
-                 title="Annuler les transferts en cours"
-               >
-                 <X size={20} />
-               </button>
-             )}
-              </div>
+            {(activeFileTransfers.current.size > 0 || sendingProgress.size > 0 || receivingProgress.size > 0) && (
+              <button
+                onClick={() => setShowCancelOptions(!showCancelOptions)}
+                className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-colors"
+                title="Annuler les transferts en cours"
+                aria-label="Annuler les transferts en cours"
+              >
+                <X size={20} />
+              </button>
+            )}
+          </div>
         </div>
-        
+
         {/* Panneau d'annulation des transferts */}
         {showCancelOptions && (activeFileTransfers.current.size > 0 || sendingProgress.size > 0 || receivingProgress.size > 0) && (
           <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-200">
             <h4 className="text-sm font-medium text-red-900 mb-3">Transferts en cours</h4>
             <div className="space-y-2">
-              {/* Transferts en réception */}
               {Array.from(receivingProgress.entries()).map(([messageId, progress]) => {
                 const receiver = fileReceivers.current.get(messageId);
                 return receiver ? (
@@ -660,20 +597,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
                     </div>
                     <button
                       onClick={() => {
-                        // Annuler la réception
                         setReceivingProgress(prev => {
-                          const newProgress = new Map(prev);
-                          newProgress.delete(messageId);
-                          return newProgress;
+                          const np = new Map(prev);
+                          np.delete(messageId);
+                          return np;
                         });
                         fileReceivers.current.delete(messageId);
                         activeFileTransfers.current.delete(messageId);
-                        setMessages(prev => prev.map(m => 
-                          m.id === messageId ? { 
-                            ...m, 
-                            content: `${receiver.metadata.name} (Annulé par l'utilisateur)`
-                          } : m
-                        ));
+                        setMessages(prev =>
+                          prev.map(m =>
+                            m.id === messageId ? { ...m, content: `${receiver.metadata.name} (Annulé par l'utilisateur)` } : m
+                          )
+                        );
                       }}
                       className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
                     >
@@ -682,8 +617,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
                   </div>
                 ) : null;
               })}
-              
-              {/* Transferts en envoi */}
+
               {Array.from(sendingProgress.entries()).map(([messageId, progress]) => {
                 const message = messages.find(m => m.id === messageId);
                 return message ? (
@@ -694,18 +628,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
                     </div>
                     <button
                       onClick={() => {
-                        // Annuler l'envoi
                         setSendingProgress(prev => {
-                          const newProgress = new Map(prev);
-                          newProgress.delete(messageId);
-                          return newProgress;
+                          const np = new Map(prev);
+                          np.delete(messageId);
+                          return np;
                         });
-                        setMessages(prev => prev.map(m => 
-                          m.id === messageId ? { 
-                            ...m, 
-                            content: `${message.content.split(' (Envoi:')[0]} (Annulé par l'utilisateur)`
-                          } : m
-                        ));
+                        setMessages(prev =>
+                          prev.map(m =>
+                            m.id === messageId
+                              ? { ...m, content: `${message.content.split(' (Envoi:')[0]} (Annulé par l'utilisateur)` }
+                              : m
+                          )
+                        );
                       }}
                       className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
                     >
@@ -726,26 +660,26 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       <div className="flex-1 overflow-y-auto p-4 space-y-4 relative bg-gray-50" onScroll={handleScroll}>
         {messages.map(msg => (
           <div key={msg.id} className={`flex ${msg.senderId === myId ? 'justify-end' : 'justify-start'} mb-4 group`}>
-            <div 
-              className={`relative max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${msg.senderId === myId ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'}`}
+            <div
+              className={`relative max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                msg.senderId === myId ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'
+              }`}
               onMouseDown={() => handleLongPressStart(msg.id)}
               onMouseUp={handleLongPressEnd}
               onMouseLeave={handleLongPressEnd}
               onTouchStart={() => handleLongPressStart(msg.id)}
               onTouchEnd={handleLongPressEnd}
             >
-              {/* Menu contextuel en haut à droite */}
               <div className="absolute top-1 right-1">
                 <button
-                   onClick={() => toggleMessageMenu(msg.id)}
-                   className={`opacity-0 group-hover:opacity-100 p-1 rounded transition-all duration-200 ${
-                     msg.senderId === myId 
-                       ? 'text-blue-200 hover:text-white hover:bg-blue-500' 
-                       : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'
-                   }`}
-                   title="Options du message"
-                 >
-                   <MoreVertical size={12} />
+                  onClick={() => toggleMessageMenu(msg.id)}
+                  className={`opacity-0 group-hover:opacity-100 p-1 rounded transition-all duration-200 ${
+                    msg.senderId === myId ? 'text-blue-200 hover:text-white hover:bg-blue-500' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'
+                  }`}
+                  title="Options du message"
+                  aria-label="Options du message"
+                >
+                  <MoreVertical size={12} />
                 </button>
                 {openMenuId === msg.id && (
                   <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]">
@@ -766,8 +700,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
                   </div>
                 )}
               </div>
-              
-              {/* Sélecteur de réactions pour appui long - Version discrète */}
+
               {showReactionPicker === msg.id && (
                 <div className="absolute bottom-0 left-0 transform translate-y-full bg-white rounded-lg shadow-lg border border-gray-200 z-30 px-2 py-1 mt-1 animate-in fade-in zoom-in duration-200">
                   <div className="flex gap-1">
@@ -785,7 +718,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
                   </div>
                 </div>
               )}
-              
+
               {msg.type === 'file' ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -794,16 +727,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
                   </div>
                   {msg.fileData?.url ? (
                     <div className="space-y-1">
-                      <div className="text-xs opacity-75">
-                        Taille: {msg.fileData.size ? (msg.fileData.size / 1024).toFixed(1) + ' KB' : 'Inconnue'}
-                      </div>
-                      <a 
-                        href={msg.fileData.url} 
+                      <div className="text-xs opacity-75">Taille: {msg.fileData.size ? (msg.fileData.size / 1024).toFixed(1) + ' KB' : 'Inconnue'}</div>
+                      <a
+                        href={msg.fileData.url}
                         download={msg.fileData.name}
                         className={`inline-block px-3 py-1 rounded text-xs font-medium transition-colors ${
-                          msg.senderId === myId 
-                            ? 'bg-blue-500 hover:bg-blue-400 text-white' 
-                            : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+                          msg.senderId === myId ? 'bg-blue-500 hover:bg-blue-400 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
                         }`}
                       >
                         📥 Télécharger
@@ -812,12 +741,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
                   ) : (
                     <div className="space-y-2">
                       <div className="text-xs opacity-75">
-                        {msg.status === 'sending' ? 'Envoi en cours...' : 
-                         msg.status === 'sent' ? 'Envoyé' :
-                         msg.status === 'delivered' ? 'Réception en cours...' : 'En attente'}
+                        {msg.status === 'sending' ? 'Envoi en cours...' : msg.status === 'sent' ? 'Envoyé' : msg.status === 'delivered' ? 'Réception en cours...' : 'En attente'}
                       </div>
-                      
-                      {/* Barre de progression pour l'envoi */}
                       {sendingProgress.has(msg.id) && (
                         <div className="space-y-1">
                           <div className="flex justify-between text-xs opacity-75">
@@ -825,17 +750,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
                             <span>{sendingProgress.get(msg.id)}%</span>
                           </div>
                           <div className="w-full bg-white bg-opacity-30 rounded-full h-1.5">
-                            <div 
-                              className={`h-1.5 rounded-full transition-all duration-300 ${
-                                msg.senderId === myId ? 'bg-blue-300' : 'bg-gray-400'
-                              }`}
+                            <div
+                              className={`h-1.5 rounded-full transition-all duration-300 ${msg.senderId === myId ? 'bg-blue-300' : 'bg-gray-400'}`}
                               style={{ width: `${sendingProgress.get(msg.id)}%` }}
                             ></div>
                           </div>
                         </div>
                       )}
-                      
-                      {/* Barre de progression pour la réception */}
                       {receivingProgress.has(msg.id) && (
                         <div className="space-y-1">
                           <div className="flex justify-between text-xs opacity-75">
@@ -843,10 +764,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
                             <span>{receivingProgress.get(msg.id)}%</span>
                           </div>
                           <div className="w-full bg-white bg-opacity-30 rounded-full h-1.5">
-                            <div 
-                              className={`h-1.5 rounded-full transition-all duration-300 ${
-                                msg.senderId === myId ? 'bg-blue-300' : 'bg-green-400'
-                              }`}
+                            <div
+                              className={`h-1.5 rounded-full transition-all duration-300 ${msg.senderId === myId ? 'bg-blue-300' : 'bg-green-400'}`}
                               style={{ width: `${receivingProgress.get(msg.id)}%` }}
                             ></div>
                           </div>
@@ -858,8 +777,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
               ) : (
                 <span>{msg.content}</span>
               )}
-              
-              {/* Affichage des réactions - Version discrète */}
+
               {msg.reactions && Object.keys(msg.reactions).length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-1 -mb-1">
                   {Object.entries(msg.reactions).map(([emoji, userIds]) => (
@@ -867,9 +785,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
                       key={emoji}
                       onClick={() => addReaction(msg.id, emoji)}
                       className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs transition-all duration-200 hover:scale-105 shadow-sm ${
-                        userIds.includes(myId)
-                          ? 'bg-blue-500 text-white border border-blue-600'
-                          : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                        userIds.includes(myId) ? 'bg-blue-500 text-white border border-blue-600' : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
                       }`}
                       title={`${userIds.length} réaction${userIds.length > 1 ? 's' : ''}`}
                     >
@@ -879,24 +795,22 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
                   ))}
                 </div>
               )}
-              
+
               <div className="flex items-center justify-end mt-1">
                 <div className="text-xs opacity-75 mr-2">{new Date(msg.timestamp).toLocaleTimeString()}</div>
-                {msg.senderId === myId && (
-                  <MessageStatusIndicator status={msg.status} />
-                )}
+                {msg.senderId === myId && <MessageStatusIndicator status={msg.status} />}
               </div>
             </div>
           </div>
         ))}
         <div ref={messagesEndRef} />
-        
-        {/* Indicateur de nouveaux messages */}
+
         {newMessagesCount > 0 && !isAtBottom && (
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
             <button
               onClick={scrollToBottom}
               className="bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-600 transition-colors flex items-center gap-2 animate-pulse"
+              aria-label="Aller aux nouveaux messages"
             >
               <span className="text-sm font-medium">
                 {newMessagesCount} nouveau{newMessagesCount > 1 ? 'x' : ''} message{newMessagesCount > 1 ? 's' : ''}
@@ -911,7 +825,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
       {/* Input */}
       <div className="p-4 border-t border-gray-200 bg-white">
-        {/* Fichier sélectionné */}
         {selectedFile && (
           <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-center justify-between">
@@ -919,30 +832,24 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
                 <Paperclip size={16} className="text-blue-600" />
                 <div>
                   <div className="text-sm font-medium text-blue-900">{selectedFile.name}</div>
-                  <div className="text-xs text-blue-600">
-                    {(selectedFile.size / 1024).toFixed(1)} KB • {selectedFile.type || 'Type inconnu'}
-                  </div>
-                  <div className="text-xs text-blue-500 mt-1">
-                    🗜️ Sera compressé et chiffré automatiquement
-                  </div>
+                  <div className="text-xs text-blue-600">{(selectedFile.size / 1024).toFixed(1)} KB • {selectedFile.type || 'Type inconnu'}</div>
+                  <div className="text-xs text-blue-500 mt-1">🗜️ Sera compressé et chiffré automatiquement</div>
                 </div>
               </div>
-              <button 
-                onClick={() => setSelectedFile(null)}
-                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-              >
+              <button onClick={() => setSelectedFile(null)} className="text-blue-600 hover:text-blue-800 text-sm font-medium" aria-label="Retirer le fichier">
                 ✕
               </button>
             </div>
           </div>
         )}
-        
+
         <div className="flex items-center gap-2">
-          <button 
+          <button
             onClick={() => fileInputRef.current?.click()}
             className="p-2 text-gray-500 hover:text-gray-700"
             disabled={selectedPeer.status !== 'online'}
             title={selectedPeer.status !== 'online' ? 'Peer hors ligne - envoi de fichiers indisponible' : 'Joindre un fichier'}
+            aria-label="Joindre un fichier"
           >
             <Paperclip size={20} />
           </button>
@@ -952,13 +859,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) {
-                // Vérifier la taille du fichier
                 if (file.size > MAX_FILE_SIZE) {
-                   alert(`Le fichier est trop volumineux. Taille maximale autorisée: ${Math.round(MAX_FILE_SIZE / (1024 * 1024))} MB\n\nNote: Les fichiers sont automatiquement compressés avant l'envoi pour optimiser le transfert.`);
-                   e.target.value = ''; // Réinitialiser l'input
-                   return;
-                 }
-                
+                  alert(
+                    `Le fichier est trop volumineux. Taille maximale autorisée: ${Math.round(
+                      MAX_FILE_SIZE / (1024 * 1024)
+                    )} MB\n\nNote: Les fichiers sont automatiquement compressés avant l'envoi pour optimiser le transfert.`
+                  );
+                  e.target.value = '';
+                  return;
+                }
                 setSelectedFile(file);
               }
             }}
@@ -969,19 +878,26 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
             value={selectedFile ? '' : newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder={selectedFile ? `Fichier sélectionné: ${selectedFile.name}` : 
-                        selectedPeer.status === 'online' ? 'Tapez votre message...' : 'Utilisateur hors ligne - envoi de messages désactivé'}
+            placeholder={
+              selectedFile
+                ? `Fichier sélectionné: ${selectedFile.name}`
+                : selectedPeer.status === 'online'
+                ? 'Tapez votre message...'
+                : 'Utilisateur hors ligne - envoi de messages désactivé'
+            }
             disabled={selectedPeer.status !== 'online' || !!selectedFile}
             className={`flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               selectedPeer.status !== 'online' || selectedFile ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
             }`}
+            aria-label="Saisie du message"
           />
           <div className="relative">
-            <button 
+            <button
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
               className="p-2 text-gray-500 hover:text-gray-700"
               disabled={selectedPeer.status !== 'online' || !!selectedFile}
               title="Ajouter un émoji"
+              aria-label="Ajouter un émoji"
             >
               <Smile size={20} />
             </button>
@@ -1002,25 +918,23 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
               </div>
             )}
           </div>
-          <button 
-            onClick={handleSendMessage} 
+          <button
+            onClick={handleSendMessage}
             disabled={selectedPeer.status !== 'online' || (!selectedFile && !newMessage.trim())}
             className={`p-2 rounded-lg ${
               selectedPeer.status === 'online' && (selectedFile || newMessage.trim())
-                ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
-            title={selectedPeer.status !== 'online' ? 'Utilisateur hors ligne - envoi désactivé' : 
-                   selectedFile ? 'Envoyer le fichier' : 'Envoyer le message'}
+            title={sendAriaLabel}
+            aria-label={sendAriaLabel}
           >
             <Send size={20} />
           </button>
         </div>
         {selectedPeer.status !== 'online' && (
           <div className="text-center mt-2">
-            <p className="text-xs text-red-500">
-              {selectedPeer.name} est hors ligne. L'envoi de messages est désactivé.
-            </p>
+            <p className="text-xs text-red-500">{selectedPeer.name} est hors ligne. L'envoi de messages est désactivé.</p>
           </div>
         )}
       </div>

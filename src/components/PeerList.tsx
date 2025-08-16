@@ -228,6 +228,7 @@ const PeerList: React.FC<PeerListProps> = ({
             {onlinePeers.map((peer, index) => (
               <ProfileTooltip key={`${peer.id}-${index}-${peer.joinedAt}`} peer={peer}>
                 <div
+                  role="listitem"
                   onClick={() => onSelectPeer(peer.id)}
                   className={`p-3 mx-2 rounded-lg cursor-pointer transition-all duration-200 ${
                     selectedPeerId === peer.id

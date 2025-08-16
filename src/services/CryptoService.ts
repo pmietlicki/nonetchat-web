@@ -125,6 +125,11 @@ class CryptoService {
 
   // Compresser un fichier avec gzip
   private async compressFile(file: Blob): Promise<Blob> {
+    // Vérifier si les API de compression sont disponibles
+    if (typeof CompressionStream === 'undefined' || !file.stream) {
+      console.warn('CompressionStream API not supported, skipping compression.');
+      return file;
+    }
     try {
       const stream = new CompressionStream('gzip');
       const compressedStream = file.stream().pipeThrough(stream);
@@ -137,6 +142,11 @@ class CryptoService {
 
   // Décompresser un fichier avec gzip
   private async decompressFile(compressedBlob: Blob): Promise<Blob> {
+    // Vérifier si les API de décompression sont disponibles
+    if (typeof DecompressionStream === 'undefined' || !compressedBlob.stream) {
+      console.warn('DecompressionStream API not supported, skipping decompression.');
+      return compressedBlob;
+    }
     try {
       const stream = new DecompressionStream('gzip');
       const decompressedStream = compressedBlob.stream().pipeThrough(stream);
@@ -164,14 +174,22 @@ class CryptoService {
       // Générer un IV aléatoire
       const iv = window.crypto.getRandomValues(new Uint8Array(12));
 
-      // Lire le fichier compressé comme ArrayBuffer
-      const fileBuffer = await compressedFile.arrayBuffer();
+      // Lire le fichier compressé comme ArrayBuffer de manière compatible
+      const fileBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as ArrayBuffer);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsArrayBuffer(compressedFile);
+      });
+
+      // Créer un Uint8Array propre pour garantir la compatibilité avec l'API crypto
+      const dataToEncrypt = new Uint8Array(fileBuffer);
 
       // Chiffrer les données
       const encryptedData = await window.crypto.subtle.encrypt(
         { name: 'AES-GCM', iv },
         key,
-        fileBuffer
+        dataToEncrypt
       );
 
       // Exporter la clé
@@ -200,7 +218,12 @@ class CryptoService {
 
   async decryptFile(encryptedBlob: Blob): Promise<Blob> {
     try {
-      const encryptedBuffer = await encryptedBlob.arrayBuffer();
+      const encryptedBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as ArrayBuffer);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsArrayBuffer(encryptedBlob);
+      });
       const encryptedArray = new Uint8Array(encryptedBuffer);
 
       // Extraire l'IV (12 premiers bytes)
