@@ -26,6 +26,7 @@ vi.mock('./IndexedDBService', () => ({
 vi.mock('./ProfileService', () => ({
   default: {
     getInstance: () => ({
+      getPublicProfile: vi.fn().mockResolvedValue({ id: 'user-A', displayName: 'User A' }),
       getAvatarForTransmission: vi.fn().mockResolvedValue(null),
     }),
   },
