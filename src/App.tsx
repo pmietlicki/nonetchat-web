@@ -13,10 +13,9 @@ import PeerService, { PeerMessage } from './services/PeerService';
 import IndexedDBService from './services/IndexedDBService';
 import ProfileService from './services/ProfileService';
 import NotificationService from './services/NotificationService';
-import { MessageSquare, Users, Wifi, WifiOff, X, User as UserIcon, Bell, Cog } from 'lucide-react';
+import { MessageSquare, Users, Wifi, WifiOff, X, User as UserIcon, Bell, Cog, AlertCircle } from 'lucide-react';
 
 const DEFAULT_SIGNALING_URL = 'wss://chat.nonetchat.com';
-import { AlertCircle } from 'lucide-react';
 
 const GeolocationError = ({ message, onDismiss }: { message: string; onDismiss: () => void }) => (
   <div className="fixed top-16 left-1/2 -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 max-w-[90vw]">
@@ -63,39 +62,57 @@ function App() {
   const dbService = IndexedDBService.getInstance();
   const notificationService = NotificationService.getInstance();
 
-  // Avatar: privilégie le blob sinon pravatar stable + refresh key
+  // Résolution centralisée de l’avatar à afficher (blob local ou pravatar versionné)
   useEffect(() => {
-    if (userProfile.avatarBlob) {
-      const url = URL.createObjectURL(userProfile.avatarBlob);
-      setMyAvatarUrl(url);
-      peerService.setCurrentPravagarUrl?.(undefined as any);
-      return () => {
-        URL.revokeObjectURL(url);
-        setMyAvatarUrl(null);
-      };
-    } else if (userProfile.id) {
-      const pravatarUrl = `https://i.pravatar.cc/150?u=${encodeURIComponent(userProfile.id)}&v=${avatarRefreshKey}`;
-      setMyAvatarUrl(pravatarUrl);
-      peerService.setCurrentPravagarUrl?.(pravatarUrl as any);
-    }
-  }, [userProfile.avatarBlob, userProfile.id, avatarRefreshKey]);
+    let revoked: string | null = null;
+    const refresh = async () => {
+      try {
+        const url = await profileService.getDisplayAvatarUrl();
+        setMyAvatarUrl((prev) => {
+          if (prev && prev.startsWith('blob:')) {
+            try { URL.revokeObjectURL(prev); } catch {}
+          }
+          return url;
+        });
+        revoked = url && url.startsWith('blob:') ? url : null;
+      } catch {
+        const fallback = `https://i.pravatar.cc/150?u=${encodeURIComponent(userProfile.id || '')}&v=${avatarRefreshKey}`;
+        setMyAvatarUrl(fallback);
+      }
+    };
+    refresh();
+    return () => {
+      if (revoked) {
+        try { URL.revokeObjectURL(revoked); } catch {}
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userProfile.id, avatarRefreshKey]);
 
   // Initialisation + abonnements
   useEffect(() => {
     const initialize = async () => {
       await dbService.initialize();
-      const profile = await profileService.getProfile();
 
-      if (!profile.id) {
-        profile.id = uuidv4();
-        await profileService.saveProfile(profile);
+      // ProfileService garantit l’ID (deviceId) ; on récupère aussi l’avatar local éventuel
+      const profileAny = await profileService.getProfile();
+      // Normalisation: map displayName -> name pour l’UI existante
+      const normalized: Partial<User> & { avatarBlob?: Blob | null } = {
+        ...profileAny,
+        name: (profileAny as any).displayName ?? (profileAny as any).name ?? '',
+      };
+
+      if (!normalized.id) {
+        // Par sécurité (dev), même si ProfileService doit fournir l’id
+        normalized.id = uuidv4();
+        await profileService.saveProfile({ displayName: normalized.name || '' });
       }
 
-      setUserProfile(profile);
-      setMyId(profile.id!);
-      if (!profile.name) setIsProfileOpen(true);
+      setUserProfile(normalized);
+      setMyId(normalized.id!);
+      if (!normalized.name) setIsProfileOpen(true);
 
-      peerService.initialize(profile, signalingUrl);
+      peerService.initialize(normalized, signalingUrl);
       peerService.setSearchRadius(searchRadius);
       setIsInitialized(true);
     };
@@ -126,11 +143,15 @@ function App() {
     };
 
     const onData = (peerId: string, data: PeerMessage) => {
-      if (data.type === 'profile') {
+      // Les nouveaux messages 'profile'/'profile-update' portent un PublicProfile (displayName, avatarHash, avatarVersion) + avatar résolu par PeerService
+      if (data.type === 'profile' || data.type === 'profile-update') {
+        const payload: any = data.payload || {};
         setPeers(prev => {
           const m = new Map(prev);
-          const existing = m.get(peerId);
-          m.set(peerId, { ...existing!, ...data.payload, status: 'online' });
+          const existing = m.get(peerId) || createBaseUser(peerId);
+          const name = payload.displayName ?? existing.name ?? '';
+          const avatar = payload.avatar ?? existing.avatar ?? `https://i.pravatar.cc/150?u=${peerId}`;
+          m.set(peerId, { ...existing, ...payload, name, avatar, status: 'online' });
           return m;
         });
       }
@@ -187,21 +208,30 @@ function App() {
   }, [signalingUrl, searchRadius]);
 
   const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) => {
-    const newProfile = { ...userProfile, ...profileData, id: myId };
-    await profileService.saveProfile(newProfile, avatarFile);
+    // Appelle le nouveau service en mappant name -> displayName
+    await profileService.saveProfile({ displayName: profileData.name }, avatarFile);
 
-    const updatedProfile = await profileService.getProfile();
-    setUserProfile(updatedProfile);
-    peerService.setMyProfile(updatedProfile);
+    const updated = await profileService.getProfile();
+    const normalized: Partial<User> & { avatarBlob?: Blob | null } = {
+      ...updated,
+      name: (updated as any).displayName ?? (updated as any).name ?? '',
+      avatarBlob: (updated as any).avatarBlob,
+    };
+    setUserProfile(normalized);
+
+    // L’avatar d’affichage est recalculé par l’effet [userProfile.id, avatarRefreshKey]
     await peerService.broadcastProfileUpdate();
   };
 
   const handleRefreshAvatar = async () => {
     await profileService.deleteCustomAvatar();
-    const refreshedProfile = await profileService.getProfile();
-    setUserProfile(refreshedProfile);
-    setAvatarRefreshKey(prev => prev + 1);
-    peerService.setMyProfile(refreshedProfile);
+    const refreshed = await profileService.getProfile();
+    setUserProfile({
+      ...refreshed,
+      name: (refreshed as any).displayName ?? (refreshed as any).name ?? '',
+      avatarBlob: (refreshed as any).avatarBlob,
+    });
+    setAvatarRefreshKey(prev => prev + 1); // force le recalcul d’URL (fallback pravatar versionné)
     await peerService.broadcastProfileUpdate();
   };
 
@@ -253,14 +283,14 @@ function App() {
     joinedAt: new Date().toISOString(),
   });
 
-  // Ne garder que les profils “renseignés”
+  // Ne garder que les profils “renseignés” (compat: on passe par name normalisé)
   const peerList = Array.from(peers.values()).filter(
     p => p.name && p.name.trim() !== '' && (p.age !== undefined || p.gender !== undefined)
   );
   const selectedPeer = peers.get(selectedPeerId || '');
 
   // --- Helpers UI responsives ---
-  const isChatOpenOnMobile = !!selectedPeer; // quand un pair est choisi, le chat prend tout l'écran en mobile
+  const isChatOpenOnMobile = !!selectedPeer;
   const safeBottom = 'pb-[env(safe-area-inset-bottom)]';
   const safeTop = 'pt-[env(safe-area-inset-top)]';
 

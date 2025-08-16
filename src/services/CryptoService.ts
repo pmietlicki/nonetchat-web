@@ -16,6 +16,15 @@ function resolveCrypto(): Crypto {
     if (webcrypto?.subtle) {
       // Mémorise pour les prochains appels
       (globalThis as any).crypto = webcrypto;
+
+      // *** Patch essentiel pour les tests qui appellent window.crypto.subtle ***
+      const maybeWindow: any =
+        typeof window !== 'undefined'
+          ? window
+          : (globalThis as any).window || undefined;
+      if (maybeWindow && !maybeWindow.crypto) {
+        try { maybeWindow.crypto = webcrypto; } catch { /* ignore */ }
+      }
       return webcrypto as unknown as Crypto;
     }
   } catch {
@@ -36,7 +45,6 @@ function getRand(): Crypto {
 function bufferToBase64(buf: ArrayBuffer | Uint8Array): string {
   const u8 = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
   if (typeof btoa !== 'undefined') {
-    // navigateur/jsdom
     let s = '';
     for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
     return btoa(s);

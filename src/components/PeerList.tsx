@@ -10,22 +10,26 @@ interface PeerListProps {
 }
 
 interface ProfileDetailModalProps {
-  peer: User;
+  peer: User | null;
   isOpen: boolean;
   onClose: () => void;
 }
 
+const safeAvatar = (peer: User) =>
+  peer.avatar && peer.avatar.trim() !== '' ? peer.avatar : `https://i.pravatar.cc/150?u=${encodeURIComponent(peer.id)}`;
+
 const formatJoinTime = (joinedAt: string) => {
   const date = new Date(joinedAt);
+  if (isNaN(date.getTime())) return 'Inconnu';
   const now = new Date();
   const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-  
-  if (diffInMinutes < 1) return 'À l\'instant';
+
+  if (diffInMinutes < 1) return "À l'instant";
   if (diffInMinutes < 60) return `Il y a ${diffInMinutes}min`;
-  
+
   const diffInHours = Math.floor(diffInMinutes / 60);
   if (diffInHours < 24) return `Il y a ${diffInHours}h`;
-  
+
   return date.toLocaleDateString('fr-FR');
 };
 
@@ -38,57 +42,77 @@ const ProfileTooltip: React.FC<ProfileTooltipProps> = ({ peer, children }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   return (
-    <div 
+    <div
       className="relative"
       onMouseEnter={() => setIsVisible(true)}
       onMouseLeave={() => setIsVisible(false)}
+      onFocus={() => setIsVisible(true)}
+      onBlur={() => setIsVisible(false)}
     >
       {children}
       {isVisible && (
         <div className="absolute left-full ml-2 top-0 z-50 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-3">
           <div className="flex items-center gap-3 mb-3">
             <img
-              src={peer.avatar}
-              alt={peer.name}
+              src={safeAvatar(peer)}
+              alt={peer.name || 'Utilisateur'}
               className="w-10 h-10 rounded-full object-cover"
+              loading="lazy"
+              decoding="async"
+              referrerPolicy="no-referrer"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = `https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400`;
+                (e.currentTarget as HTMLImageElement).src = `https://i.pravatar.cc/150?u=${encodeURIComponent(peer.id)}&d=identicon`;
               }}
             />
             <div>
-              <h4 className="font-semibold text-gray-900">{peer.name}</h4>
+              <h4 className="font-semibold text-gray-900">{peer.name || 'Utilisateur'}</h4>
             </div>
           </div>
-          
+
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-600">Statut :</span>
-              <span className={`capitalize font-medium ${peer.status === 'online' ? 'text-green-600' : peer.status === 'busy' ? 'text-yellow-600' : 'text-gray-400'}`}>
+              <span
+                className={`capitalize font-medium ${
+                  peer.status === 'online' ? 'text-green-600' : peer.status === 'busy' ? 'text-yellow-600' : 'text-gray-400'
+                }`}
+              >
                 {peer.status}
               </span>
             </div>
-            
-            {peer.age && (
+
+            {typeof peer.age === 'number' && (
               <div className="flex justify-between">
                 <span className="text-gray-600">Âge :</span>
                 <span className="font-medium">{peer.age} ans</span>
               </div>
             )}
-            
+
             {peer.gender && (
               <div className="flex justify-between">
                 <span className="text-gray-600">Genre :</span>
                 <div className="flex items-center gap-2">
-                   <span className="text-lg" style={{color: peer.gender === 'female' ? '#ec4899' : peer.gender === 'male' ? '#3b82f6' : '#6b7280'}}>
-                     {peer.gender === 'male' ? '♂' : peer.gender === 'female' ? '♀' : '⚧'}
-                   </span>
-                   <span className="font-medium capitalize">
-                     {peer.gender === 'male' ? 'Homme' : peer.gender === 'female' ? 'Femme' : peer.gender === 'other' ? 'Autre' : peer.gender}
-                   </span>
-                 </div>
+                  <span
+                    className="text-lg"
+                    style={{
+                      color: peer.gender === 'female' ? '#ec4899' : peer.gender === 'male' ? '#3b82f6' : '#6b7280',
+                    }}
+                  >
+                    {peer.gender === 'male' ? '♂' : peer.gender === 'female' ? '♀' : '⚧'}
+                  </span>
+                  <span className="font-medium capitalize">
+                    {peer.gender === 'male'
+                      ? 'Homme'
+                      : peer.gender === 'female'
+                      ? 'Femme'
+                      : peer.gender === 'other'
+                      ? 'Autre'
+                      : peer.gender}
+                  </span>
+                </div>
               </div>
             )}
-            
+
             <div className="flex justify-between">
               <span className="text-gray-600">Connecté :</span>
               <span className="font-medium">{formatJoinTime(peer.joinedAt)}</span>
@@ -101,70 +125,89 @@ const ProfileTooltip: React.FC<ProfileTooltipProps> = ({ peer, children }) => {
 };
 
 const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ peer, isOpen, onClose }) => {
-  if (!isOpen) return null;
+  if (!isOpen || !peer) return null;
 
   return (
     <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold">Profil de {peer.name}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-             <X size={24} />
-           </button>
+          <h3 className="text-xl font-bold">Profil de {peer.name || 'Utilisateur'}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600" aria-label="Fermer">
+            <X size={24} />
+          </button>
         </div>
 
         <div className="flex flex-col items-center mb-6">
           <img
-            src={peer.avatar}
-            alt={peer.name}
+            src={safeAvatar(peer)}
+            alt={peer.name || 'Utilisateur'}
             className="w-24 h-24 rounded-full object-cover border-2 border-gray-200 mb-4"
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
             onError={(e) => {
-              (e.target as HTMLImageElement).src = `https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400`;
+              (e.currentTarget as HTMLImageElement).src = `https://i.pravatar.cc/150?u=${encodeURIComponent(peer.id)}&d=identicon`;
             }}
           />
-          <h4 className="text-lg font-semibold">{peer.name}</h4>
+          <h4 className="text-lg font-semibold">{peer.name || 'Utilisateur'}</h4>
         </div>
 
         <div className="space-y-3">
           <div className="flex justify-between">
             <span className="text-gray-600">Statut :</span>
-            <span className={`capitalize font-medium ${peer.status === 'online' ? 'text-green-600' : peer.status === 'busy' ? 'text-yellow-600' : 'text-gray-400'}`}>
+            <span
+              className={`capitalize font-medium ${
+                peer.status === 'online' ? 'text-green-600' : peer.status === 'busy' ? 'text-yellow-600' : 'text-gray-400'
+              }`}
+            >
               {peer.status}
             </span>
           </div>
-          
-          {peer.age && (
+
+          {typeof peer.age === 'number' && (
             <div className="flex justify-between">
               <span className="text-gray-600">Âge :</span>
               <span className="font-medium">{peer.age} ans</span>
             </div>
           )}
-          
+
           {peer.gender && (
             <div className="flex justify-between">
               <span className="text-gray-600">Genre :</span>
               <div className="flex items-center gap-2">
-                   <span className="text-lg" style={{color: peer.gender === 'female' ? '#ec4899' : peer.gender === 'male' ? '#3b82f6' : '#6b7280'}}>
-                     {peer.gender === 'male' ? '♂' : peer.gender === 'female' ? '♀' : '⚧'}
-                   </span>
-                   <span className="font-medium capitalize">
-                     {peer.gender === 'male' ? 'Homme' : peer.gender === 'female' ? 'Femme' : peer.gender === 'other' ? 'Autre' : peer.gender}
-                   </span>
-                 </div>
+                <span
+                  className="text-lg"
+                  style={{
+                    color: peer.gender === 'female' ? '#ec4899' : peer.gender === 'male' ? '#3b82f6' : '#6b7280',
+                  }}
+                >
+                  {peer.gender === 'male' ? '♂' : peer.gender === 'female' ? '♀' : '⚧'}
+                </span>
+                <span className="font-medium capitalize">
+                  {peer.gender === 'male'
+                    ? 'Homme'
+                    : peer.gender === 'female'
+                    ? 'Femme'
+                    : peer.gender === 'other'
+                    ? 'Autre'
+                    : peer.gender}
+                </span>
+              </div>
             </div>
           )}
-          
+
           <div className="flex justify-between">
             <span className="text-gray-600">Connecté depuis :</span>
-            <span className="font-medium">{new Date(peer.joinedAt).toLocaleString('fr-FR')}</span>
+            <span className="font-medium">
+              {isNaN(new Date(peer.joinedAt).getTime())
+                ? 'Inconnu'
+                : new Date(peer.joinedAt).toLocaleString('fr-FR')}
+            </span>
           </div>
         </div>
 
         <div className="mt-6 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
-          >
+          <button onClick={onClose} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
             Fermer
           </button>
         </div>
@@ -173,33 +216,30 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ peer, isOpen, o
   );
 };
 
-const PeerList: React.FC<PeerListProps> = ({ 
-  peers, 
-  onSelectPeer, 
-  selectedPeerId, 
-  isConnected 
-}) => {
+const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId, isConnected }) => {
   const [selectedProfilePeer, setSelectedProfilePeer] = useState<User | null>(null);
-  
-  // Filtrer pour ne montrer que les pairs en ligne
-  const onlinePeers = peers.filter(peer => peer.status === 'online');
-  
+
+  // Ne montrer que les pairs en ligne (évite du bruit et un diff inutile)
+  const onlinePeers = peers.filter((peer) => peer.status === 'online');
+
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'online': return 'text-green-500';
-      case 'busy': return 'text-yellow-500';
-      case 'offline': return 'text-gray-400';
-      default: return 'text-gray-400';
+      case 'online':
+        return 'text-green-500';
+      case 'busy':
+        return 'text-yellow-500';
+      case 'offline':
+        return 'text-gray-400';
+      default:
+        return 'text-gray-400';
     }
   };
 
   return (
     <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">
-          Pairs connectés ({onlinePeers.length})
-        </h2>
-        
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">Pairs connectés ({onlinePeers.length})</h2>
+
         {!isConnected && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
             <div className="flex items-center gap-2 text-yellow-800">
@@ -210,12 +250,12 @@ const PeerList: React.FC<PeerListProps> = ({
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto" role="list" aria-label="Liste des pairs en ligne">
         {!isConnected ? (
           <div className="p-4 text-center text-gray-500">
             <Wifi size={48} className="mx-auto mb-2 text-gray-300" />
             <p>Connexion requise</p>
-            <p className="text-sm">Connectez-vous au serveur WebTransport</p>
+            <p className="text-sm">Connectez-vous au serveur de signalisation</p>
           </div>
         ) : onlinePeers.length === 0 ? (
           <div className="p-4 text-center text-gray-500">
@@ -225,97 +265,103 @@ const PeerList: React.FC<PeerListProps> = ({
           </div>
         ) : (
           <div className="space-y-1">
-            {onlinePeers.map((peer, index) => (
-              <ProfileTooltip key={`${peer.id}-${index}-${peer.joinedAt}`} peer={peer}>
+            {onlinePeers.map((peer) => (
+              <ProfileTooltip key={`${peer.id}-${peer.joinedAt}`} peer={peer}>
                 <div
                   role="listitem"
+                  aria-selected={selectedPeerId === peer.id}
                   onClick={() => onSelectPeer(peer.id)}
                   className={`p-3 mx-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                    selectedPeerId === peer.id
-                      ? 'bg-blue-50 border border-blue-200 shadow-sm'
-                      : 'hover:bg-gray-50'
+                    selectedPeerId === peer.id ? 'bg-blue-50 border border-blue-200 shadow-sm' : 'hover:bg-gray-50'
                   }`}
                 >
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <img
-                      src={peer.avatar}
-                      alt={peer.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = `https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400`;
-                      }}
-                    />
-                    <Circle
-                      size={10}
-                      className={`absolute -bottom-0.5 -right-0.5 ${getStatusColor(peer.status)} fill-current bg-white rounded-full`}
-                    />
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-gray-900 truncate">
-                        {peer.name}
-                      </p>
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <img
+                        src={safeAvatar(peer)}
+                        alt={peer.name || 'Utilisateur'}
+                        className="w-12 h-12 rounded-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src = `https://i.pravatar.cc/150?u=${encodeURIComponent(peer.id)}&d=identicon`;
+                        }}
+                      />
+                      <Circle
+                        size={10}
+                        className={`absolute -bottom-0.5 -right-0.5 ${getStatusColor(
+                          peer.status
+                        )} fill-current bg-white rounded-full`}
+                      />
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <span className={`capitalize ${getStatusColor(peer.status)}`}>
-                        {peer.status}
-                      </span>
 
-                      {peer.gender && (
-                        <>
-                          <span>•</span>
-                          <div className="flex items-center gap-1" title={`Genre: ${peer.gender === 'male' ? 'Homme' : peer.gender === 'female' ? 'Femme' : 'Autre'}`}>
-                            <span className="text-sm" style={{color: peer.gender === 'female' ? '#ec4899' : peer.gender === 'male' ? '#3b82f6' : '#6b7280'}}>
-                              {peer.gender === 'male' ? '♂' : peer.gender === 'female' ? '♀' : '⚧'}
-                            </span>
-                            <span className="text-xs">
-                              {peer.age && `${peer.age} ans`}
-                            </span>
-                          </div>
-                        </>
-                      )}
-                      <span>•</span>
-                      <span>{formatJoinTime(peer.joinedAt)}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-gray-900 truncate">{peer.name || 'Utilisateur'}</p>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <span className={`capitalize ${getStatusColor(peer.status)}`}>{peer.status}</span>
+
+                        {peer.gender && (
+                          <>
+                            <span>•</span>
+                            <div
+                              className="flex items-center gap-1"
+                              title={`Genre: ${
+                                peer.gender === 'male' ? 'Homme' : peer.gender === 'female' ? 'Femme' : 'Autre'
+                              }`}
+                            >
+                              <span
+                                className="text-sm"
+                                style={{
+                                  color: peer.gender === 'female' ? '#ec4899' : peer.gender === 'male' ? '#3b82f6' : '#6b7280',
+                                }}
+                              >
+                                {peer.gender === 'male' ? '♂' : peer.gender === 'female' ? '♀' : '⚧'}
+                              </span>
+                              {typeof peer.age === 'number' && <span className="text-xs">{peer.age} ans</span>}
+                            </div>
+                          </>
+                        )}
+                        <span>•</span>
+                        <span>{formatJoinTime(peer.joinedAt)}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedProfilePeer(peer);
+                        }}
+                        className="text-gray-600 hover:text-gray-700 p-1 rounded hover:bg-gray-50 transition-colors"
+                        title="Voir le profil"
+                        aria-label="Voir le profil"
+                      >
+                        <Info size={16} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectPeer(peer.id);
+                        }}
+                        className="text-blue-600 hover:text-blue-700 p-1 rounded hover:bg-blue-50 transition-colors"
+                        title="Démarrer une conversation"
+                        aria-label="Démarrer une conversation"
+                      >
+                        <MessageSquare size={16} />
+                      </button>
                     </div>
                   </div>
-
-                  <div className="flex flex-col items-end gap-1">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedProfilePeer(peer);
-                      }}
-                      className="text-gray-600 hover:text-gray-700 p-1 rounded hover:bg-gray-50 transition-colors"
-                      title="Voir le profil"
-                    >
-                      <Info size={16} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelectPeer(peer.id);
-                      }}
-                      className="text-blue-600 hover:text-blue-700 p-1 rounded hover:bg-blue-50 transition-colors"
-                      title="Démarrer une conversation"
-                    >
-                      <MessageSquare size={16} />
-                    </button>
-                  </div>
-                 </div>
                 </div>
-               </ProfileTooltip>
+              </ProfileTooltip>
             ))}
           </div>
         )}
       </div>
-      
-      <ProfileDetailModal
-        peer={selectedProfilePeer!}
-        isOpen={selectedProfilePeer !== null}
-        onClose={() => setSelectedProfilePeer(null)}
-      />
+
+      <ProfileDetailModal peer={selectedProfilePeer} isOpen={selectedProfilePeer !== null} onClose={() => setSelectedProfilePeer(null)} />
     </div>
   );
 };

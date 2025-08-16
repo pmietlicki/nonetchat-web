@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User } from '../types';
 import { X, Camera, RefreshCw } from 'lucide-react';
+import ProfileService from '../services/ProfileService';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -8,16 +9,25 @@ interface ProfileModalProps {
   onSave: (profileData: Partial<User>, avatarFile?: File) => void;
   initialProfile: Partial<User>;
   displayAvatarUrl: string | null;
-  onRefreshAvatar: () => void; // Nouvelle prop pour gérer le rafraîchissement
+  onRefreshAvatar: () => void;
 }
 
-const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, initialProfile, displayAvatarUrl, onRefreshAvatar }) => {
+const ProfileModal: React.FC<ProfileModalProps> = ({
+  isOpen,
+  onClose,
+  onSave,
+  initialProfile,
+  displayAvatarUrl,
+  onRefreshAvatar,
+}) => {
   const [name, setName] = useState('');
-  const [age, setAge] = useState<number | ''>( '');
+  const [age, setAge] = useState<number | ''>('');
   const [gender, setGender] = useState('');
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | undefined>();
+  const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const profileSvc = ProfileService.getInstance();
 
   useEffect(() => {
     if (isOpen) {
@@ -25,8 +35,19 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, in
       setAge(initialProfile.age || '');
       setGender(initialProfile.gender || '');
       setAvatarFile(undefined);
-      setAvatarPreview(null); // Reset preview on open
+      // Nettoyer l’ancienne preview si présente
+      if (avatarPreview && avatarPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+      setAvatarPreview(null);
     }
+    // cleanup on unmount
+    return () => {
+      if (avatarPreview && avatarPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, initialProfile]);
 
   if (!isOpen) return null;
@@ -40,25 +61,44 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, in
     onClose();
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setAvatarFile(file);
-      // Créer une URL de prévisualisation temporaire
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Veuillez sélectionner une image valide.');
+      return;
+    }
+    setAvatarFile(file);
+
+    // Libérer l’ancienne preview si nécessaire
+    if (avatarPreview && avatarPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(avatarPreview);
+    }
+
+    // Générer une preview optimisée (redimensionnée/encodée) pour éviter d’afficher des fichiers massifs
+    try {
+      setIsProcessing(true);
+      const rec = await profileSvc.preprocessAvatar(file, 256); // 256px max côté plus long
+      const url = URL.createObjectURL(rec.blob);
+      setAvatarPreview(url);
+    } catch (err) {
+      // fallback: simple ObjectURL direct si preprocess échoue
       const previewUrl = URL.createObjectURL(file);
       setAvatarPreview(previewUrl);
-      // Pas besoin de nettoyer ici, car le cycle de vie est court
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  const currentAvatar = avatarPreview || displayAvatarUrl || `https://i.pravatar.cc/150?u=${initialProfile.id}`;
+  const fallback = `https://i.pravatar.cc/150?u=${initialProfile.id || 'user'}`;
+  const currentAvatar = avatarPreview || displayAvatarUrl || fallback;
 
   return (
     <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-bold">Votre Profil</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600" aria-label="Fermer">
             <X size={24} />
           </button>
         </div>
@@ -69,12 +109,17 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, in
               key={currentAvatar}
               src={currentAvatar}
               alt="Avatar"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = fallback;
+              }}
               className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
             />
             <button
               onClick={() => fileInputRef.current?.click()}
               className="absolute -bottom-1 -right-1 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 border-2 border-white"
               title="Changer l'avatar"
+              aria-label="Changer l'avatar"
+              disabled={isProcessing}
             >
               <Camera size={16} />
             </button>
@@ -83,6 +128,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, in
                 onClick={onRefreshAvatar}
                 className="absolute -bottom-1 -left-1 bg-green-600 text-white p-2 rounded-full hover:bg-green-700 border-2 border-white"
                 title="Générer un nouvel avatar par défaut"
+                aria-label="Rafraîchir l'avatar"
               >
                 <RefreshCw size={16} />
               </button>
@@ -92,9 +138,12 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, in
               ref={fileInputRef}
               onChange={handleAvatarChange}
               className="hidden"
-              accept="image/png, image/jpeg"
+              accept="image/*"
             />
           </div>
+          {isProcessing && (
+            <p className="mt-2 text-xs text-gray-500">Optimisation de l’image…</p>
+          )}
         </div>
 
         <div className="space-y-4">
@@ -150,7 +199,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onSave, in
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            disabled={isProcessing}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-60"
           >
             Sauvegarder
           </button>
