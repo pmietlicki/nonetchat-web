@@ -1,30 +1,62 @@
 import IndexedDBService from './IndexedDBService';
 
-// Récupère une implémentation de WebCrypto valide :
-// - Browser: globalThis.crypto / window.crypto
-// - Tests Node: require('node:crypto').webcrypto (sans casser le bundling navigateur)
-function getCrypto(): Crypto {
+// ----- Helpers d'environnement (résolution paresseuse) -----
+function resolveCrypto(): Crypto {
+  // 1) Browser/jsdom/happy-dom
   const existing =
     (globalThis as any).crypto ??
     (typeof window !== 'undefined' ? (window as any).crypto : undefined);
 
-  if (existing) return existing as Crypto;
+  if (existing?.subtle) return existing as Crypto;
 
-  // Fallback Node (Vitest / Node >= 16.5)
+  // 2) Node (vitest) : fallback vers node:crypto.webcrypto
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { webcrypto } = require('node:crypto');
-    // Expose pour éviter de refaire la résolution
-    (globalThis as any).crypto = webcrypto;
-    return webcrypto as unknown as Crypto;
+    if (webcrypto?.subtle) {
+      // Mémorise pour les prochains appels
+      (globalThis as any).crypto = webcrypto;
+      return webcrypto as unknown as Crypto;
+    }
   } catch {
-    throw new Error('WebCrypto API is not available in this environment.');
+    // ignore, on lève plus bas
   }
+  throw new Error('WebCrypto API is not available in this environment (subtle missing).');
 }
 
-const cryptoAPI = getCrypto();
-const subtle = cryptoAPI.subtle;
+function getSubtle(): SubtleCrypto {
+  return resolveCrypto().subtle;
+}
 
+function getRand(): Crypto {
+  return resolveCrypto();
+}
+
+// Compat Node/jsdom pour base64
+function bufferToBase64(buf: ArrayBuffer | Uint8Array): string {
+  const u8 = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
+  if (typeof btoa !== 'undefined') {
+    // navigateur/jsdom
+    let s = '';
+    for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
+    return btoa(s);
+  }
+  // Node
+  return Buffer.from(u8).toString('base64');
+}
+
+function base64ToU8(base64: string): Uint8Array {
+  if (typeof atob !== 'undefined') {
+    const bin = atob(base64);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  // Node
+  return new Uint8Array(Buffer.from(base64, 'base64'));
+}
+
+// ----- Service -----
 class CryptoService {
   private static instance: CryptoService;
   private dbService: IndexedDBService;
@@ -45,14 +77,14 @@ class CryptoService {
   async initialize(): Promise<void> {
     const storedKeys = await this.dbService.getCryptoKeys();
     if (storedKeys) {
-      const publicKey = await subtle.importKey(
+      const publicKey = await getSubtle().importKey(
         'jwk',
         storedKeys.publicKey,
         { name: 'ECDH', namedCurve: 'P-256' },
         true,
         []
       );
-      const privateKey = await subtle.importKey(
+      const privateKey = await getSubtle().importKey(
         'jwk',
         storedKeys.privateKey,
         { name: 'ECDH', namedCurve: 'P-256' },
@@ -66,25 +98,25 @@ class CryptoService {
   }
 
   private async generateKeys(): Promise<void> {
-    this.keyPair = await subtle.generateKey(
+    this.keyPair = await getSubtle().generateKey(
       { name: 'ECDH', namedCurve: 'P-256' },
       true,
       ['deriveKey']
     );
 
-    const publicKeyJwk = await subtle.exportKey('jwk', this.keyPair.publicKey!);
-    const privateKeyJwk = await subtle.exportKey('jwk', this.keyPair.privateKey!);
+    const publicKeyJwk = await getSubtle().exportKey('jwk', this.keyPair.publicKey!);
+    const privateKeyJwk = await getSubtle().exportKey('jwk', this.keyPair.privateKey!);
 
     await this.dbService.saveCryptoKeys({ publicKey: publicKeyJwk, privateKey: privateKeyJwk });
   }
 
   async getPublicKeyJwk(): Promise<JsonWebKey | null> {
     if (!this.keyPair) return null;
-    return await subtle.exportKey('jwk', this.keyPair.publicKey!);
+    return await getSubtle().exportKey('jwk', this.keyPair.publicKey!);
   }
 
   async deriveSharedSecret(peerId: string, peerPublicKeyJwk: JsonWebKey): Promise<void> {
-    const peerPublicKey = await subtle.importKey(
+    const peerPublicKey = await getSubtle().importKey(
       'jwk',
       peerPublicKeyJwk,
       { name: 'ECDH', namedCurve: 'P-256' },
@@ -92,7 +124,7 @@ class CryptoService {
       []
     );
 
-    const sharedSecret = await subtle.deriveKey(
+    const sharedSecret = await getSubtle().deriveKey(
       { name: 'ECDH', public: peerPublicKey },
       this.keyPair!.privateKey!,
       { name: 'AES-GCM', length: 256 },
@@ -107,17 +139,14 @@ class CryptoService {
     const secretKey = this.sharedSecrets.get(peerId);
     if (!secretKey) throw new Error('Shared secret not derived for this peer');
 
-    const iv = cryptoAPI.getRandomValues(new Uint8Array(12));
+    const iv = getRand().getRandomValues(new Uint8Array(12));
     const encodedMessage = new TextEncoder().encode(message);
 
-    const encryptedData = await subtle.encrypt(
+    const encryptedData = await getSubtle().encrypt(
       { name: 'AES-GCM', iv },
       secretKey,
       encodedMessage
     );
-
-    const bufferToBase64 = (buffer: ArrayBuffer | Uint8Array) =>
-      btoa(String.fromCharCode(...new Uint8Array(buffer as ArrayBuffer)));
 
     return JSON.stringify({
       iv: bufferToBase64(iv),
@@ -131,13 +160,11 @@ class CryptoService {
 
     try {
       const payload = JSON.parse(jsonPayload);
-      const base64ToBuffer = (base64: string) =>
-        Uint8Array.from(atob(base64), c => c.charCodeAt(0));
 
-      const iv = base64ToBuffer(payload.iv);
-      const data = base64ToBuffer(payload.data);
+      const iv = base64ToU8(payload.iv);
+      const data = base64ToU8(payload.data);
 
-      const decryptedData = await subtle.decrypt(
+      const decryptedData = await getSubtle().decrypt(
         { name: 'AES-GCM', iv },
         secretKey,
         data
@@ -192,13 +219,13 @@ class CryptoService {
         )}% de réduction)`
       );
 
-      const key = await subtle.generateKey(
+      const key = await getSubtle().generateKey(
         { name: 'AES-GCM', length: 256 },
         true,
         ['encrypt', 'decrypt']
       );
 
-      const iv = cryptoAPI.getRandomValues(new Uint8Array(12));
+      const iv = getRand().getRandomValues(new Uint8Array(12));
 
       const fileBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
         const reader = new FileReader();
@@ -209,13 +236,13 @@ class CryptoService {
 
       const dataToEncrypt = new Uint8Array(fileBuffer);
 
-      const encryptedData = await subtle.encrypt(
+      const encryptedData = await getSubtle().encrypt(
         { name: 'AES-GCM', iv },
         key,
         dataToEncrypt
       );
 
-      const exportedKey = await subtle.exportKey('raw', key);
+      const exportedKey = await getSubtle().exportKey('raw', key);
 
       const originalSize = new Uint8Array(4);
       new DataView(originalSize.buffer).setUint32(0, file.size, true);
@@ -249,12 +276,12 @@ class CryptoService {
       const iv = encryptedArray.slice(0, 12);
       const keyData = encryptedArray.slice(12, 44);
       const originalSizeData = encryptedArray.slice(44, 48);
-      // originalSize est disponible si besoin
+      // Utilisable si besoin
       const _originalSize = new DataView(originalSizeData.buffer).getUint32(0, true);
 
       const encryptedData = encryptedArray.slice(48);
 
-      const key = await subtle.importKey(
+      const key = await getSubtle().importKey(
         'raw',
         keyData,
         { name: 'AES-GCM' },
@@ -262,7 +289,7 @@ class CryptoService {
         ['decrypt']
       );
 
-      const decryptedData = await subtle.decrypt(
+      const decryptedData = await getSubtle().decrypt(
         { name: 'AES-GCM', iv },
         key,
         encryptedData
