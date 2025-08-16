@@ -3,11 +3,13 @@ import { User } from '../types';
 import { X, Camera, RefreshCw } from 'lucide-react';
 import ProfileService from '../services/ProfileService';
 
+type Gender = '' | 'male' | 'female' | 'other';
+
 interface ProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (profileData: Partial<User>, avatarFile?: File) => void;
-  initialProfile: Partial<User>;
+  initialProfile: Partial<User> & { displayName?: string };
   displayAvatarUrl: string | null;
   onRefreshAvatar: () => void;
 }
@@ -22,7 +24,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
 }) => {
   const [name, setName] = useState('');
   const [age, setAge] = useState<number | ''>('');
-  const [gender, setGender] = useState('');
+  const [gender, setGender] = useState<Gender>('');
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | undefined>();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -31,11 +33,13 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      setName(initialProfile.name || '');
-      setAge(initialProfile.age || '');
-      setGender(initialProfile.gender || '');
+      // Préremplit d'abord avec displayName si dispo, sinon fallback sur name
+      setName((initialProfile as any).displayName ?? initialProfile.name ?? '');
+      setAge((initialProfile as any).age ?? '');
+      setGender(((initialProfile as any).gender as Gender) ?? '');
       setAvatarFile(undefined);
-      // Nettoyer l’ancienne preview si présente
+
+      // Nettoie l’ancienne preview si présente
       if (avatarPreview && avatarPreview.startsWith('blob:')) {
         URL.revokeObjectURL(avatarPreview);
       }
@@ -53,11 +57,16 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
   if (!isOpen) return null;
 
   const handleSave = () => {
-    if (!name.trim()) {
+    const trimmed = name.trim();
+    if (!trimmed) {
       alert("Le nom d'utilisateur ne peut pas être vide.");
       return;
     }
-    onSave({ name, age: Number(age) || undefined, gender }, avatarFile);
+    const genderToSave = (gender === '' ? undefined : gender) as User['gender'] | undefined;
+    const ageToSave = age === '' ? undefined : Number(age);
+
+    // On reste strictement dans Partial<User> (App.tsx fera le pont vers ProfileService)
+    onSave({ name: trimmed, age: ageToSave, gender: genderToSave } as Partial<User>, avatarFile);
     onClose();
   };
 
@@ -70,18 +79,18 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
     }
     setAvatarFile(file);
 
-    // Libérer l’ancienne preview si nécessaire
+    // Libère l’ancienne preview si nécessaire
     if (avatarPreview && avatarPreview.startsWith('blob:')) {
       URL.revokeObjectURL(avatarPreview);
     }
 
-    // Générer une preview optimisée (redimensionnée/encodée) pour éviter d’afficher des fichiers massifs
+    // Génère une preview optimisée (redimensionnée/encodée) pour éviter d’afficher des fichiers massifs
     try {
       setIsProcessing(true);
-      const rec = await profileSvc.preprocessAvatar(file, 256); // 256px max côté plus long
+      const rec = await profileSvc.preprocessAvatar(file, 256); // 256px max
       const url = URL.createObjectURL(rec.blob);
       setAvatarPreview(url);
-    } catch (err) {
+    } catch {
       // fallback: simple ObjectURL direct si preprocess échoue
       const previewUrl = URL.createObjectURL(file);
       setAvatarPreview(previewUrl);
@@ -116,7 +125,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="absolute -bottom-1 -right-1 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 border-2 border-white"
+              className="absolute -bottom-1 -right-1 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 border-2 border-white disabled:opacity-60"
               title="Changer l'avatar"
               aria-label="Changer l'avatar"
               disabled={isProcessing}
@@ -138,7 +147,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
               ref={fileInputRef}
               onChange={handleAvatarChange}
               className="hidden"
-              accept="image/*"
+              accept="image/png, image/jpeg, image/webp, image/avif, image/*"
             />
           </div>
           {isProcessing && (
@@ -170,6 +179,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 value={age}
                 onChange={(e) => setAge(e.target.value === '' ? '' : Number(e.target.value))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+                min={1}
+                max={119}
               />
             </div>
             <div>
@@ -179,12 +190,13 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
               <select
                 id="gender"
                 value={gender}
-                onChange={(e) => setGender(e.target.value)}
+                onChange={(e) => setGender(e.target.value as Gender)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
               >
                 <option value="">Non spécifié</option>
                 <option value="male">Homme</option>
                 <option value="female">Femme</option>
+                <option value="other">Autre</option>
               </select>
             </div>
           </div>
