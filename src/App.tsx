@@ -13,17 +13,16 @@ import PeerService, { PeerMessage } from './services/PeerService';
 import IndexedDBService from './services/IndexedDBService';
 import ProfileService from './services/ProfileService';
 import NotificationService from './services/NotificationService';
-import { MessageSquare, Users, Wifi, WifiOff, X, User as UserIcon, Bell } from 'lucide-react';
+import { MessageSquare, Users, Wifi, WifiOff, X, User as UserIcon, Bell, Cog } from 'lucide-react';
 
 const DEFAULT_SIGNALING_URL = 'wss://chat.nonetchat.com';
-
 import { AlertCircle } from 'lucide-react';
 
 const GeolocationError = ({ message, onDismiss }: { message: string; onDismiss: () => void }) => (
-  <div className="absolute top-16 left-1/2 -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50">
+  <div className="fixed top-16 left-1/2 -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 max-w-[90vw]">
     <AlertCircle className="h-5 w-5" />
     <span className="block sm:inline">{message}</span>
-    <button onClick={onDismiss} className="absolute top-0 bottom-0 right-0 px-4 py-3">
+    <button onClick={onDismiss} className="absolute top-0 bottom-0 right-0 px-4 py-3" aria-label="Fermer l’alerte">
       <X className="h-6 w-6 text-red-500" />
     </button>
   </div>
@@ -41,14 +40,12 @@ function App() {
   const [unreadConversationsCount, setUnreadConversationsCount] = useState(0);
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
 
-
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
-  
-  // L'objet profil contient les données textuelles + le Blob de l'avatar
+
+  // Profil + avatar
   const [userProfile, setUserProfile] = useState<Partial<User> & { avatarBlob?: Blob | null }>({});
-  // L'URL de l'avatar local est gérée séparément pour un cycle de vie correct
   const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
   const [avatarRefreshKey, setAvatarRefreshKey] = useState<number>(0);
 
@@ -66,26 +63,24 @@ function App() {
   const dbService = IndexedDBService.getInstance();
   const notificationService = NotificationService.getInstance();
 
-  // Effet pour gérer le cycle de vie de l'URL de l'avatar local
-useEffect(() => {
-  if (userProfile.avatarBlob) {
-    const url = URL.createObjectURL(userProfile.avatarBlob);
-    setMyAvatarUrl(url);
-    peerService.setCurrentPravagarUrl(undefined);
-    return () => {
-      URL.revokeObjectURL(url);
-      setMyAvatarUrl(null);
-    };
-  } else if (userProfile.id) {
-    // IMPORTANT: varier la *seed* via `u=...`
-    const seed = `${userProfile.id}-${avatarRefreshKey}`;
-    const pravatarUrl = `https://i.pravatar.cc/150?u=${encodeURIComponent(seed)}`;
-    setMyAvatarUrl(pravatarUrl);
-    peerService.setCurrentPravagarUrl(pravatarUrl);
-  }
-}, [userProfile.avatarBlob, userProfile.id, avatarRefreshKey]);
+  // Avatar: privilégie le blob sinon pravatar stable + refresh key
+  useEffect(() => {
+    if (userProfile.avatarBlob) {
+      const url = URL.createObjectURL(userProfile.avatarBlob);
+      setMyAvatarUrl(url);
+      peerService.setCurrentPravagarUrl?.(undefined as any);
+      return () => {
+        URL.revokeObjectURL(url);
+        setMyAvatarUrl(null);
+      };
+    } else if (userProfile.id) {
+      const pravatarUrl = `https://i.pravatar.cc/150?u=${encodeURIComponent(userProfile.id)}&v=${avatarRefreshKey}`;
+      setMyAvatarUrl(pravatarUrl);
+      peerService.setCurrentPravagarUrl?.(pravatarUrl as any);
+    }
+  }, [userProfile.avatarBlob, userProfile.id, avatarRefreshKey]);
 
-
+  // Initialisation + abonnements
   useEffect(() => {
     const initialize = async () => {
       await dbService.initialize();
@@ -95,13 +90,10 @@ useEffect(() => {
         profile.id = uuidv4();
         await profileService.saveProfile(profile);
       }
-      
+
       setUserProfile(profile);
       setMyId(profile.id!);
-
-      if (!profile.name) {
-        setIsProfileOpen(true);
-      }
+      if (!profile.name) setIsProfileOpen(true);
 
       peerService.initialize(profile, signalingUrl);
       peerService.setSearchRadius(searchRadius);
@@ -116,55 +108,47 @@ useEffect(() => {
     };
 
     const onPeerJoined = (peerId: string) => {
-      console.log(`%c[APP] PEER_JOINED event for ${peerId}`, 'color: green; font-weight: bold;');
       setPeers(prev => {
-        const newMap = new Map(prev);
-        const existingPeer = prev.get(peerId);
-        if (existingPeer) {
-          newMap.set(peerId, { ...existingPeer, status: 'online' });
-        } else {
-          newMap.set(peerId, createBaseUser(peerId));
-        }
-        console.log(`%c[APP] Peers map updated. New size: ${newMap.size}`, 'color: green;', newMap);
-        return newMap;
+        const m = new Map(prev);
+        const existing = m.get(peerId);
+        m.set(peerId, existing ? { ...existing, status: 'online' } : createBaseUser(peerId));
+        return m;
       });
     };
 
     const onPeerLeft = (peerId: string) => {
-      console.log(`%c[APP] PEER_LEFT event for ${peerId}`, 'color: red; font-weight: bold;');
       setPeers(prev => {
-        const newMap = new Map(prev);
-        const existingPeer = prev.get(peerId);
-        if (existingPeer) {
-          newMap.set(peerId, { ...existingPeer, status: 'offline' });
-          console.log(`%c[APP] Peer ${peerId} marked as offline.`, 'color: red;');
-        }
-        return newMap;
+        const m = new Map(prev);
+        const existing = m.get(peerId);
+        if (existing) m.set(peerId, { ...existing, status: 'offline' });
+        return m;
       });
     };
 
     const onData = (peerId: string, data: PeerMessage) => {
       if (data.type === 'profile') {
         setPeers(prev => {
-          const newMap = new Map(prev);
-          const existingPeer = prev.get(peerId);
-          const updatedPeer = { 
-            ...existingPeer!, 
-            ...data.payload, 
-            status: 'online'
-          };
-          newMap.set(peerId, updatedPeer);
-          return newMap;
+          const m = new Map(prev);
+          const existing = m.get(peerId);
+          m.set(peerId, { ...existing!, ...data.payload, status: 'online' });
+          return m;
         });
       }
     };
 
     const onGeolocationError = (error: GeolocationPositionError) => {
       switch (error.code) {
-        case 1: setGeolocationError("L'accès à la géolocalisation a été refusé. L'application ne peut pas trouver de pairs à proximité."); break;
-        case 2: setGeolocationError("Impossible d'obtenir votre position actuelle. Vérifiez votre connexion réseau ou vos paramètres de localisation."); break;
-        case 3: setGeolocationError("La recherche de votre position a expiré. Veuillez réessayer."); break;
-        default: setGeolocationError("Une erreur inconnue est survenue lors de la récupération de votre position."); break;
+        case 1:
+          setGeolocationError("L'accès à la géolocalisation a été refusé. L'application ne peut pas trouver de pairs à proximité.");
+          break;
+        case 2:
+          setGeolocationError('Impossible d’obtenir votre position actuelle. Vérifiez la connexion réseau ou les paramètres de localisation.');
+          break;
+        case 3:
+          setGeolocationError('La recherche de position a expiré. Veuillez réessayer.');
+          break;
+        default:
+          setGeolocationError('Erreur inconnue lors de la récupération de votre position.');
       }
     };
 
@@ -175,7 +159,8 @@ useEffect(() => {
     peerService.on('geolocation-error', onGeolocationError);
 
     const onUnreadCountChanged = (count: number) => setTotalUnreadCount(count);
-    const onUnreadConversationsChanged = () => setUnreadConversationsCount(notificationService.getUnreadConversationsCount());
+    const onUnreadConversationsChanged = () =>
+      setUnreadConversationsCount(notificationService.getUnreadConversationsCount());
     const onNotificationClicked = (conversationId: string) => {
       setSelectedPeerId(conversationId);
       setActiveTab('conversations');
@@ -199,34 +184,23 @@ useEffect(() => {
       notificationService.off('notification-clicked', onNotificationClicked);
       peerService.destroy();
     };
-  }, [signalingUrl]);
+  }, [signalingUrl, searchRadius]);
 
   const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) => {
     const newProfile = { ...userProfile, ...profileData, id: myId };
     await profileService.saveProfile(newProfile, avatarFile);
-    
-    // Recharger le profil local pour mettre à jour le blob et déclencher l'effet de l'URL
+
     const updatedProfile = await profileService.getProfile();
     setUserProfile(updatedProfile);
-
-    // Mettre à jour le profil dans le service avant de diffuser
     peerService.setMyProfile(updatedProfile);
-
-    // Diffuser le profil mis à jour aux autres pairs
     await peerService.broadcastProfileUpdate();
-    
-    console.log('Profile updated and broadcasted:', updatedProfile);
   };
 
   const handleRefreshAvatar = async () => {
-    // Supprimer l'avatar personnalisé de la base de données
     await profileService.deleteCustomAvatar();
-    // Recharger le profil, qui n'aura plus de `avatarBlob`
     const refreshedProfile = await profileService.getProfile();
     setUserProfile(refreshedProfile);
-    // Forcer le rafraîchissement de l'avatar Pravatar
     setAvatarRefreshKey(prev => prev + 1);
-    // Mettre à jour le service et diffuser le changement (qui montrera un nouvel avatar par défaut)
     peerService.setMyProfile(refreshedProfile);
     await peerService.broadcastProfileUpdate();
   };
@@ -241,63 +215,54 @@ useEffect(() => {
   };
 
   const handleSelectPeer = (peerId: string) => {
-    console.log(`%c[APP] handleSelectPeer called with peerId: ${peerId}`, 'color: blue; font-weight: bold;');
     setSelectedPeerId(peerId);
   };
 
   const handleSelectConversation = async (participantId: string) => {
     setSelectedPeerId(participantId);
-    
-    // Si le peer n'est pas dans la liste des peers connectés, créer un objet User temporaire
+
     if (!peers.has(participantId)) {
       try {
-        const dbService = IndexedDBService.getInstance();
         const conversations = await dbService.getAllConversations();
         const conversation = conversations.find(c => c.participantId === participantId);
-        
         if (conversation) {
-          // Créer un peer temporaire avec les données de la conversation
           const tempPeer: User = {
             id: participantId,
             name: conversation.participantName,
             avatar: conversation.participantAvatar,
-            status: 'offline', // Le peer n'est pas connecté
+            status: 'offline',
             joinedAt: new Date().toISOString(),
           };
-          
           setPeers(prev => {
-            const newMap = new Map(prev);
-            newMap.set(participantId, tempPeer);
-            return newMap;
+            const m = new Map(prev);
+            m.set(participantId, tempPeer);
+            return m;
           });
         }
-      } catch (error) {
-        console.error('Error loading conversation data:', error);
+      } catch (e) {
+        console.error('Error loading conversation data:', e);
       }
     }
   };
 
   const createBaseUser = (peerId: string): User => ({
     id: peerId,
-    name: '', // Pas de nom par défaut
+    name: '',
     avatar: `https://i.pravatar.cc/150?u=${peerId}`,
     status: 'online',
     joinedAt: new Date().toISOString(),
   });
 
-  // Filtrer les peers pour ne garder que ceux avec un profil complet
-  const peerList = Array.from(peers.values()).filter(peer => {
-    // Un profil est considéré comme complet s'il a un nom personnalisé, un âge ou un genre
-    return peer.name && peer.name.trim() !== '' && (peer.age !== undefined || peer.gender !== undefined);
-  });
+  // Ne garder que les profils “renseignés”
+  const peerList = Array.from(peers.values()).filter(
+    p => p.name && p.name.trim() !== '' && (p.age !== undefined || p.gender !== undefined)
+  );
   const selectedPeer = peers.get(selectedPeerId || '');
 
-  console.log('%c[APP] Render Cycle', 'background: #222; color: #bada55', {
-    selectedPeerId,
-    peerMapKeys: Array.from(peers.keys()), // Log the keys
-    peers,
-    selectedPeer: selectedPeer ? { ...selectedPeer } : undefined
-  });
+  // --- Helpers UI responsives ---
+  const isChatOpenOnMobile = !!selectedPeer; // quand un pair est choisi, le chat prend tout l'écran en mobile
+  const safeBottom = 'pb-[env(safe-area-inset-bottom)]';
+  const safeTop = 'pt-[env(safe-area-inset-top)]';
 
   if (!isInitialized) {
     return (
@@ -311,13 +276,10 @@ useEffect(() => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      {geolocationError && 
-        <GeolocationError 
-          message={geolocationError} 
-          onDismiss={() => setGeolocationError(null)} 
-        />
-      }
+    <div className={`min-h-screen bg-gray-100 flex flex-col ${safeTop} ${safeBottom}`}>
+      {geolocationError && (
+        <GeolocationError message={geolocationError} onDismiss={() => setGeolocationError(null)} />
+      )}
 
       <ProfileModal
         isOpen={isProfileOpen}
@@ -335,14 +297,19 @@ useEffect(() => {
       />
 
       {isSettingsOpen && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50">
+          <div className="bg-white rounded-t-2xl sm:rounded-lg shadow-xl p-4 sm:p-6 w-full sm:max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-2 sm:mb-4">
               <h3 className="text-lg font-bold">Paramètres</h3>
-              <button onClick={() => setIsSettingsOpen(false)} className="text-gray-400 hover:text-gray-600">
-                <X size={24} />
+              <button
+                onClick={() => setIsSettingsOpen(false)}
+                className="p-2 rounded-full hover:bg-gray-100"
+                aria-label="Fermer les paramètres"
+              >
+                <X size={22} />
               </button>
             </div>
+
             <div className="space-y-4">
               <div>
                 <label htmlFor="signaling-url" className="block text-sm font-medium text-gray-700 mb-2">
@@ -357,7 +324,7 @@ useEffect(() => {
                   placeholder="wss://votre-serveur.com"
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="search-radius" className="block text-sm font-medium text-gray-700 mb-2">
                   Rayon de recherche (km): {tempSearchRadius}
@@ -377,8 +344,9 @@ useEffect(() => {
                   <span>50 km</span>
                 </div>
               </div>
-             </div>
-            <div className="mt-6 flex justify-end gap-3">
+            </div>
+
+            <div className="mt-5 flex justify-end gap-3">
               <button
                 onClick={() => setIsSettingsOpen(false)}
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
@@ -396,37 +364,39 @@ useEffect(() => {
         </div>
       )}
 
-      <header className="bg-white border-b border-gray-200 p-4">
+      {/* Header sticky */}
+      <header className="bg-white border-b border-gray-200 p-3 sm:p-4 sticky top-0 z-40">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${isConnected ? 'bg-blue-600 text-white' : 'bg-gray-400 text-white'}`}>
-              {isConnected ? <Wifi size={24} /> : <WifiOff size={24} />}
+          <div className="flex items-center gap-3 min-w-0">
+            <div
+              className={`p-2 rounded-lg ${isConnected ? 'bg-blue-600 text-white' : 'bg-gray-400 text-white'}`}
+              aria-label={isConnected ? 'Connecté' : 'Déconnecté'}
+              title={isConnected ? 'Connecté' : 'Déconnecté'}
+            >
+              {isConnected ? <Wifi size={22} /> : <WifiOff size={22} />}
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">NoNetChat Web</h1>
-              <p className="text-sm text-gray-600">
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">NoNetChat Web</h1>
+              <p className="text-xs sm:text-sm text-gray-600 truncate">
                 Messagerie directe {!isConnected && '(Déconnecté)'}
               </p>
             </div>
           </div>
-          
-          <div className="flex items-center gap-4">
-            <ConnectionStatus 
-              isConnected={isConnected} 
+
+          <div className="hidden sm:flex items-center gap-3">
+            <ConnectionStatus
+              isConnected={isConnected}
               onReconnect={async () => {
-                // Reconnect logic - reinitialize the peer service
                 await peerService.initialize(userProfile, signalingUrl);
                 peerService.setSearchRadius(searchRadius);
               }}
             />
-            
+
             <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setActiveTab('peers')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
-                  activeTab === 'peers' 
-                    ? 'bg-white text-blue-600 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900'
+                className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+                  activeTab === 'peers' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 <Users size={16} />
@@ -434,10 +404,8 @@ useEffect(() => {
               </button>
               <button
                 onClick={() => setActiveTab('conversations')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors relative ${
-                  activeTab === 'conversations' 
-                    ? 'bg-white text-blue-600 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900'
+                className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors relative ${
+                  activeTab === 'conversations' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 <MessageSquare size={16} />
@@ -459,14 +427,25 @@ useEffect(() => {
               onClick={() => setShowNotificationSettings(true)}
               className="p-2 rounded-full hover:bg-gray-100"
               title="Paramètres de notifications"
+              aria-label="Paramètres de notifications"
             >
               <Bell size={20} />
+            </button>
+
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2 rounded-full hover:bg-gray-100"
+              title="Paramètres"
+              aria-label="Paramètres"
+            >
+              <Cog size={20} />
             </button>
 
             <button
               onClick={() => setIsProfileOpen(true)}
               className="p-2 rounded-full hover:bg-gray-100"
               title="Modifier votre profil"
+              aria-label="Modifier votre profil"
             >
               <UserIcon size={20} />
             </button>
@@ -474,12 +453,16 @@ useEffect(() => {
         </div>
       </header>
 
+      {/* Contenu principal */}
       <div className="flex-1 flex overflow-hidden">
-        <div className={`w-full md:w-80 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col ${
-          selectedPeer ? 'hidden md:flex' : 'flex'
-        }`}>
+        {/* Colonne gauche – listes. Mobile: plein écran quand pas de chat ouvert */}
+        <div
+          className={`w-full sm:w-80 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col ${
+            isChatOpenOnMobile ? 'hidden sm:flex' : 'flex'
+          }`}
+        >
           {activeTab === 'peers' ? (
-            <PeerList 
+            <PeerList
               peers={peerList}
               onSelectPeer={handleSelectPeer}
               selectedPeerId={selectedPeerId}
@@ -493,24 +476,17 @@ useEffect(() => {
           )}
         </div>
 
-        <div className={`flex-1 flex flex-col ${
-          selectedPeer ? 'flex' : 'hidden md:flex'
-        }`}>
+        {/* Panneau droit – chat. Mobile: plein écran quand un pair est sélectionné */}
+        <div className={`flex-1 flex flex-col ${isChatOpenOnMobile ? 'flex' : 'hidden sm:flex'}`}>
           {selectedPeer ? (
-            <ChatWindow 
-              selectedPeer={selectedPeer} 
-              myId={myId} 
-              onBack={() => setSelectedPeerId(undefined)}
-            />
+            <ChatWindow selectedPeer={selectedPeer} myId={myId} onBack={() => setSelectedPeerId(undefined)} />
           ) : selectedPeerId ? (
             <div className="flex-1 flex items-center justify-center bg-gray-50">
               <div className="text-center text-gray-500">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                 <h3 className="text-lg font-medium mb-2">Connexion en cours...</h3>
-                <p className="max-w-md mb-4">
-                  Établissement de la connexion avec le pair sélectionné.
-                </p>
-                <button 
+                <p className="max-w-md mb-4">Établissement de la connexion avec le pair sélectionné.</p>
+                <button
                   onClick={() => setSelectedPeerId(undefined)}
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                 >
@@ -520,17 +496,13 @@ useEffect(() => {
             </div>
           ) : (
             <div className="flex-1 flex items-center justify-center bg-gray-50">
-              <div className="text-center text-gray-500">
-                <MessageSquare size={64} className="mx-auto mb-4 text-gray-300" />
+              <div className="text-center text-gray-500 px-6">
+                <MessageSquare size={56} className="mx-auto mb-4 text-gray-300" />
                 <h3 className="text-lg font-medium mb-2">NoNetChat Web</h3>
                 {!isConnected ? (
-                  <p className="max-w-md mb-4">
-                    Connexion au serveur de signalisation en cours...
-                  </p>
+                  <p className="max-w-md mb-2">Connexion au serveur de signalisation en cours...</p>
                 ) : (
-                  <p className="max-w-md">
-                    Sélectionnez un pair dans la liste pour commencer une conversation directe et sécurisée.
-                  </p>
+                  <p className="max-w-md">Sélectionnez un pair pour commencer une conversation directe et sécurisée.</p>
                 )}
               </div>
             </div>
@@ -538,7 +510,63 @@ useEffect(() => {
         </div>
       </div>
 
-      <StatusBar 
+      {/* Bottom Navigation – mobile uniquement */}
+      <nav className="sm:hidden sticky bottom-0 z-40 bg-white border-t border-gray-200">
+        <div className="grid grid-cols-4">
+          <button
+            onClick={() => {
+              setActiveTab('peers');
+              setSelectedPeerId(undefined);
+            }}
+            className={`flex flex-col items-center justify-center py-2 ${activeTab === 'peers' && !selectedPeer ? 'text-blue-600' : 'text-gray-600'}`}
+            aria-label="Pairs"
+            title="Pairs"
+          >
+            <Users size={22} />
+            <span className="text-[11px] leading-3 mt-0.5">Pairs</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveTab('conversations');
+              setSelectedPeerId(undefined);
+            }}
+            className={`relative flex flex-col items-center justify-center py-2 ${activeTab === 'conversations' && !selectedPeer ? 'text-blue-600' : 'text-gray-600'}`}
+            aria-label="Messages"
+            title="Messages"
+          >
+            <MessageSquare size={22} />
+            <span className="text-[11px] leading-3 mt-0.5">Messages</span>
+            {totalUnreadCount > 0 && (
+              <span className="absolute top-1 right-6 bg-red-500 text-white text-[10px] rounded-full h-4 min-w-4 px-1 flex items-center justify-center font-medium">
+                {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="flex flex-col items-center justify-center py-2 text-gray-600"
+            aria-label="Paramètres"
+            title="Paramètres"
+          >
+            <Cog size={22} />
+            <span className="text-[11px] leading-3 mt-0.5">Réglages</span>
+          </button>
+
+          <button
+            onClick={() => setShowNotificationSettings(true)}
+            className="flex flex-col items-center justify-center py-2 text-gray-600"
+            aria-label="Notifications"
+            title="Notifications"
+          >
+            <Bell size={22} />
+            <span className="text-[11px] leading-3 mt-0.5">Notif.</span>
+          </button>
+        </div>
+      </nav>
+
+      <StatusBar
         isConnected={isConnected}
         peerCount={peerList.length}
         clientId={myId}
@@ -547,11 +575,7 @@ useEffect(() => {
         onOpenDiagnostic={() => setIsDiagnosticOpen(true)}
       />
 
-      {/* Notification Settings Modal */}
-      <NotificationSettings 
-        isOpen={showNotificationSettings}
-        onClose={() => setShowNotificationSettings(false)}
-      />
+      <NotificationSettings isOpen={showNotificationSettings} onClose={() => setShowNotificationSettings(false)} />
     </div>
   );
 }
