@@ -8,11 +8,14 @@ const DEVICE_ID_KEY = 'deviceId';
 export type PublicProfile = {
   id: string;
   displayName?: string;
+  name?: string; // alias compat UI
   avatarHash?: string;
   avatarMime?: string;
   avatarW?: number;
   avatarH?: number;
   avatarVersion?: number;
+  age?: number;
+  gender?: 'male' | 'female' | 'other';
 };
 
 class ProfileService {
@@ -50,14 +53,39 @@ class ProfileService {
     });
   }
 
-  // Resize + encode → blob WebP (fallback mime conservé si WebP indisponible)
+  // toBlob robuste (évite le narrowing "never") + fallback via dataURL
   private async toBlob(canvas: HTMLCanvasElement, mime: string, quality?: number): Promise<Blob> {
-    return new Promise((resolve) => canvas.toBlob(b => resolve(b!), mime, quality));
+    if (typeof canvas.toBlob === 'function') {
+      return new Promise((resolve) => {
+        canvas.toBlob((b) => resolve(b || new Blob()), mime, quality);
+      });
+    }
+    try {
+      const url = canvas.toDataURL(mime, quality);
+      const base64 = url.split(',')[1] || '';
+      const bin = atob(base64);
+      const u8 = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+      return new Blob([u8], { type: mime });
+    } catch {
+      return new Blob();
+    }
   }
 
   private async sha256Hex(ab: ArrayBuffer): Promise<string> {
-    const d = await crypto.subtle.digest('SHA-256', ab);
+    const d = await (globalThis.crypto as Crypto).subtle.digest('SHA-256', ab);
     return Array.from(new Uint8Array(d)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // Validation/sanitization soft des PII
+  private sanitizeAge(v: any): number | undefined {
+    if (typeof v !== 'number') return undefined;
+    if (!Number.isFinite(v)) return undefined;
+    const n = Math.floor(v);
+    return n > 0 && n < 120 ? n : undefined;
+  }
+  private sanitizeGender(g: any): 'male' | 'female' | 'other' | undefined {
+    return g === 'male' || g === 'female' || g === 'other' ? g : undefined;
   }
 
   /**
@@ -105,23 +133,32 @@ class ProfileService {
    * vers la store IndexedDB 'user' + avatars par hash.
    */
   private async migrateIfNeeded(deviceId: string): Promise<UserProfileRecord> {
-    // Vérifie si un profil existe déjà dans la store 'user'
+    // Profil déjà en base ?
     const existing = await this.db.getUserProfile(deviceId);
     if (existing) return existing;
 
-    // Migration depuis localStorage (profil light)
+    // Migration depuis localStorage (profil legacy : name/age/gender)
     const legacyProfileRaw = localStorage.getItem(PROFILE_KEY);
-    const legacyProfile = legacyProfileRaw ? JSON.parse(legacyProfileRaw) as Partial<{ displayName: string }> : {};
+    let legacy: any = {};
+    try { legacy = legacyProfileRaw ? JSON.parse(legacyProfileRaw) : {}; } catch {}
+
+    const displayName: string | undefined =
+      typeof legacy.displayName === 'string' && legacy.displayName.trim()
+        ? legacy.displayName.trim()
+        : (typeof legacy.name === 'string' && legacy.name.trim() ? legacy.name.trim() : undefined);
+
     const profile: UserProfileRecord = {
       id: deviceId,
-      displayName: legacyProfile.displayName || undefined,
+      displayName,
+      age: this.sanitizeAge(legacy.age),
+      gender: this.sanitizeGender(legacy.gender),
       avatarVersion: 1,
+      // avatar* seront définis si on migre un avatar ci-dessous
     };
 
     // Migration de l’avatar legacy si présent
     const legacyAvatar = await this.db.getAvatar(AVATAR_KEY);
     if (legacyAvatar) {
-      // Préprocess pour obtenir hash + miniature compressée
       const tmpFile = new File([legacyAvatar], 'legacy-avatar', { type: legacyAvatar.type || 'image/webp' });
       const rec = await this.preprocessAvatar(tmpFile, 256);
       await this.db.saveAvatarByHash(rec);
@@ -129,8 +166,8 @@ class ProfileService {
       profile.avatarMime = rec.mime;
       profile.avatarW = rec.width;
       profile.avatarH = rec.height;
-      profile.avatarVersion = 2; // on bump pour invalider pravatar côté UI distante
-      // on laisse la donnée legacy en place pour compat, mais on peut la supprimer :
+      profile.avatarVersion = 2; // bump pour invalider pravatar distant
+      // Optionnel : nettoyage legacy
       // await this.db.deleteAvatar(AVATAR_KEY);
     }
 
@@ -160,11 +197,14 @@ class ProfileService {
     return {
       id: p.id,
       displayName: p.displayName,
+      name: p.displayName, // alias compat UI
       avatarHash: p.avatarHash,
       avatarMime: p.avatarMime,
       avatarW: p.avatarW,
       avatarH: p.avatarH,
       avatarVersion: p.avatarVersion,
+      age: p.age,
+      gender: p.gender,
       avatarBlob: avatarBlob ?? null,
     };
   }
@@ -172,13 +212,23 @@ class ProfileService {
   /**
    * Persiste le profil (texte) et, si fourni, un nouvel avatar (compressé + hashé), en bumpant avatarVersion.
    */
-  async saveProfile(profileData: Partial<{ displayName: string }>, avatarFile?: File): Promise<void> {
+  async saveProfile(
+    profileData: Partial<{ displayName: string; age: number; gender: 'male' | 'female' | 'other' }>,
+    avatarFile?: File
+  ): Promise<void> {
     const deviceId = this.ensureDeviceId();
     const current = await this.migrateIfNeeded(deviceId);
     const next: UserProfileRecord = { ...current };
 
-    if (typeof profileData.displayName !== 'undefined') {
-      next.displayName = profileData.displayName;
+    if ('displayName' in profileData) {
+      const dn = (profileData.displayName || '').trim();
+      next.displayName = dn || undefined;
+    }
+    if ('age' in profileData) {
+      next.age = this.sanitizeAge(profileData.age);
+    }
+    if ('gender' in profileData) {
+      next.gender = this.sanitizeGender(profileData.gender);
     }
 
     if (avatarFile) {
@@ -193,8 +243,15 @@ class ProfileService {
 
     await this.db.saveUserProfile(next);
 
-    // Maintien compat localStorage pour l’existant (sans avatar)
-    localStorage.setItem(PROFILE_KEY, JSON.stringify({ displayName: next.displayName ?? '' }));
+    // Maintien compat localStorage (utile si d’autres écrans s’y réfèrent encore)
+    localStorage.setItem(
+      PROFILE_KEY,
+      JSON.stringify({
+        displayName: next.displayName ?? '',
+        age: typeof next.age === 'number' ? next.age : undefined,
+        gender: next.gender ?? undefined,
+      })
+    );
   }
 
   /**
@@ -219,8 +276,19 @@ class ProfileService {
   async getPublicProfile(): Promise<PublicProfile> {
     const deviceId = this.ensureDeviceId();
     const p = await this.migrateIfNeeded(deviceId);
-    const { id, displayName, avatarHash, avatarMime, avatarW, avatarH, avatarVersion } = p;
-    return { id, displayName, avatarHash, avatarMime, avatarW, avatarH, avatarVersion };
+
+    return {
+      id: p.id,
+      displayName: p.displayName,
+      name: p.displayName, // alias compat pour consommateurs existants
+      avatarHash: p.avatarHash,
+      avatarMime: p.avatarMime,
+      avatarW: p.avatarW,
+      avatarH: p.avatarH,
+      avatarVersion: p.avatarVersion,
+      age: p.age,
+      gender: p.gender,
+    };
   }
 
   /**

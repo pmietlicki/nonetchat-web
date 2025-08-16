@@ -53,9 +53,12 @@ export type AvatarRecord = {
 };
 
 // Enregistrement de profil local minimal
+export type Gender = 'male' | 'female' | 'other' | undefined;
 export type UserProfileRecord = {
   id: string;                 // identifiant stable local (clientId)
   displayName?: string;
+  age?: number;
+  gender?: Gender;
   avatarHash?: string;        // référence vers avatars.id (hash)
   avatarMime?: string;
   avatarW?: number;
@@ -532,7 +535,6 @@ class IndexedDBService {
   }
 
   async deleteAvatarByHash(hash: string): Promise<void> {
-    const db = this.ensureDb();
     await this.deleteAvatar(hash); // id = hash
   }
 

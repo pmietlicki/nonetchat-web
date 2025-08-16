@@ -100,6 +100,8 @@ function App() {
       const normalized: Partial<User> & { avatarBlob?: Blob | null } = {
         ...profileAny,
         name: (profileAny as any).displayName ?? (profileAny as any).name ?? '',
+        age: (profileAny as any).age,
+        gender: (profileAny as any).gender,
       };
 
       if (!normalized.id) {
@@ -209,12 +211,18 @@ function App() {
 
   const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) => {
     // Appelle le nouveau service en mappant name -> displayName
-    await profileService.saveProfile({ displayName: profileData.name }, avatarFile);
+    await profileService.saveProfile({
+      displayName: profileData.name,
+      age: profileData.age,
+      gender: profileData.gender as 'male' | 'female' | 'other' | undefined
+    }, avatarFile);
 
     const updated = await profileService.getProfile();
     const normalized: Partial<User> & { avatarBlob?: Blob | null } = {
       ...updated,
       name: (updated as any).displayName ?? (updated as any).name ?? '',
+      age: (updated as any).age,
+      gender: (updated as any).gender,
       avatarBlob: (updated as any).avatarBlob,
     };
     setUserProfile(normalized);
@@ -229,6 +237,8 @@ function App() {
     setUserProfile({
       ...refreshed,
       name: (refreshed as any).displayName ?? (refreshed as any).name ?? '',
+      age: (refreshed as any).age,
+      gender: (refreshed as any).gender,
       avatarBlob: (refreshed as any).avatarBlob,
     });
     setAvatarRefreshKey(prev => prev + 1); // force le recalcul d’URL (fallback pravatar versionné)
