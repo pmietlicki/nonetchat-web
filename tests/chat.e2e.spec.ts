@@ -1,4 +1,4 @@
-// chat.e2e.spec.ts
+// tests/chat.e2e.spec.ts
 import { test, expect, chromium, type Browser, type BrowserContext, type Page } from '@playwright/test';
 
 test.describe('Scénario de Chat de Bout en Bout', () => {
@@ -8,7 +8,7 @@ test.describe('Scénario de Chat de Bout en Bout', () => {
   let pageA: Page;
   let pageB: Page;
 
-  // Paramètres
+  // Paramètres (surchageables via env)
   const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';
   const USER_A_NAME = process.env.USER_A_NAME || 'Alice';
   const USER_B_NAME = process.env.USER_B_NAME || 'Bob';
@@ -17,8 +17,10 @@ test.describe('Scénario de Chat de Bout en Bout', () => {
   test.setTimeout(90_000);
 
   test.beforeAll(async () => {
-    // Un seul browser pour toute la suite (évite les fuites)
-    browser = await chromium.launch({ headless: true });
+    browser = await chromium.launch({
+      headless: process.env.HEADFUL ? false : true,
+      // slowMo: 100, // décommente pour déboguer visuellement
+    });
   });
 
   test.afterAll(async () => {
@@ -26,7 +28,6 @@ test.describe('Scénario de Chat de Bout en Bout', () => {
   });
 
   test.beforeEach(async () => {
-    // Contexts indépendants = profils utilisateurs séparés
     ctxA = await browser.newContext();
     ctxB = await browser.newContext();
     pageA = await ctxA.newPage();
@@ -38,61 +39,72 @@ test.describe('Scénario de Chat de Bout en Bout', () => {
     await ctxB?.close();
   });
 
-  // Petit helper : aller sur l’onglet "Pairs" (le libellé peut être "Pairs (1)", "Pairs (2)", etc.)
+  // Helper: échapper un nom pour l’utiliser dans une RegExp
+  const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  // Helper: aller sur l’onglet "Pairs" (le libellé peut être "Pairs (1)", "Pairs (2)", etc.)
   const goToPairsTab = async (page: Page) => {
-    // Noms accessibles possibles : "Pairs (1)", "Pairs (2)", etc. On matche juste "Pairs"
     const pairsBtn = page.getByRole('button', { name: /Pairs/i });
     await expect(pairsBtn).toBeVisible();
     await pairsBtn.click();
+  };
+
+  // Helper: remplir et fermer le modal "Votre Profil"
+  const completeProfileModal = async (page: Page, username: string) => {
+    const profileHeading = page.getByRole('heading', { name: 'Votre Profil', level: 3 });
+    await expect(profileHeading).toBeVisible();
+
+    await page.getByLabel("Nom d'utilisateur").fill(username);
+    await page.getByRole('button', { name: 'Sauvegarder' }).click();
+
+    await profileHeading.waitFor({ state: 'detached' }).catch(async () => {
+      await expect(profileHeading).toBeHidden();
+    });
+  };
+
+  // Helper robuste: ouvrir la conversation avec un pair donné
+  // On match le <listitem> qui CONTIENT soit un <p> "peerName", soit un texte "peerName" n'importe où.
+  const openConversationWith = async (page: Page, peerName: string) => {
+    const nameRe = new RegExp(`\\b${escapeRe(peerName)}\\b`, 'i');
+
+    // Priorité: un paragraphe qui porte exactement le nom (ton snapshot montre "paragraph: Bob")
+    const itemByParagraph = page
+      .getByRole('listitem')
+      .filter({ has: page.getByRole('paragraph', { name: nameRe }) });
+
+    // Fallback: n'importe quel listitem qui a le texte (par ex. si pas de rôle "paragraph" exposé)
+    const itemFallback = page.getByRole('listitem').filter({ has: page.getByText(nameRe) });
+
+    const item = (await itemByParagraph.count()) > 0 ? itemByParagraph : itemFallback;
+
+    await expect(item).toBeVisible({ timeout: 30_000 });
+    await item.getByRole('button', { name: 'Démarrer une conversation' }).click();
   };
 
   test('deux utilisateurs se voient et échangent un message', async () => {
     // --- Alice ---
     await pageA.goto(BASE_URL);
     await pageA.waitForLoadState('networkidle');
-
-    // Le modal "Votre Profil" est ouvert au chargement → le renseigner puis sauvegarder
-    const aliceProfileHeading = pageA.getByRole('heading', { name: 'Votre Profil', level: 3 });
-    await expect(aliceProfileHeading).toBeVisible();
-
-    await pageA.getByLabel("Nom d'utilisateur").fill(USER_A_NAME);
-    await pageA.getByRole('button', { name: 'Sauvegarder' }).click();
-
-    // Attendre la fermeture réelle du modal
-    await aliceProfileHeading.waitFor({ state: 'detached' });
-
-    // Assurer qu'on est sur l’onglet Pairs
+    await completeProfileModal(pageA, USER_A_NAME);
     await goToPairsTab(pageA);
 
     // --- Bob ---
     await pageB.goto(BASE_URL);
     await pageB.waitForLoadState('networkidle');
-
-    const bobProfileHeading = pageB.getByRole('heading', { name: 'Votre Profil', level: 3 });
-    await expect(bobProfileHeading).toBeVisible();
-
-    await pageB.getByLabel("Nom d'utilisateur").fill(USER_B_NAME);
-    await pageB.getByRole('button', { name: 'Sauvegarder' }).click();
-    await bobProfileHeading.waitFor({ state: 'detached' });
-
+    await completeProfileModal(pageB, USER_B_NAME);
     await goToPairsTab(pageB);
 
     // --- Alice ouvre la conversation avec USER_B_NAME ---
-    const bobItemForAlice = pageA.getByRole('listitem').filter({ hasText: new RegExp(`^${USER_B_NAME}\\b`) });
-    await expect(bobItemForAlice).toBeVisible({ timeout: 30_000 });
-    await bobItemForAlice.getByRole('button', { name: 'Démarrer une conversation' }).click();
+    await openConversationWith(pageA, USER_B_NAME);
 
     // --- Bob ouvre aussi la conversation avec USER_A_NAME ---
-    const aliceItemForBob = pageB.getByRole('listitem').filter({ hasText: new RegExp(`^${USER_A_NAME}\\b`) });
-    await expect(aliceItemForBob).toBeVisible({ timeout: 30_000 });
-    await aliceItemForBob.getByRole('button', { name: 'Démarrer une conversation' }).click();
+    await openConversationWith(pageB, USER_A_NAME);
 
     // --- Envoi Alice -> Bob ---
     const msg = `Bonjour ${USER_B_NAME} #${Date.now()}`;
     await pageA.getByPlaceholder(/tapez votre message/i).fill(msg);
     await pageA.getByRole('button', { name: /envoyer le message/i }).click();
 
-    // Bob doit voir le message
     await expect(pageB.getByText(msg, { exact: true })).toBeVisible({ timeout: 20_000 });
 
     // --- Réponse Bob -> Alice ---

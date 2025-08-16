@@ -37,6 +37,7 @@
     "@vitest/ui": "^3.2.4",
     "autoprefixer": "^10.4.18",
     "canvas": "^3.1.2",
+    "cross-env": "^10.0.0",
     "eslint": "^9.9.1",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.11",
