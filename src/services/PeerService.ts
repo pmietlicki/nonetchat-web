@@ -220,7 +220,16 @@ class PeerService extends EventEmitter {
 
     this.ws.onopen = () => {
       this.diagnosticService.log('WebSocket connection opened. Registering with stable ID.');
-      this.sendToServer({ type: 'register', payload: { id: this.myId } });
+      const name =
+        this.myPublicProfile?.displayName ||
+        this.myProfile?.name ||
+        'Utilisateur';
+
+      this.sendToServer({
+        type: 'register',
+        payload: { id: this.myId, profile: { name } } // ✅ on envoie le nom
+      });
+
       this.emit('open', this.myId);
       this.startLocationUpdates();
       this.startPruningInterval();
@@ -653,6 +662,11 @@ class PeerService extends EventEmitter {
   public async broadcastProfileUpdate() {
     // Met à jour le profil local et broadcast sans image
     this.myPublicProfile = await this.profileService.getPublicProfile();
+    // (optionnel) prévenir aussi le serveur pour les futures push offline
+    this.sendToServer({
+      type: 'server-profile-update',
+      payload: { name: this.myPublicProfile.displayName || 'Utilisateur' }
+    });
     const msg: PeerMessage = { type: 'profile-update', payload: this.myPublicProfile };
     const json = JSON.stringify(msg);
     if (json.length > 16 * 1024) {

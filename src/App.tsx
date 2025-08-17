@@ -209,35 +209,58 @@ function App() {
     };
   }, [signalingUrl, searchRadius]);
 
-  // --- Ajout pour l'enregistrement du Service Worker et Push ---
+  // ✅ Helper VAPID: base64url -> Uint8Array
+  function urlBase64ToUint8Array(base64String: string) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(base64);
+    const output = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) output[i] = raw.charCodeAt(i);
+    return output;
+  }
+
+  // ✅ Helper: ws:// -> http://, wss:// -> https://, sinon tel quel
+  function toApiUrl(from: string) {
+    if (from.startsWith('wss://')) return 'https://' + from.slice(6);
+    if (from.startsWith('ws://'))  return 'http://'  + from.slice(5);
+    return from;
+  }
+
+  // --- Enregistrement Service Worker + Push (VAPID) ---
   useEffect(() => {
     const VAPID_PUBLIC_KEY = 'BMc-eDAKQrPghLx7eLZJvoAK6ZtfS5EvLWun9MbOvIw8_nuBpGlkDTm8NnvR_dfjFf2QuhZEcUCBzCtQaYh6NPU';
 
     async function registerServiceWorkerAndPush(userId: string) {
-      if ('serviceWorker' in navigator && 'PushManager' in window) {
-        try {
-          const swReg = await navigator.serviceWorker.register('/sw.js');
-          console.log('Service Worker enregistré:', swReg);
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
 
-          let subscription = await swReg.pushManager.getSubscription();
-          if (subscription === null) {
-            subscription = await swReg.pushManager.subscribe({
-              userVisibleOnly: true,
-              applicationServerKey: VAPID_PUBLIC_KEY,
-            });
-          }
-
-          const apiUrl = signalingUrl.replace(/^wss?:\/\//, 'https://').replace(/^ws:\/\//, 'http://');
-          await fetch(`${apiUrl}/api/save-subscription`, {
-            method: 'POST',
-            body: JSON.stringify({ userId, subscription }),
-            headers: { 'Content-Type': 'application/json' },
-          });
-          console.log('Abonnement Push enregistré sur le serveur.');
-
-        } catch (error) {
-          console.error('Échec de l\'enregistrement du Service Worker ou de l\'abonnement Push:', error);
+      try {
+        // (optionnel) Demander la permission notif si nécessaire
+        if ('Notification' in window && Notification.permission === 'default') {
+          try { await Notification.requestPermission(); } catch {}
         }
+
+        const swReg = await navigator.serviceWorker.register('/sw.js');
+        // await swReg.update(); // optionnel, pour forcer la vérif de mise à jour
+        let subscription = await swReg.pushManager.getSubscription();
+
+        if (!subscription) {
+          const appServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY); // ✅ conversion requise
+          subscription = await swReg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: appServerKey,
+          });
+        }
+
+        const apiUrl = toApiUrl(signalingUrl); // ✅ mapping correct
+        await fetch(`${apiUrl}/api/save-subscription`, {
+          method: 'POST',
+          body: JSON.stringify({ userId, subscription }),
+          headers: { 'Content-Type': 'application/json' },
+        });
+        console.log('Abonnement Push enregistré sur le serveur.');
+
+      } catch (error) {
+        console.error('Échec SW/Push:', error);
       }
     }
 
@@ -245,6 +268,20 @@ function App() {
       registerServiceWorkerAndPush(myId);
     }
   }, [myId, signalingUrl]);
+
+  // ✅ Écoute les messages du SW (ex: FOCUS_CONVERSATION après clic notif)
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+    const handler = (event: MessageEvent) => {
+      const data = event.data || {};
+      if (data.type === 'FOCUS_CONVERSATION' && data.convId) {
+        setActiveTab('conversations');
+        setSelectedPeerId(data.convId);
+      }
+    };
+    navigator.serviceWorker.addEventListener('message', handler);
+    return () => navigator.serviceWorker.removeEventListener('message', handler);
+  }, []);
 
   // --- Ajout pour le Wake Lock ---
   useEffect(() => {
@@ -283,14 +320,14 @@ function App() {
       document.removeEventListener('fullscreenchange', handleVisibilityChange);
     };
   }, []);
-  // --- Fin de l'ajout pour le Wake Lock ---
+  // --- Fin Wake Lock ---
 
   const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) => {
     // Appelle le nouveau service en mappant name -> displayName
     await profileService.saveProfile({
       displayName: profileData.name,
       age: profileData.age,
-      gender: profileData.gender as 'male' | 'female' | 'other' | undefined
+      gender: (profileData.gender as 'male' | 'female' | 'other' | undefined)
     }, avatarFile);
 
     const updated = await profileService.getProfile();
@@ -376,7 +413,6 @@ function App() {
   const selectedPeer = peers.get(selectedPeerId || '');
 
   // --- Helpers UI responsives ---
-  const isChatOpenOnMobile = !!selectedPeer;
   const safeBottom = 'pb-[env(safe-area-inset-bottom)]';
   const safeTop = 'pt-[env(safe-area-inset-top)]';
 
@@ -612,7 +648,7 @@ function App() {
         {/* Colonne gauche – listes. Mobile: plein écran quand pas de chat ouvert */}
         <div
           className={`w-full sm:w-80 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col ${
-            isChatOpenOnMobile ? 'hidden sm:flex' : 'flex'
+            (!!selectedPeer) ? 'hidden sm:flex' : 'flex'
           }`}
         >
           {activeTab === 'peers' ? (
@@ -631,7 +667,7 @@ function App() {
         </div>
 
         {/* Panneau droit – chat. Mobile: plein écran quand un pair est sélectionné */}
-        <div className={`flex-1 flex flex-col ${isChatOpenOnMobile ? 'flex' : 'hidden sm:flex'}`}>
+        <div className={`flex-1 flex flex-col ${!!selectedPeer ? 'flex' : 'hidden sm:flex'}`}>
           {selectedPeer ? (
             <ChatWindow selectedPeer={selectedPeer} myId={myId} onBack={() => setSelectedPeerId(undefined)} />
           ) : selectedPeerId ? (

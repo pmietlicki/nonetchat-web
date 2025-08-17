@@ -7,7 +7,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import webpush from 'web-push';
 
-// --- Config --- 
+// --- Config ---
 dotenv.config();
 
 // -------------------------------------------------------------
@@ -46,25 +46,62 @@ let geoipReader = null;
 // -------------------------------------------------------------
 // Push Notifications (VAPID)
 // -------------------------------------------------------------
-if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+const PUSH_ENABLED = Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY);
+if (PUSH_ENABLED) {
   webpush.setVapidDetails(
-    'mailto:support@nonetchat.com', // Mettez une adresse email de contact
+    process.env.VAPID_SUB || 'mailto:contact@nonetchat.com', // contact recommandé
     process.env.VAPID_PUBLIC_KEY,
     process.env.VAPID_PRIVATE_KEY
   );
   console.log('[Push] VAPID keys configured.');
 } else {
-  console.warn('[Push] VAPID keys not found in .env file. Push notifications will be disabled.');
+  console.warn('[Push] VAPID keys not found in .env. Push notifications disabled.');
 }
-// En production, utilisez une base de données persistante (ex: Redis, PostgreSQL)
-const pushSubscriptions = new Map();
 
+// En production, utilisez une base de données persistante (Redis/PostgreSQL)
+const pushSubscriptions = new Map(); // Map<userId, Set<subscription>>
+
+function addSubscription(userId, subscription) {
+  let set = pushSubscriptions.get(userId);
+  if (!set) { set = new Set(); pushSubscriptions.set(userId, set); }
+  // Dédup par endpoint
+  for (const s of set) { if (s.endpoint === subscription.endpoint) return; }
+  set.add(subscription);
+}
+
+async function sendPushToUser(userId, payloadObj, options = { TTL: 60 }) {
+  if (!PUSH_ENABLED) return;
+  const set = pushSubscriptions.get(userId);
+  if (!set || set.size === 0) return;
+
+  const payload = JSON.stringify(payloadObj);
+  const toDelete = [];
+
+  await Promise.all([...set].map(async (sub) => {
+    try {
+      await webpush.sendNotification(sub, payload, options);
+    } catch (err) {
+      const code = err?.statusCode;
+      if (code === 404 || code === 410) {
+        // Abonnement expiré/supprimé -> on le retire
+        toDelete.push(sub);
+      } else {
+        console.error('[Push] Error sending', code, err?.body || err?.message);
+      }
+    }
+  }));
+
+  if (toDelete.length) {
+    toDelete.forEach(s => set.delete(s));
+    if (set.size === 0) pushSubscriptions.delete(userId);
+  }
+}
 
 // -------------------------------------------------------------
 // WebSocket Signaling
 // -------------------------------------------------------------
 const wss = new WebSocketServer({ port: 3001 });
-const clients = new Map();
+const clients = new Map(); // Map<clientId, {ws, ip, isAlive, radius, location, discoveryMode, profile?}>
 
 // Quadtree couvrant le globe entier (en degrés lat/lon)
 const geoTree = new Quadtree({
@@ -73,7 +110,7 @@ const geoTree = new Quadtree({
   width: 360,
   height: 180
 });
-const EPS = 1e-6; // epsilon pour les AABB du quadtree (évite width/height=0)
+const EPS = 1e-6; // epsilon pour les AABB du quadtree
 
 // -------------------------------------------------------------
 // HTTP API (Express) pour credentials TURN + GeoIP + Push
@@ -88,7 +125,6 @@ if (process.env.NODE_ENV !== 'production') {
 }
 const corsOptions = {
   origin(origin, callback) {
-    // Autoriser cURL/postman en dev, mais pas en prod
     const allowNoOrigin = process.env.NODE_ENV !== 'production';
     if ((allowNoOrigin && !origin) || whitelist.includes(origin)) {
       return callback(null, true);
@@ -99,7 +135,7 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
-app.use(express.json()); // Middleware pour parser le JSON des requêtes POST
+app.use(express.json()); // Middleware JSON
 
 const {
   TURN_STATIC_SECRET,
@@ -158,17 +194,17 @@ app.get('/api/geoip', async (req, res) => {
   }
 });
 
-// Endpoint pour sauvegarder un abonnement push
+// Endpoint pour sauvegarder un abonnement push (multi-device)
 app.post('/api/save-subscription', (req, res) => {
   const { userId, subscription } = req.body;
   if (!userId || !subscription) {
     return res.status(400).json({ error: 'Missing userId or subscription' });
   }
-  pushSubscriptions.set(userId, subscription);
-  console.log(`[Push] Subscription saved for ${userId}`);
+  addSubscription(userId, subscription);
+  const total = pushSubscriptions.get(userId)?.size || 0;
+  console.log(`[Push] Subscription saved for ${userId} (devices: ${total})`);
   res.status(201).json({ success: true });
 });
-
 
 // -------------------------------------------------------------
 // Logs d’écoute
@@ -336,7 +372,11 @@ wss.on('connection', (ws, req) => {
         isAlive: true,
         radius: 1.0,
         location: null,
-        discoveryMode: 'geo'
+        discoveryMode: 'geo',
+        profile: {
+          name: payload?.profile?.name || payload?.profile?.displayName || 'Utilisateur',
+          avatar: payload?.profile?.avatar || `https://i.pravatar.cc/192?u=${clientId}`
+        }
       });
 
       console.log(`[WS] Client ${clientId} registered from IP ${ip}. Total: ${clients.size}`);
@@ -372,7 +412,7 @@ wss.on('connection', (ws, req) => {
 
       case 'request-lan-discovery':
         clientData.discoveryMode = 'lan';
-        rebuildGeoTree(); // pas strictement nécessaire, mais garde la cohérence
+        rebuildGeoTree();
         broadcastPeerUpdates();
         break;
 
@@ -380,6 +420,33 @@ wss.on('connection', (ws, req) => {
         clientData.isAlive = true;
         break;
 
+      // ---- Messages applicatifs (optionnel, utile si store-and-forward) ----
+      case 'chat-message': {
+        const { to, from, text, convId, senderName, senderAvatar } = payload || {};
+        const recipient = to ? clients.get(to) : null;
+        if (recipient) {
+          // Destinataire en ligne -> relay WS
+          sendTo(recipient.ws, { type, from, payload: { text, convId } });
+        } else {
+          // Hors-ligne -> push
+          const fromClient = clients.get(from);
+          const name = senderName || fromClient?.profile?.name || 'Message entrant';
+          const avatar = senderAvatar || fromClient?.profile?.avatar || `https://i.pravatar.cc/192?u=${from}`;
+
+          sendPushToUser(to, {
+            type: 'message',
+            title: name,
+            body: typeof text === 'string' ? String(text).slice(0, 120) : 'Nouveau message',
+            tag: convId || from,      // regrouper par conversation
+            convId: convId || from,   // utilisé par le SW pour ouvrir la bonne vue
+            senderAvatar: avatar,
+            from
+          }, { TTL: 60 });
+        }
+        break;
+      }
+
+      // ---- Signalisation WebRTC (réveil si offline) ----
       case 'offer':
       case 'answer':
       case 'candidate': {
@@ -389,16 +456,27 @@ wss.on('connection', (ws, req) => {
           sendTo(recipient.ws, { type, from, payload: payload.payload });
         } else {
           // Le destinataire est hors ligne, envoyer une notification push
-          const subscription = pushSubscriptions.get(to);
-          if (subscription) {
-            console.log(`[Push] Sending notification to offline user ${to}`);
-            const pushPayload = JSON.stringify({
-              title: 'Nouveau message',
-              body: `Vous avez reçu un message de ${from}`,
-              tag: from // Regroupe les notifications par expéditeur
-            });
-            webpush.sendNotification(subscription, pushPayload).catch(err => console.error('[Push] Error sending notification', err));
-          }
+          const fromClient = clients.get(from);
+          const name = fromClient?.profile?.name || from;
+          const avatar = fromClient?.profile?.avatar || `https://i.pravatar.cc/192?u=${from}`;
+
+          sendPushToUser(to, {
+            type: 'webrtc',
+            title: 'Connexion entrante',
+            body: `Tentative de connexion de ${name}`,
+            tag: from,
+            convId: from,
+            senderAvatar: avatar,
+            from
+          }, { TTL: 30 });
+        }
+        break;
+      }
+
+      case 'server-profile-update': {
+        const name = payload?.name;
+        if (name && clients.has(clientId)) {
+          clients.get(clientId).profile.name = name;
         }
         break;
       }
