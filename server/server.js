@@ -4,6 +4,11 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { Reader } from '@maxmind/geoip2-node';
 import Quadtree from '@timohausmann/quadtree-js';
 import cors from 'cors';
+import dotenv from 'dotenv';
+import webpush from 'web-push';
+
+// --- Config --- 
+dotenv.config();
 
 // -------------------------------------------------------------
 // Utils IP & sécurité
@@ -39,6 +44,23 @@ let geoipReader = null;
 })();
 
 // -------------------------------------------------------------
+// Push Notifications (VAPID)
+// -------------------------------------------------------------
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    'mailto:support@nonetchat.com', // Mettez une adresse email de contact
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  );
+  console.log('[Push] VAPID keys configured.');
+} else {
+  console.warn('[Push] VAPID keys not found in .env file. Push notifications will be disabled.');
+}
+// En production, utilisez une base de données persistante (ex: Redis, PostgreSQL)
+const pushSubscriptions = new Map();
+
+
+// -------------------------------------------------------------
 // WebSocket Signaling
 // -------------------------------------------------------------
 const wss = new WebSocketServer({ port: 3001 });
@@ -54,7 +76,7 @@ const geoTree = new Quadtree({
 const EPS = 1e-6; // epsilon pour les AABB du quadtree (évite width/height=0)
 
 // -------------------------------------------------------------
-// HTTP API (Express) pour credentials TURN + GeoIP
+// HTTP API (Express) pour credentials TURN + GeoIP + Push
 // -------------------------------------------------------------
 const app = express();
 app.set('trust proxy', true);
@@ -77,6 +99,7 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
+app.use(express.json()); // Middleware pour parser le JSON des requêtes POST
 
 const {
   TURN_STATIC_SECRET,
@@ -98,15 +121,12 @@ app.get('/api/turn-credentials', (req, res) => {
   const username = `${Math.floor(Date.now() / 1000) + ttl}:${userId}`;
   const credential = hmacBase64(TURN_STATIC_SECRET, username);
 
-  // Ensemble d’ICE servers robuste
   const iceServers = [
     { urls: `stun:${TURN_HOST}:3478` },
-    { urls: `stun:${TURN_HOST}:5349` }, // certains stacks supportent STUN sur 5349
+    { urls: `stun:${TURN_HOST}:5349` },
     { urls: `turn:${TURN_HOST}:3478?transport=udp`, username, credential },
     { urls: `turn:${TURN_HOST}:3478?transport=tcp`, username, credential },
     { urls: `turns:${TURN_HOST}:5349?transport=tcp`, username, credential },
-    // Optionnel si vous terminez TLS sur 443 pour contourner des FW stricts :
-    // { urls: `turns:${TURN_HOST}:443?transport=tcp`, username, credential },
   ];
 
   res.json({ username, credential, ttl, realm: TURN_REALM, iceServers });
@@ -134,10 +154,21 @@ app.get('/api/geoip', async (req, res) => {
       accuracyKm: accuracy_radius ?? 25,
     });
   } catch {
-    // IP privée / pas de hit => mieux que 500
     return res.status(204).end();
   }
 });
+
+// Endpoint pour sauvegarder un abonnement push
+app.post('/api/save-subscription', (req, res) => {
+  const { userId, subscription } = req.body;
+  if (!userId || !subscription) {
+    return res.status(400).json({ error: 'Missing userId or subscription' });
+  }
+  pushSubscriptions.set(userId, subscription);
+  console.log(`[Push] Subscription saved for ${userId}`);
+  res.status(201).json({ success: true });
+});
+
 
 // -------------------------------------------------------------
 // Logs d’écoute
@@ -193,7 +224,6 @@ function sendTo(ws, message) {
   }
 }
 
-// Reconstruit le quadtree à partir des clients géolocalisés
 function rebuildGeoTree() {
   geoTree.clear();
   clients.forEach((client, clientId) => {
@@ -357,6 +387,18 @@ wss.on('connection', (ws, req) => {
         const recipient = to ? clients.get(to) : null;
         if (recipient) {
           sendTo(recipient.ws, { type, from, payload: payload.payload });
+        } else {
+          // Le destinataire est hors ligne, envoyer une notification push
+          const subscription = pushSubscriptions.get(to);
+          if (subscription) {
+            console.log(`[Push] Sending notification to offline user ${to}`);
+            const pushPayload = JSON.stringify({
+              title: 'Nouveau message',
+              body: `Vous avez reçu un message de ${from}`,
+              tag: from // Regroupe les notifications par expéditeur
+            });
+            webpush.sendNotification(subscription, pushPayload).catch(err => console.error('[Push] Error sending notification', err));
+          }
         }
         break;
       }

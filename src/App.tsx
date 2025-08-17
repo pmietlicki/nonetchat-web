@@ -209,6 +209,82 @@ function App() {
     };
   }, [signalingUrl, searchRadius]);
 
+  // --- Ajout pour l'enregistrement du Service Worker et Push ---
+  useEffect(() => {
+    const VAPID_PUBLIC_KEY = 'BMc-eDAKQrPghLx7eLZJvoAK6ZtfS5EvLWun9MbOvIw8_nuBpGlkDTm8NnvR_dfjFf2QuhZEcUCBzCtQaYh6NPU';
+
+    async function registerServiceWorkerAndPush(userId: string) {
+      if ('serviceWorker' in navigator && 'PushManager' in window) {
+        try {
+          const swReg = await navigator.serviceWorker.register('/sw.js');
+          console.log('Service Worker enregistré:', swReg);
+
+          let subscription = await swReg.pushManager.getSubscription();
+          if (subscription === null) {
+            subscription = await swReg.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: VAPID_PUBLIC_KEY,
+            });
+          }
+
+          const apiUrl = signalingUrl.replace(/^wss?:\/\//, 'https://').replace(/^ws:\/\//, 'http://');
+          await fetch(`${apiUrl}/api/save-subscription`, {
+            method: 'POST',
+            body: JSON.stringify({ userId, subscription }),
+            headers: { 'Content-Type': 'application/json' },
+          });
+          console.log('Abonnement Push enregistré sur le serveur.');
+
+        } catch (error) {
+          console.error('Échec de l\'enregistrement du Service Worker ou de l\'abonnement Push:', error);
+        }
+      }
+    }
+
+    if (myId) {
+      registerServiceWorkerAndPush(myId);
+    }
+  }, [myId, signalingUrl]);
+
+  // --- Ajout pour le Wake Lock ---
+  useEffect(() => {
+    let wakeLock: WakeLockSentinel | null = null;
+
+    const requestWakeLock = async () => {
+      if ('wakeLock' in navigator && document.visibilityState === 'visible') {
+        try {
+          const sentinel: WakeLockSentinel = await (navigator as any).wakeLock.request('screen');
+          wakeLock = sentinel;
+          console.log('Screen Wake Lock activé.');
+          sentinel.addEventListener('release', () => {
+            console.log('Screen Wake Lock a été libéré.');
+          });
+        } catch (err: any) {
+          console.error(`Échec de l'activation du Wake Lock: ${err.name}, ${err.message}`);
+        }
+      }
+    };
+
+    requestWakeLock();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        requestWakeLock();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener('fullscreenchange', handleVisibilityChange);
+
+    return () => {
+      wakeLock?.release();
+      wakeLock = null;
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('fullscreenchange', handleVisibilityChange);
+    };
+  }, []);
+  // --- Fin de l'ajout pour le Wake Lock ---
+
   const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) => {
     // Appelle le nouveau service en mappant name -> displayName
     await profileService.saveProfile({
