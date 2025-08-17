@@ -302,7 +302,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         },
         selectedPeer.id
       );
-      await dbService.updateConversationParticipant(selectedPeer.id, selectedPeer.name, selectedPeer.avatar);
+      await dbService.updateConversationParticipant(
+        selectedPeer.id,
+        selectedPeer.name,
+        selectedPeer.avatar,
+        selectedPeer.age,
+        selectedPeer.gender as 'male' | 'female' | 'other' | undefined,
+      );
 
       if (message.senderId !== myId) {
         notificationService.addMessage(selectedPeer.id, {

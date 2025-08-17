@@ -14,6 +14,8 @@ interface StoredConversation {
   participantId: string;
   participantName: string;
   participantAvatar: string;
+  participantAge?: number;
+  participantGender?: 'male' | 'female' | 'other';
   lastMessage?: {
     content: string;
     timestamp: number;
@@ -235,14 +237,48 @@ const ConversationList: React.FC<ConversationListProps> = ({
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <h4
-                          className={`font-medium truncate ${
-                            unreadCount > 0 ? 'text-gray-900 font-semibold' : 'text-gray-900'
-                          }`}
-                          title={conversation.participantName}
-                        >
-                          {conversation.participantName || 'Utilisateur'}
-                        </h4>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <h4
+                            className={`font-medium truncate ${
+                              unreadCount > 0 ? 'text-gray-900 font-semibold' : 'text-gray-900'
+                            }`}
+                            title={conversation.participantName}
+                          >
+                            {conversation.participantName || 'Utilisateur'}
+                          </h4>
+                          {(conversation.participantAge || conversation.participantGender) && (
+                            <div className="flex items-center gap-1 text-xs text-gray-500 flex-shrink-0">
+                              <span>•</span>
+                              {conversation.participantGender && (
+                                <span
+                                  className="text-sm"
+                                  title={
+                                    conversation.participantGender === 'male'
+                                      ? 'Homme'
+                                      : conversation.participantGender === 'female'
+                                      ? 'Femme'
+                                      : 'Autre'
+                                  }
+                                  style={{
+                                    color:
+                                      conversation.participantGender === 'female'
+                                        ? '#ec4899'
+                                        : conversation.participantGender === 'male'
+                                        ? '#3b82f6'
+                                        : '#6b7280',
+                                  }}
+                                >
+                                  {conversation.participantGender === 'male'
+                                    ? '♂'
+                                    : conversation.participantGender === 'female'
+                                    ? '♀'
+                                    : '⚧'}
+                                </span>
+                              )}
+                              {conversation.participantAge && <span>{conversation.participantAge} ans</span>}
+                            </div>
+                          )}
+                        </div>
                         <div className="flex items-center gap-2">
                           {conversation.lastMessage && (
                             <span className="text-xs text-gray-500" title={new Date(conversation.lastMessage.timestamp).toLocaleString('fr-FR')}>

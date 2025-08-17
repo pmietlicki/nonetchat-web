@@ -553,6 +553,9 @@ class PeerService extends EventEmitter {
         // Émettre vers l’UI un payload enrichi avec un champ avatar (miniature si dispo, sinon pravatar)
         const avatarForUi = entry.avatarThumbDataUrl || this.fallbackAvatarUrl(p.id, p.avatarVersion);
         this.emit('data', peerId, { type: message.type, payload: { ...p, avatar: avatarForUi } });
+
+        // Mettre à jour la conversation dans la base de données avec les infos du profil
+        this.dbService.updateConversationParticipant(peerId, p.displayName || '', avatarForUi, p.age, p.gender);
         return;
       }
 

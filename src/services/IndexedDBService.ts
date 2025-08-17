@@ -24,6 +24,8 @@ interface StoredConversation {
   participantId: string;
   participantName: string;
   participantAvatar: string;
+  participantAge?: number;
+  participantGender?: 'male' | 'female' | 'other';
   lastMessage?: StoredMessage;
   unreadCount: number;
   updatedAt: number;
@@ -266,8 +268,10 @@ class IndexedDBService {
           participantId: message.senderId === 'current_user' ? message.receiverId : message.senderId,
           participantName: conversation?.participantName || 'Unknown User',
           participantAvatar: conversation?.participantAvatar || '',
+          participantAge: conversation?.participantAge,
+          participantGender: conversation?.participantGender,
           lastMessage: { ...message, conversationId },
-          unreadCount: message.senderId === 'current_user' ? 0 : (conversation?.unreadCount || 0) + 1,
+          unreadCount: message.senderId === 'current_user' ? (conversation?.unreadCount || 0) : (conversation?.unreadCount || 0) + 1,
           updatedAt: Date.now(),
         };
 
@@ -391,12 +395,20 @@ class IndexedDBService {
     });
   }
 
-  async updateConversationParticipant(conversationId: string, name: string, avatar: string): Promise<void> {
+  async updateConversationParticipant(
+    conversationId: string,
+    name: string,
+    avatar: string,
+    age?: number,
+    gender?: 'male' | 'female' | 'other',
+  ): Promise<void> {
     const db = this.ensureDb();
     const conv = await this.getConversation(conversationId);
     if (!conv) return;
     conv.participantName = name;
     conv.participantAvatar = avatar;
+    conv.participantAge = age;
+    conv.participantGender = gender;
     await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(['conversations'], 'readwrite');
       tx.objectStore('conversations').put(conv);
