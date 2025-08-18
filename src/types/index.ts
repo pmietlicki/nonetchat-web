@@ -19,6 +19,7 @@ export interface Message {
   encrypted: boolean;
   fileData?: FileData;
   status: 'sending' | 'sent' | 'delivered' | 'read';
+  reactions?: { [emoji: string]: string[] };
 }
 
 export interface FileData {

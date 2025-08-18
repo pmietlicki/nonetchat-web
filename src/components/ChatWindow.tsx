@@ -221,6 +221,32 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     setMessages(prev => prev.map(m => (m.id === messageId ? { ...m, status: 'read' } : m)));
   }, [selectedPeer.id]);
 
+  const handleReactionReceived = useCallback(async (peerId: string, messageId: string, emoji: string) => {
+    if (peerId !== selectedPeer.id) return;
+
+    setMessages(prev => {
+        const newMessages = prev.map(msg => {
+            if (msg.id !== messageId) return msg;
+
+            const reactions = { ...(msg.reactions || {}) };
+            const reactorIds = reactions[emoji] || [];
+
+            if (reactorIds.includes(peerId)) {
+                reactions[emoji] = reactorIds.filter(id => id !== peerId);
+                if (reactions[emoji].length === 0) delete reactions[emoji];
+            } else {
+                reactions[emoji] = [...reactorIds, peerId];
+            }
+            
+            // Persiste la modification reçue dans la base de données
+            dbService.updateMessageReactions(messageId, reactions);
+
+            return { ...msg, reactions };
+        });
+        return newMessages;
+    });
+  }, [selectedPeer.id, dbService]);
+
   useEffect(() => {
     loadMessages();
     markAsRead();
@@ -229,6 +255,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     peerService.on('file-chunk', handleFileChunk);
     peerService.on('message-delivered', handleMessageDelivered);
     peerService.on('message-read', handleMessageRead);
+    peerService.on('reaction-received', handleReactionReceived);
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && isAtBottom) {
@@ -244,6 +271,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         peerService.removeListener('file-chunk', handleFileChunk);
         peerService.removeListener('message-delivered', handleMessageDelivered);
         peerService.removeListener('message-read', handleMessageRead);
+        peerService.removeListener('reaction-received', handleReactionReceived);
       }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
 
@@ -254,7 +282,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       blobUrlsRef.current.clear();
     };
     // ⚠️ On ne dépend PAS de `messages` pour éviter de ré-attacher les listeners à chaque message
-  }, [selectedPeer.id, handleData, handleFileChunk, handleMessageDelivered, handleMessageRead, isAtBottom, longPressTimer]);
+  }, [selectedPeer.id, handleData, handleFileChunk, handleMessageDelivered, handleMessageRead, isAtBottom, longPressTimer, handleReactionReceived]);
 
   // Fermer menus/emoji quand on clique ailleurs
   useEffect(() => {
@@ -421,28 +449,37 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   };
 
   const addReaction = async (messageId: string, emoji: string) => {
-    try {
-      setMessages(prev =>
-        prev.map(msg => {
-          if (msg.id !== messageId) return msg;
-          const reactions = { ...(msg.reactions || {}) };
-          if (reactions[emoji]) {
-            if (reactions[emoji].includes(myId)) {
-              reactions[emoji] = reactions[emoji].filter(id => id !== myId);
-              if (reactions[emoji].length === 0) delete reactions[emoji];
-            } else {
-              reactions[emoji].push(myId);
-            }
-          } else {
-            reactions[emoji] = [myId];
-          }
-          return { ...msg, reactions };
-        })
-      );
-      setShowReactionPicker(null);
-      // TODO: persister les réactions en IndexedDB si besoin
-    } catch (error) {
-      console.error("Erreur lors de l'ajout de la réaction:", error);
+    let newReactions: { [key: string]: string[] } | undefined;
+
+    // Met à jour l'état de l'UI immédiatement pour une meilleure réactivité
+    setMessages(prev =>
+      prev.map(msg => {
+        if (msg.id !== messageId) return msg;
+        const reactions = { ...(msg.reactions || {}) };
+        const reactorIds = reactions[emoji] || [];
+
+        if (reactorIds.includes(myId)) {
+          reactions[emoji] = reactorIds.filter(id => id !== myId);
+          if (reactions[emoji].length === 0) delete reactions[emoji];
+        } else {
+          reactions[emoji] = [...reactorIds, myId];
+        }
+        
+        newReactions = reactions; // Capture les nouvelles réactions pour la persistance
+        return { ...msg, reactions };
+      })
+    );
+    setShowReactionPicker(null);
+
+    // Persiste la modification et l'envoie au pair
+    if (newReactions) {
+      try {
+        await dbService.updateMessageReactions(messageId, newReactions);
+        peerService.sendReaction(selectedPeer.id, messageId, emoji);
+      } catch (error) {
+        console.error("Erreur lors de la mise à jour de la réaction:", error);
+        // Optionnel: implémenter une logique pour annuler la modification de l'UI si la persistance échoue
+      }
     }
   };
 

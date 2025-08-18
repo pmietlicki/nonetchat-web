@@ -9,6 +9,7 @@ interface StoredMessage {
   type: 'text' | 'file';
   encrypted: boolean;
   status: 'sending' | 'sent' | 'delivered' | 'read';
+  reactions?: { [emoji: string]: string[] };
   fileData?: {
     name: string;
     size: number;
@@ -347,6 +348,27 @@ class IndexedDBService {
       tx.objectStore('conversations').put(conv);
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  async updateMessageReactions(messageId: string, reactions: { [emoji: string]: string[] }): Promise<void> {
+    const db = this.ensureDb();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(['messages'], 'readwrite');
+      const store = tx.objectStore('messages');
+      const getReq = store.get(messageId);
+      getReq.onsuccess = () => {
+        const msg = getReq.result as StoredMessage | undefined;
+        if (msg) {
+          msg.reactions = reactions;
+          const putReq = store.put(msg);
+          putReq.onsuccess = () => resolve();
+          putReq.onerror = () => reject(putReq.error);
+        } else {
+          resolve(); // silencieux si introuvable
+        }
+      };
+      getReq.onerror = () => reject(getReq.error);
     });
   }
 

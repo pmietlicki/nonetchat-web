@@ -5,7 +5,7 @@ import { DiagnosticService } from './DiagnosticService';
 import ProfileService, { PublicProfile } from './ProfileService';
 
 export type PeerMessage =
-  | { type: 'profile' | 'profile-update' | 'chat-message' | 'key-exchange' | 'file-start' | 'file-chunk' | 'file-end' | 'message-delivered' | 'message-read' | 'avatar-request' | 'avatar-thumb'; payload: any; messageId?: string };
+  | { type: 'profile' | 'profile-update' | 'chat-message' | 'key-exchange' | 'file-start' | 'file-chunk' | 'file-end' | 'message-delivered' | 'message-read' | 'avatar-request' | 'avatar-thumb' | 'reaction'; payload: any; messageId?: string };
 
 class EventEmitter {
   protected events: { [key: string]: Function[] } = {};
@@ -631,6 +631,12 @@ class PeerService extends EventEmitter {
         return;
       }
 
+      if (message.type === 'reaction') {
+        const { messageId, emoji } = message.payload;
+        this.emit('reaction-received', peerId, messageId, emoji);
+        return;
+      }
+
       // Par défaut, on relaie
       this.emit('data', peerId, message);
     };
@@ -796,6 +802,10 @@ class PeerService extends EventEmitter {
 
   public sendMessageReadAck(peerId: string, messageId: string) {
     this.sendToPeer(peerId, { type: 'message-read', payload: null, messageId });
+  }
+
+  public sendReaction(peerId: string, messageId: string, emoji: string) {
+    this.sendToPeer(peerId, { type: 'reaction', payload: { messageId, emoji } });
   }
 
   private async loadBlockList() {
