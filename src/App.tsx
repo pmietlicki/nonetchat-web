@@ -69,31 +69,33 @@ function App() {
   const notificationService = NotificationService.getInstance();
 
   // Résolution centralisée de l’avatar à afficher (blob local ou pravatar versionné)
-  useEffect(() => {
-    let revoked: string | null = null;
-    const refresh = async () => {
-      try {
-        const url = await profileService.getDisplayAvatarUrl();
-        setMyAvatarUrl((prev) => {
-          if (prev && prev.startsWith('blob:')) {
-            try { URL.revokeObjectURL(prev); } catch {}
-          }
-          return url;
-        });
-        revoked = url && url.startsWith('blob:') ? url : null;
-      } catch {
-        const fallback = `https://i.pravatar.cc/150?u=${encodeURIComponent(userProfile.id || '')}&v=${avatarRefreshKey}`;
-        setMyAvatarUrl(fallback);
-      }
-    };
-    refresh();
-    return () => {
-      if (revoked) {
-        try { URL.revokeObjectURL(revoked); } catch {}
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userProfile.id, avatarRefreshKey]);
+useEffect(() => {
+  let cancelled = false;
+  (async () => {
+    try {
+      const url = await profileService.getDisplayAvatarUrl();
+      if (cancelled) return;
+      setMyAvatarUrl(prev => {
+        if (prev && prev.startsWith('blob:')) {
+          try { URL.revokeObjectURL(prev); } catch {}
+        }
+        return url;
+      });
+    } catch {
+      const ver = (userProfile as any).avatarVersion || 1;
+      const fallback = `https://i.pravatar.cc/150?u=${encodeURIComponent(`${userProfile.id || ''}:${ver}`)}&_=${avatarRefreshKey}`;
+      setMyAvatarUrl(fallback);
+    }
+  })();
+  return () => { cancelled = true; };
+  // ⚠️ dépendances élargies : hash & version déclenchent l’update après save()
+}, [
+  userProfile.id,
+  (userProfile as any).avatarHash,
+  (userProfile as any).avatarVersion,
+  avatarRefreshKey
+]);
+
 
   // --- INITIALISATION et abonnements *non liés* aux messages (open/peer-joined/left, notif, geoloc)
   useEffect(() => {
@@ -426,25 +428,29 @@ useEffect(() => {
     };
   }, []);
 
-  const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) => {
-    await profileService.saveProfile({
-      displayName: profileData.name,
-      age: profileData.age,
-      gender: (profileData.gender as 'male' | 'female' | 'other' | undefined)
-    }, avatarFile);
+const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) => {
+  await profileService.saveProfile({
+    displayName: profileData.name,
+    age: profileData.age,
+    gender: (profileData.gender as 'male' | 'female' | 'other' | undefined)
+  }, avatarFile);
 
-    const updated = await profileService.getProfile();
-    const normalized: Partial<User> & { avatarBlob?: Blob | null } = {
-      ...updated,
-      name: (updated as any).displayName ?? (updated as any).name ?? '',
-      age: (updated as any).age,
-      gender: (updated as any).gender,
-      avatarBlob: (updated as any).avatarBlob,
-    };
-    setUserProfile(normalized);
-
-    await peerService.broadcastProfileUpdate();
+  const updated = await profileService.getProfile();
+  const normalized: Partial<User> & { avatarBlob?: Blob | null } = {
+    ...updated,
+    name: (updated as any).displayName ?? (updated as any).name ?? '',
+    age: (updated as any).age,
+    gender: (updated as any).gender,
+    avatarBlob: (updated as any).avatarBlob,
   };
+  setUserProfile(normalized);
+
+  // ✅ si un nouveau fichier a été fourni, force un tick de refresh UI
+  if (avatarFile) setAvatarRefreshKey(k => k + 1);
+
+  await peerService.broadcastProfileUpdate();
+};
+
 
   const handleRefreshAvatar = async () => {
     await profileService.deleteCustomAvatar();
@@ -569,7 +575,10 @@ useEffect(() => {
               <div className="rounded-lg border border-gray-200 p-3 flex items-center justify-between">
                 <div className="flex items-center gap-3 min-w-0">
                   <img
-                    src={myAvatarUrl || `https://i.pravatar.cc/150?u=${encodeURIComponent(userProfile.id || '')}`}
+                    src={
+                      myAvatarUrl ||
+                      `https://i.pravatar.cc/150?u=${encodeURIComponent(`${userProfile.id || ''}:${(userProfile as any).avatarVersion || 1}`)}&_=${avatarRefreshKey}`
+                    }
                     alt="Avatar"
                     className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                   />

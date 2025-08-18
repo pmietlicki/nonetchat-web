@@ -99,7 +99,9 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
     }
   };
 
-  const fallback = `https://i.pravatar.cc/150?u=${initialProfile.id || 'user'}`;
+  const version = ((initialProfile as any).avatarVersion || 1);
+  const fallback = `https://i.pravatar.cc/150?u=${encodeURIComponent(`${initialProfile.id || 'user'}:${version}`)}`;
+
   const currentAvatar = avatarPreview || displayAvatarUrl || fallback;
 
   return (
@@ -119,7 +121,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
               src={currentAvatar}
               alt="Avatar"
               onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src = fallback;
+                const img = e.currentTarget as HTMLImageElement;
+                // Ne bascule sur le fallback que si ce n’est PAS un blob (ex: pravatar cassé)
+                if (!img.src.startsWith('blob:')) {
+                  img.src = fallback;
+                }
               }}
               className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
             />

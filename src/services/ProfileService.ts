@@ -40,9 +40,11 @@ class ProfileService {
     return deviceId;
   }
 
-  private pravatarUrl(id: string, v: number = 1, size = 150): string {
-    return `https://i.pravatar.cc/${size}?u=${encodeURIComponent(id)}&v=${v}`;
-  }
+  private pravatarUrl(id: string, version = 1, size = 150): string {
+  const seed = `${id}:${version}`; // <— le seed change réellement
+  return `https://i.pravatar.cc/${size}?u=${encodeURIComponent(seed)}`;
+}
+
 
   private async blobToDataURL(blob: Blob): Promise<string> {
     return new Promise((resolve, reject) => {
