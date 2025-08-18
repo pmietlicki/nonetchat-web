@@ -2,7 +2,7 @@
 param(
   [string]$Src = "logo.png",
   [string]$Out = "public\icons",
-  [string]$Bg  = "#0EA5E9"
+  [string]$Bg  = "#FFFFFF"
 )
 
 # --- Prérequis ---

@@ -3,7 +3,7 @@ set -euo pipefail
 
 SRC="logo.png"
 OUT="public/icons"
-BG="#0EA5E9"
+BG="#FFFFFF"
 
 mkdir -p "$OUT"
 
