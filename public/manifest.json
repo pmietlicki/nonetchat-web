@@ -2,31 +2,18 @@
   "id": "/",
   "scope": "/",
   "name": "NoNetChat Web",
-  "short_name": "NoNetChat",
+  "short_name": "NoNetChatWeb",
   "description": "Messagerie décentralisée, locale et sécurisée via WebRTC.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f8fafc",
   "theme_color": "#2563eb",
   "icons": [
-    {
-      "src": "/manifest-icon-96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any monochrome"
-    },
-    {
-      "src": "/manifest-icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/manifest-icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    { "src": "/icons/icon-96-monochrome.png", "sizes": "96x96", "type": "image/png", "purpose": "monochrome" },
+    { "src": "/icons/icon-192.png",           "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-192-maskable.png",  "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon-512.png",           "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512-maskable.png",  "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "categories": ["communication", "social"],
   "lang": "fr-FR"
