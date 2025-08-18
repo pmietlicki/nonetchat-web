@@ -380,18 +380,26 @@ class IndexedDBService {
   async deleteConversation(conversationId: string): Promise<void> {
     const db = this.ensureDb();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction(['messages', 'conversations'], 'readwrite');
+      const tx = db.transaction(['messages', 'conversations', 'fileBlobs'], 'readwrite');
       const messagesStore = tx.objectStore('messages');
       const conversationsStore = tx.objectStore('conversations');
+      const fileBlobsStore = tx.objectStore('fileBlobs');
 
       const index = messagesStore.index('conversationId');
       const cursorReq = index.openCursor(IDBKeyRange.only(conversationId));
       cursorReq.onsuccess = (ev) => {
         const cursor = (ev.target as IDBRequest<IDBCursorWithValue | null>).result;
         if (cursor) {
+          const message = cursor.value as StoredMessage;
+          // Si le message est un fichier, on supprime aussi son blob stocké
+          if (message.type === 'file') {
+            fileBlobsStore.delete(message.id);
+          }
+          // On supprime le message lui-même
           cursor.delete();
           cursor.continue();
         } else {
+          // Une fois tous les messages supprimés, on supprime la conversation
           const delReq = conversationsStore.delete(conversationId);
           delReq.onsuccess = () => resolve(undefined);
           delReq.onerror = () => reject(delReq.error);
