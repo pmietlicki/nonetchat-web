@@ -1,7 +1,66 @@
-// ---- IndexedDB helpers ----
+const CACHE_NAME = 'nonetchat-cache-v1';
+const APP_SHELL_URLS = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  // Ajoutez ici les assets critiques de l'app shell (logo, CSS principal, etc.)
+  // Exemple: '/logo.png', '/src/index.css'
+];
+
+// ---- Stratégie de cache: Network First, puis Cache ----
+const networkFirst = async (request) => {
+  try {
+    // 1. Essayer de récupérer depuis le réseau
+    const networkResponse = await fetch(request);
+    // Si la requête réussit, on met en cache la nouvelle version
+    if (networkResponse.ok) {
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
+  } catch (error) {
+    // 2. Si le réseau échoue, essayer de récupérer depuis le cache
+    const cachedResponse = await caches.match(request);
+    return cachedResponse || Response.error(); // Échoue si non trouvé dans le cache
+  }
+};
+
+// ---- INSTALL: Pré-caching de l'App Shell ----
+self.addEventListener('install', event => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll(APP_SHELL_URLS);
+    // console.log('[SW] App Shell pre-cached');
+  })());
+});
+
+// ---- ACTIVATE: Nettoyage des anciens caches ----
+self.addEventListener('activate', event => {
+  event.waitUntil((async () => {
+    const cacheNames = await caches.keys();
+    await Promise.all(
+      cacheNames
+        .filter(name => name !== CACHE_NAME)
+        .map(name => caches.delete(name))
+    );
+    // console.log('[SW] Caches cleaned');
+  })());
+});
+
+// ---- FETCH: Interception des requêtes ----
+self.addEventListener('fetch', event => {
+  // On ne gère que les requêtes GET
+  if (event.request.method !== 'GET') {
+    return;
+  }
+  // On applique la stratégie "Network First"
+  event.respondWith(networkFirst(event.request));
+});
+
+
+// ---- IndexedDB helpers (inchangé) ----
 function openDB() {
   return new Promise((resolve, reject) => {
-    // ⚠️ Doit matcher la version de l’app (sinon onupgradeneeded non géré ici)
     const request = indexedDB.open('NoNetChatWeb', 7);
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
@@ -18,7 +77,7 @@ function getFromStore(db, storeName, key) {
   });
 }
 
-// ---- Push handler ----
+// ---- Push handler (inchangé) ----
 self.addEventListener('push', event => {
   event.waitUntil((async () => {
     let data = {};
@@ -27,21 +86,17 @@ self.addEventListener('push', event => {
     const title = data.title || 'Nouveau message';
     const options = {
       body: data.body || '',
-      icon: '/manifest-icon-192.png',     // fallback logo
-      badge: '/manifest-icon-96.png',     // optionnel (Android)
+      icon: '/manifest-icon-192.png',
+      badge: '/manifest-icon-96.png',
       tag: data.tag || data.convId || 'nonetchat',
       data: {
         convId: data.convId || data.tag || null,
         from: data.from || null,
-        // on garde tout le payload utile
         payload: data
       }
     };
 
-    // 1) Avatar depuis le payload push si fourni
     let candidateIcon = data.senderAvatar;
-
-    // 2) Sinon, essaye IndexedDB (clé = convId OU tag)
     if (!candidateIcon && (data.tag || data.convId)) {
       try {
         const db = await openDB();
@@ -51,13 +106,9 @@ self.addEventListener('push', event => {
         if (conversation?.participantAvatar) {
           candidateIcon = conversation.participantAvatar;
         }
-      } catch (e) {
-        // On ne casse pas la notif si l’IDB échoue
-        // console.warn('[SW] IndexedDB read failed:', e);
-      }
+      } catch (e) {}
     }
 
-    // 3) On n’accepte que data: ou https: (éviter blob: en SW)
     if (typeof candidateIcon === 'string' &&
         (candidateIcon.startsWith('data:') || candidateIcon.startsWith('https://'))) {
       options.icon = candidateIcon;
@@ -67,23 +118,21 @@ self.addEventListener('push', event => {
   })());
 });
 
-// ---- Click handler ----
+// ---- Click handler (inchangé) ----
 self.addEventListener('notificationclick', event => {
   event.notification.close();
   const convId = event.notification?.data?.convId || null;
-  const origin = self.location.origin; // ✅ au lieu de self.origin
+  const origin = self.location.origin;
   const url = convId ? `/?open=${encodeURIComponent(convId)}` : '/';
 
   event.waitUntil((async () => {
     const list = await clients.matchAll({ type: 'window', includeUncontrolled: true });
-    // Si une fenêtre de l’app existe, on la focus et on lui passe l’info
     for (const c of list) {
       if (c.url.startsWith(origin) && 'focus' in c) {
         c.postMessage({ type: 'FOCUS_CONVERSATION', convId });
         return c.focus();
       }
     }
-    // Sinon on ouvre une nouvelle fenêtre sur la conversation
     return clients.openWindow(url);
   })());
 });

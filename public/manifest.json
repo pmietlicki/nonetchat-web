@@ -1,18 +1,31 @@
 {
   "name": "NoNetChat Web",
-  "short_name": "P2PMsg",
-  "description": "Messagerie décentralisée pour réseau local",
+  "short_name": "NoNetChat",
+  "description": "Messagerie décentralisée, locale et sécurisée via WebRTC.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#f8fafc",
   "theme_color": "#2563eb",
   "icons": [
     {
-      "src": "/vite.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
+      "src": "/manifest-icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any monochrome"
+    },
+    {
+      "src": "/manifest-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/manifest-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
-  "categories": ["communication", "productivity"],
-  "lang": "fr"
+  "categories": ["communication", "social"],
+  "lang": "fr-FR"
 }

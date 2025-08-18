@@ -546,12 +546,16 @@ function App() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
             <div
-              className={`p-2 rounded-lg ${isConnected ? 'bg-blue-600 text-white' : 'bg-gray-400 text-white'}`}
-              aria-label={isConnected ? 'Connecté' : 'Déconnecté'}
-              title={isConnected ? 'Connecté' : 'Déconnecté'}
-            >
-              {isConnected ? <Wifi size={22} /> : <WifiOff size={22} />}
-            </div>
+            className={`p-1.5 rounded-lg ${isConnected ? 'bg-blue-600' : 'bg-gray-300'}`}
+            aria-label={isConnected ? 'Connecté' : 'Déconnecté'}
+            title={isConnected ? 'Connecté' : 'Déconnecté'}
+          >
+            <img
+              src="/manifest-icon-96.png"
+              alt="Logo NoNetChat"
+              className={`w-7 h-7 transition-all duration-300 ${!isConnected ? 'grayscale opacity-60' : ''}`}
+            />
+          </div>
             <div className="min-w-0">
               <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">NoNetChat Web</h1>
               <p className="text-xs sm:text-sm text-gray-600 truncate">
