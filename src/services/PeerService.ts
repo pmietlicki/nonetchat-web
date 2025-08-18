@@ -219,22 +219,26 @@ class PeerService extends EventEmitter {
     this.ws = new WebSocket(signalingUrl);
 
     this.ws.onopen = () => {
-      this.diagnosticService.log('WebSocket connection opened. Registering with stable ID.');
-      const name =
-        this.myPublicProfile?.displayName ||
-        this.myProfile?.name ||
-        'Utilisateur';
+  this.diagnosticService.log('WebSocket connection opened. Registering with stable ID.');
 
-      this.sendToServer({
-        type: 'register',
-        payload: { id: this.myId, profile: { name } } // ✅ on envoie le nom
-      });
+  const name =
+    this.myPublicProfile?.displayName ||
+    this.myProfile?.name ||
+    'Utilisateur';
 
-      this.emit('open', this.myId);
-      this.startLocationUpdates();
-      this.startPruningInterval();
-      this.startHeartbeat();
-    };
+  const avatarVersion = this.myPublicProfile?.avatarVersion || 1;
+
+  this.sendToServer({
+    type: 'register',
+    payload: { id: this.myId, profile: { name, avatarVersion } }
+  });
+
+  this.emit('open', this.myId);
+  this.startLocationUpdates();
+  this.startPruningInterval();
+  this.startHeartbeat();
+};
+
 
     this.ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
@@ -498,9 +502,10 @@ class PeerService extends EventEmitter {
   }
 
   private fallbackAvatarUrl(id: string, version?: number, size = 150) {
-    const v = version || 1;
-    return `https://i.pravatar.cc/${size}?u=${encodeURIComponent(id)}&v=${v}`;
-  }
+  const v = version || 1;
+  return `https://i.pravatar.cc/${size}?u=${encodeURIComponent(`${id}:${v}`)}`;
+}
+
 
   private setupDataChannel(peerId: string, channel: RTCDataChannel) {
     channel.binaryType = 'arraybuffer';
@@ -666,29 +671,40 @@ class PeerService extends EventEmitter {
   }
 
   public async broadcastProfileUpdate() {
-    // Met à jour le profil local et broadcast sans image
-    this.myPublicProfile = await this.profileService.getPublicProfile();
-    // (optionnel) prévenir aussi le serveur pour les futures push offline
-    this.sendToServer({
-      type: 'server-profile-update',
-      payload: { name: this.myPublicProfile.displayName || 'Utilisateur' }
-    });
-    const msg: PeerMessage = { type: 'profile-update', payload: this.myPublicProfile };
-    const json = JSON.stringify(msg);
-    if (json.length > 16 * 1024) {
-      this.diagnosticService.log('Profile-update payload too large, skipping broadcast', json.length);
-      return;
+  // Rafraîchir le profil public local
+  this.myPublicProfile = await this.profileService.getPublicProfile();
+
+  // Prévenir le serveur pour les push offline (nom + version + état avatar)
+  const hasCustomAvatar = Boolean(this.myPublicProfile.avatarHash);
+
+  this.sendToServer({
+    type: 'server-profile-update',
+    payload: {
+      name: this.myPublicProfile.displayName || 'Utilisateur',
+      avatarVersion: this.myPublicProfile.avatarVersion || 1,
+      // si on N’A PLUS d’avatar custom, on envoie avatar:null pour forcer le fallback pravatar côté serveur
+      avatar: hasCustomAvatar ? undefined : null
     }
-    this.diagnosticService.log('Broadcasting profile update to all peers');
-    this.dataChannels.forEach((channel, peerId) => {
-      if (channel.readyState === 'open') channel.send(json);
-      else {
-        const q = this.messageQueue.get(peerId) || [];
-        q.push(msg);
-        this.messageQueue.set(peerId, q);
-      }
-    });
+  });
+
+  // Diffuser aux pairs (métadonnées légères, sans image)
+  const msg: PeerMessage = { type: 'profile-update', payload: this.myPublicProfile };
+  const json = JSON.stringify(msg);
+  if (json.length > 16 * 1024) {
+    this.diagnosticService.log('Profile-update payload too large, skipping broadcast', json.length);
+    return;
   }
+  this.diagnosticService.log('Broadcasting profile update to all peers');
+  this.dataChannels.forEach((channel, peerId) => {
+    if (channel.readyState === 'open') channel.send(json);
+    else {
+      const q = this.messageQueue.get(peerId) || [];
+      q.push(msg);
+      this.messageQueue.set(peerId, q);
+    }
+  });
+}
+
 
   public async sendToPeer(peerId: string, message: PeerMessage) {
     const dataChannel = this.dataChannels.get(peerId);
