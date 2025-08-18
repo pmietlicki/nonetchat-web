@@ -56,9 +56,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
 
-  // NOUVEAU: Stocke les URLs de blob générées à la volée
-  const [fileBlobUrls, setFileBlobUrls] = useState<Map<string, string>>(new Map());
-
   // URLs blob créées localement, pour un nettoyage fiable à l’unmount uniquement
   const blobUrlsRef = useRef<Set<string>>(new Set());
 
@@ -414,25 +411,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     setLongPressTimer(timer);
   };
 
-  // NOUVEAU: Génère une URL pour un fichier à la demande
-  const getFileUrl = async (messageId: string): Promise<string | null> => {
-    // 1. Vérifier si l'URL est déjà dans le cache de l'état local
-    if (fileBlobUrls.has(messageId)) {
-      return fileBlobUrls.get(messageId)!;
-    }
-
-    // 2. Sinon, essayer de charger le Blob depuis IndexedDB
-    const blob = await dbService.getFileBlob(messageId);
-    if (blob) {
-      const url = URL.createObjectURL(blob);
-      // Mettre en cache dans l'état local et dans la ref pour le nettoyage
-      setFileBlobUrls(prev => new Map(prev).set(messageId, url));
-      blobUrlsRef.current.add(url);
-      return url;
-    }
-
-    return null;
-  };
+  
 
   const handleLongPressEnd = () => {
     if (longPressTimer) {
@@ -571,54 +550,87 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
   // NOUVEAU: Composant pour le lien de téléchargement qui gère son état d'URL
   const DownloadLink = ({ msg }: { msg: Message }) => {
-    const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-    const handleClick = async (e: React.MouseEvent) => {
-      e.preventDefault(); // On empêche toujours l'action par défaut du lien
-      if (isLoading) return;
+  const handleClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isLoading) return;
 
-      setIsLoading(true);
-      try {
-        const blob = await dbService.getFileBlob(msg.id);
-        if (blob) {
-          // Créer une URL temporaire
-          const url = URL.createObjectURL(blob);
+    setIsLoading(true);
+    try {
+      const blobFromDb = await dbService.getFileBlob(msg.id);
 
-          // Créer un lien temporaire et invisible
-          const tempLink = document.createElement('a');
-          tempLink.href = url;
-          tempLink.download = msg.fileData?.name || 'download';
-
-          // L'ajouter au corps du document, le cliquer, puis le retirer
-          document.body.appendChild(tempLink);
-          tempLink.click();
-          document.body.removeChild(tempLink);
-
-          // Nettoyer l'URL temporaire
-          URL.revokeObjectURL(url);
-        } else {
-          alert("Fichier non trouvé dans la base de données locale.");
-        }
-      } catch (error) {
-        console.error("Erreur lors du téléchargement du fichier:", error);
-        alert("Une erreur est survenue lors du téléchargement.");
-      } finally {
-        setIsLoading(false);
+      if (!blobFromDb) {
+        alert("Fichier non trouvé dans la base de données locale.");
+        return;
       }
-    };
 
-    return (
-      <a
-        href="#"
-        onClick={handleClick}
-        className={`inline-block px-3 py-1 rounded text-xs font-medium transition-colors ${
-          msg.senderId === myId ? 'bg-blue-500 hover:bg-blue-400 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
-        }`}
-      >
-        {isLoading ? 'Chargement...' : '📥 Télécharger'}
-      </a>
-    );
+      // S’assure que le Blob a le bon type MIME si absent
+      const desiredType = msg.fileData?.type || blobFromDb.type || 'application/octet-stream';
+      const blob = blobFromDb.type ? blobFromDb : new Blob([blobFromDb], { type: desiredType });
+      const url = URL.createObjectURL(blob);
+
+      const filename = msg.fileData?.name || 'download';
+
+      // Fallback IE/Edge legacy
+      // @ts-ignore
+      if (typeof navigator !== 'undefined' && navigator.msSaveOrOpenBlob) {
+        // @ts-ignore
+        navigator.msSaveOrOpenBlob(blob, filename);
+        setTimeout(() => URL.revokeObjectURL(url), 0);
+        return;
+      }
+
+      // iOS Safari ignore souvent l’attribut download : on ouvre dans un nouvel onglet
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+      if (isIOS || isSafari) {
+        window.open(url, '_blank');
+        // Attendre un peu avant de révoquer (laisser le temps au navigateur d’ouvrir)
+        setTimeout(() => URL.revokeObjectURL(url), 3000);
+        return;
+      }
+
+      // Voie standard : ancre invisible + download
+      const tempLink = document.createElement('a');
+      tempLink.href = url;
+      tempLink.download = filename;
+      tempLink.rel = 'noopener';
+      tempLink.style.display = 'none';
+      document.body.appendChild(tempLink);
+
+      tempLink.click();
+
+      // Ne PAS révoquer tout de suite: certains navigateurs n’ont pas encore démarré le download
+      setTimeout(() => {
+        try {
+          document.body.removeChild(tempLink);
+        } catch {}
+        URL.revokeObjectURL(url);
+      }, 1500);
+    } catch (error) {
+      console.error("Erreur lors du téléchargement du fichier:", error);
+      alert("Une erreur est survenue lors du téléchargement.");
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  return (
+    <a
+      href="#"
+      onClick={handleClick}
+      className={`inline-block px-3 py-1 rounded text-xs font-medium transition-colors ${
+        msg.senderId === myId ? 'bg-blue-500 hover:bg-blue-400 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+      }`}
+    >
+      {isLoading ? 'Chargement...' : '📥 Télécharger'}
+    </a>
+  );
+};
+
 
   return (
     <div className="flex-1 flex flex-col">
