@@ -208,7 +208,10 @@ useEffect(() => {
         const m = new Map(prev);
         const existing = m.get(peerId) || createBaseUser(peerId);
         const name = payload.displayName ?? existing.name ?? '';
-        const avatar = payload.avatar ?? existing.avatar ?? `https://i.pravatar.cc/150?u=${peerId}`;
+        const avatarVersion = (payload as any)?.avatarVersion || 1;
+const avatar = payload.avatar 
+  ?? existing.avatar 
+  ?? `https://i.pravatar.cc/150?u=${encodeURIComponent(`${peerId}:${avatarVersion}`)}`;
         m.set(peerId, { ...existing, ...payload, name, avatar, status: 'online' });
         return m;
       });
@@ -509,7 +512,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
   const createBaseUser = (peerId: string): User => ({
     id: peerId,
     name: '',
-    avatar: `https://i.pravatar.cc/150?u=${peerId}`,
+    avatar: `https://i.pravatar.cc/150?u=${encodeURIComponent(`${peerId}:1`)}`,
     status: 'online',
     joinedAt: new Date().toISOString(),
   });
