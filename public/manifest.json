@@ -1,4 +1,6 @@
 {
+  "id": "/",
+  "scope": "/",
   "name": "NoNetChat Web",
   "short_name": "NoNetChat",
   "description": "Messagerie décentralisée, locale et sécurisée via WebRTC.",

@@ -13,9 +13,11 @@ import PeerService, { PeerMessage } from './services/PeerService';
 import IndexedDBService from './services/IndexedDBService';
 import ProfileService from './services/ProfileService';
 import NotificationService from './services/NotificationService';
-import { MessageSquare, Users, Wifi, WifiOff, X, User as UserIcon, Bell, Cog, AlertCircle } from 'lucide-react';
+import { MessageSquare, Users, X, User as UserIcon, Bell, Cog, AlertCircle } from 'lucide-react';
 
 const DEFAULT_SIGNALING_URL = 'wss://chat.nonetchat.com';
+// Clé publique VAPID (base64url). Utilisée à l'enregistrement initial ET lors d'une demande de réinscription depuis le SW.
+const VAPID_PUBLIC_KEY = 'BMc-eDAKQrPghLx7eLZJvoAK6ZtfS5EvLWun9MbOvIw8_nuBpGlkDTm8NnvR_dfjFf2QuhZEcUCBzCtQaYh6NPU';
 
 const GeolocationError = ({ message, onDismiss }: { message: string; onDismiss: () => void }) => (
   <div className="fixed top-16 left-1/2 -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 max-w-[90vw]">
@@ -42,6 +44,9 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
+
+  // Bouton d'installation PWA (event beforeinstallprompt)
+  const [installEvent, setInstallEvent] = useState<any>(null);
 
   // Profil + avatar
   const [userProfile, setUserProfile] = useState<Partial<User> & { avatarBlob?: Blob | null }>({});
@@ -226,10 +231,20 @@ function App() {
     return from;
   }
 
+  // --- Gestion du bouton "Installer l'app" via beforeinstallprompt ---
+  useEffect(() => {
+    const onBip = (e: any) => { e.preventDefault(); setInstallEvent(e); };
+    const onInstalled = () => setInstallEvent(null);
+    window.addEventListener('beforeinstallprompt', onBip);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onBip);
+      window.removeEventListener('appinstalled', onInstalled);
+    };
+  }, []);
+
   // --- Enregistrement Service Worker + Push (VAPID) ---
   useEffect(() => {
-    const VAPID_PUBLIC_KEY = 'BMc-eDAKQrPghLx7eLZJvoAK6ZtfS5EvLWun9MbOvIw8_nuBpGlkDTm8NnvR_dfjFf2QuhZEcUCBzCtQaYh6NPU';
-
     async function registerServiceWorkerAndPush(userId: string) {
       if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
 
@@ -240,7 +255,6 @@ function App() {
         }
 
         const swReg = await navigator.serviceWorker.register('/sw.js');
-        // await swReg.update(); // optionnel, pour forcer la vérif de mise à jour
         let subscription = await swReg.pushManager.getSubscription();
 
         if (!subscription) {
@@ -252,13 +266,15 @@ function App() {
         }
 
         const apiUrl = toApiUrl(signalingUrl); // ✅ mapping correct
-        await fetch(`${apiUrl}/api/save-subscription`, {
+        const res = await fetch(`${apiUrl}/api/save-subscription`, {
           method: 'POST',
           body: JSON.stringify({ userId, subscription }),
           headers: { 'Content-Type': 'application/json' },
         });
+        if (!res.ok) {
+          throw new Error(`Push save failed: HTTP ${res.status}`);
+        }
         console.log('Abonnement Push enregistré sur le serveur.');
-
       } catch (error) {
         console.error('Échec SW/Push:', error);
       }
@@ -269,19 +285,47 @@ function App() {
     }
   }, [myId, signalingUrl]);
 
-  // ✅ Écoute les messages du SW (ex: FOCUS_CONVERSATION après clic notif)
+  // ✅ Écoute les messages du SW (ex: FOCUS_CONVERSATION après clic notif, et RESUBSCRIBE_PUSH)
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
-    const handler = (event: MessageEvent) => {
+
+    const handler = async (event: MessageEvent) => {
       const data = event.data || {};
+
       if (data.type === 'FOCUS_CONVERSATION' && data.convId) {
         setActiveTab('conversations');
         setSelectedPeerId(data.convId);
+        return;
+      }
+
+      if (data.type === 'RESUBSCRIBE_PUSH') {
+        try {
+          if (!myId) return;
+          const reg = await navigator.serviceWorker.ready;
+          let sub = await reg.pushManager.getSubscription();
+          if (!sub) {
+            const key = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+            sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
+          }
+          const apiUrl = toApiUrl(signalingUrl);
+          const res = await fetch(`${apiUrl}/api/save-subscription`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: myId, subscription: sub }),
+          });
+          if (!res.ok) {
+            throw new Error(`Push resubscribe failed: HTTP ${res.status}`);
+          }
+          console.log('Réinscription Push OK');
+        } catch (e) {
+          console.error('Réinscription Push échouée', e);
+        }
       }
     };
+
     navigator.serviceWorker.addEventListener('message', handler);
     return () => navigator.serviceWorker.removeEventListener('message', handler);
-  }, []);
+  }, [myId, signalingUrl]);
 
   // --- Ajout pour le Wake Lock ---
   useEffect(() => {
@@ -546,16 +590,16 @@ function App() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
             <div
-            className={`p-1.5 rounded-lg ${isConnected ? 'bg-blue-600' : 'bg-gray-300'}`}
-            aria-label={isConnected ? 'Connecté' : 'Déconnecté'}
-            title={isConnected ? 'Connecté' : 'Déconnecté'}
-          >
-            <img
-              src="/manifest-icon-96.png"
-              alt="Logo NoNetChat"
-              className={`w-7 h-7 transition-all duration-300 ${!isConnected ? 'grayscale opacity-60' : ''}`}
-            />
-          </div>
+              className={`p-1.5 rounded-lg ${isConnected ? 'bg-blue-600' : 'bg-gray-300'}`}
+              aria-label={isConnected ? 'Connecté' : 'Déconnecté'}
+              title={isConnected ? 'Connecté' : 'Déconnecté'}
+            >
+              <img
+                src="/manifest-icon-96.png"
+                alt="Logo NoNetChat"
+                className={`w-7 h-7 transition-all duration-300 ${!isConnected ? 'grayscale opacity-60' : ''}`}
+              />
+            </div>
             <div className="min-w-0">
               <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">NoNetChat Web</h1>
               <p className="text-xs sm:text-sm text-gray-600 truncate">
@@ -566,6 +610,22 @@ function App() {
 
           {/* Actions desktop */}
           <div className="hidden sm:flex items-center gap-3">
+            {/* Bouton Installer (s'affiche seulement si l'event est dispo) */}
+            {installEvent && (
+              <button
+                onClick={async () => {
+                  await installEvent.prompt();
+                  await installEvent.userChoice;
+                  setInstallEvent(null);
+                }}
+                className="px-3 py-1.5 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
+                aria-label="Installer l’application"
+                title="Installer l’application"
+              >
+                Installer
+              </button>
+            )}
+
             <ConnectionStatus
               isConnected={isConnected}
               onReconnect={async () => {
@@ -633,8 +693,22 @@ function App() {
             </button>
           </div>
 
-          {/* Action mobile : Profil uniquement */}
-          <div className="sm:hidden">
+          {/* Action mobile : Profil + bouton Installer si dispo */}
+          <div className="sm:hidden flex items-center gap-2">
+            {installEvent && (
+              <button
+                onClick={async () => {
+                  await installEvent.prompt();
+                  await installEvent.userChoice;
+                  setInstallEvent(null);
+                }}
+                className="px-2 py-1 bg-emerald-600 text-white text-xs rounded-md"
+                aria-label="Installer l’application"
+                title="Installer l’application"
+              >
+                Installer
+              </button>
+            )}
             <button
               onClick={() => setIsProfileOpen(true)}
               className="p-2 rounded-full hover:bg-gray-100"

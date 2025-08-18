@@ -1,4 +1,7 @@
-const CACHE_NAME = 'nonetchat-cache-v1';
+// --- NoNetChat SW v2 ---
+// Cache app-shell + fallback SPA ; ne jamais mettre /api en cache.
+
+const CACHE_NAME = 'nonetchat-cache-v2';
 const APP_SHELL_URLS = [
   '/',
   '/index.html',
@@ -10,16 +13,23 @@ const APP_SHELL_URLS = [
 // ---- Stratégie de cache: Network First, puis Cache ----
 const networkFirst = async (request) => {
   try {
-    // 1. Essayer de récupérer depuis le réseau
+    // 1) Essayer de récupérer depuis le réseau
     const networkResponse = await fetch(request);
-    // Si la requête réussit, on met en cache la nouvelle version
-    if (networkResponse.ok) {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(request, networkResponse.clone());
+
+    // 2) Si la requête réussit, on met en cache la nouvelle version (même-origin, hors /api)
+    if (networkResponse && networkResponse.ok) {
+      const url = new URL(request.url);
+      const isSameOrigin = url.origin === self.location.origin;
+      const isApi = isSameOrigin && url.pathname.startsWith('/api/');
+      if (isSameOrigin && !isApi) {
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(request, networkResponse.clone());
+      }
     }
+
     return networkResponse;
   } catch (error) {
-    // 2. Si le réseau échoue, essayer de récupérer depuis le cache
+    // 3) Si le réseau échoue, essayer de récupérer depuis le cache
     const cachedResponse = await caches.match(request);
     return cachedResponse || Response.error(); // Échoue si non trouvé dans le cache
   }
@@ -30,11 +40,11 @@ self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
     await cache.addAll(APP_SHELL_URLS);
-    // console.log('[SW] App Shell pre-cached');
+    self.skipWaiting();
   })());
 });
 
-// ---- ACTIVATE: Nettoyage des anciens caches ----
+// ---- ACTIVATE: Nettoyage des anciens caches + prise de contrôle ----
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const cacheNames = await caches.keys();
@@ -43,22 +53,43 @@ self.addEventListener('activate', event => {
         .filter(name => name !== CACHE_NAME)
         .map(name => caches.delete(name))
     );
-    // console.log('[SW] Caches cleaned');
+    await self.clients.claim();
   })());
 });
 
 // ---- FETCH: Interception des requêtes ----
 self.addEventListener('fetch', event => {
+  const req = event.request;
+
   // On ne gère que les requêtes GET
-  if (event.request.method !== 'GET') {
+  if (req.method !== 'GET') return;
+
+  const url = new URL(req.url);
+  const isSameOrigin = url.origin === self.location.origin;
+
+  // (1) Ne jamais intercepter /api/ (TURN creds, etc.)
+  if (isSameOrigin && url.pathname.startsWith('/api/')) {
+    return; // laisser passer vers le réseau sans toucher
+  }
+
+  // (2) Fallback SPA pour les navigations : si offline, renvoyer /index.html depuis le cache
+  if (req.mode === 'navigate') {
+    event.respondWith((async () => {
+      try {
+        return await fetch(req);
+      } catch {
+        return (await caches.match('/index.html')) || (await caches.match('/'));
+      }
+    })());
     return;
   }
-  // On applique la stratégie "Network First"
-  event.respondWith(networkFirst(event.request));
+
+  // (3) Autres GET -> stratégie Network First
+  event.respondWith(networkFirst(req));
 });
 
 
-// ---- IndexedDB helpers (inchangé) ----
+// ---- IndexedDB helpers (inchangés) ----
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('NoNetChatWeb', 7);
@@ -77,7 +108,7 @@ function getFromStore(db, storeName, key) {
   });
 }
 
-// ---- Push handler (inchangé) ----
+// ---- Push handler (conservé, avec defaults sûrs) ----
 self.addEventListener('push', event => {
   event.waitUntil((async () => {
     let data = {};
@@ -96,6 +127,7 @@ self.addEventListener('push', event => {
       }
     };
 
+    // Essayer d'utiliser l'avatar connu en IndexedDB, si présent
     let candidateIcon = data.senderAvatar;
     if (!candidateIcon && (data.tag || data.convId)) {
       try {
@@ -118,7 +150,7 @@ self.addEventListener('push', event => {
   })());
 });
 
-// ---- Click handler (inchangé) ----
+// ---- Click handler (conservé) ----
 self.addEventListener('notificationclick', event => {
   event.notification.close();
   const convId = event.notification?.data?.convId || null;
@@ -134,5 +166,15 @@ self.addEventListener('notificationclick', event => {
       }
     }
     return clients.openWindow(url);
+  })());
+});
+
+// ---- Réabonnement push si l'abonnement change/expire ----
+self.addEventListener('pushsubscriptionchange', (event) => {
+  event.waitUntil((async () => {
+    const list = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const c of list) {
+      c.postMessage({ type: 'RESUBSCRIBE_PUSH' });
+    }
   })());
 });
