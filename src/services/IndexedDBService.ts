@@ -79,7 +79,8 @@ class IndexedDBService {
   // v5 (legacy) : ajout statut sur messages
   // v6 : nouvelles stores 'user' et 'kv'
   // v7 : avatars: nouveaux index (hash), width/height/type, compat pipeline par hash
-  private readonly version = 7;
+  // v8 : ajout du store fileBlobs pour le stockage des fichiers reçus
+  private readonly version = 8;
 
   public static getInstance(): IndexedDBService {
     if (!IndexedDBService.instance) {
@@ -136,6 +137,11 @@ class IndexedDBService {
         if (!db.objectStoreNames.contains('files')) {
           const fileStore = db.createObjectStore('files', { keyPath: 'id' });
           fileStore.createIndex('messageId', 'messageId', { unique: false });
+        }
+
+        // NOUVEAU: store pour les blobs de fichiers
+        if (!db.objectStoreNames.contains('fileBlobs')) {
+          db.createObjectStore('fileBlobs', { keyPath: 'id' }); // id = messageId
         }
 
         // avatars (compat + nouveaux index)
@@ -437,7 +443,7 @@ class IndexedDBService {
 
   async clearAllData(): Promise<void> {
     const db = this.ensureDb();
-    const stores = ['messages', 'conversations', 'files', 'cryptoKeys', 'avatars', 'blockList', 'user', 'kv'] as const;
+    const stores = ['messages', 'conversations', 'files', 'fileBlobs', 'cryptoKeys', 'avatars', 'blockList', 'user', 'kv'] as const;
     await Promise.all(
       stores.map(
         (name) =>
@@ -590,6 +596,30 @@ class IndexedDBService {
       const tx = db.transaction(['kv'], 'readonly');
       const req = tx.objectStore('kv').get(key);
       req.onsuccess = () => resolve(req.result?.value as T | undefined);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  // -------------------- FICHIERS (complément message) --------------------
+
+  // -------------------- FILE BLOBS --------------------
+
+  async saveFileBlob(id: string, blob: Blob): Promise<void> {
+    const db = this.ensureDb();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(['fileBlobs'], 'readwrite');
+      const req = tx.objectStore('fileBlobs').put({ id, blob });
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async getFileBlob(id: string): Promise<Blob | null> {
+    const db = this.ensureDb();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(['fileBlobs'], 'readonly');
+      const req = tx.objectStore('fileBlobs').get(id);
+      req.onsuccess = () => resolve((req.result as { id: string; blob: Blob } | undefined)?.blob || null);
       req.onerror = () => reject(req.error);
     });
   }

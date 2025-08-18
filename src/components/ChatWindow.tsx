@@ -56,6 +56,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
 
+  // NOUVEAU: Stocke les URLs de blob générées à la volée
+  const [fileBlobUrls, setFileBlobUrls] = useState<Map<string, string>>(new Map());
+
   // URLs blob créées localement, pour un nettoyage fiable à l’unmount uniquement
   const blobUrlsRef = useRef<Set<string>>(new Set());
 
@@ -123,14 +126,16 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
           const decryptedFile = await cryptoService.decryptFile(encryptedFile);
           if (decryptedFile.size === 0) throw new Error('Le fichier déchiffré est vide');
 
-          const url = URL.createObjectURL(new Blob([decryptedFile], { type: receiver.metadata.type }));
-          blobUrlsRef.current.add(url);
+          // --- MODIFICATION CLÉ ---
+          // 1. Sauvegarder le Blob déchiffré dans la nouvelle table
+          await dbService.saveFileBlob(data.messageId, decryptedFile);
 
+          // 2. Mettre à jour le message dans l'UI (sans URL persistante)
           const updatedFileData = {
             name: receiver.metadata.name,
             size: receiver.metadata.size,
             type: receiver.metadata.type,
-            url,
+            url: '', // On ne stocke plus l'URL
           };
 
           await dbService.updateMessageFileData(data.messageId, updatedFileData);
@@ -179,7 +184,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         }
       }
     }
-  }, [selectedPeer.id, myId]);
+  }, [selectedPeer.id, myId, dbService]);
 
   const handleFileChunk = useCallback((peerId: string, messageId: string, chunk: ArrayBuffer) => {
     if (peerId !== selectedPeer.id) return;
@@ -409,6 +414,26 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     setLongPressTimer(timer);
   };
 
+  // NOUVEAU: Génère une URL pour un fichier à la demande
+  const getFileUrl = async (messageId: string): Promise<string | null> => {
+    // 1. Vérifier si l'URL est déjà dans le cache de l'état local
+    if (fileBlobUrls.has(messageId)) {
+      return fileBlobUrls.get(messageId)!;
+    }
+
+    // 2. Sinon, essayer de charger le Blob depuis IndexedDB
+    const blob = await dbService.getFileBlob(messageId);
+    if (blob) {
+      const url = URL.createObjectURL(blob);
+      // Mettre en cache dans l'état local et dans la ref pour le nettoyage
+      setFileBlobUrls(prev => new Map(prev).set(messageId, url));
+      blobUrlsRef.current.add(url);
+      return url;
+    }
+
+    return null;
+  };
+
   const handleLongPressEnd = () => {
     if (longPressTimer) {
       clearTimeout(longPressTimer);
@@ -543,6 +568,45 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       : selectedFile
       ? 'Envoyer le fichier'
       : 'Envoyer le message';
+
+  // NOUVEAU: Composant pour le lien de téléchargement qui gère son état d'URL
+  const DownloadLink = ({ msg }: { msg: Message }) => {
+    const [url, setUrl] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleClick = async (e: React.MouseEvent) => {
+      if (url) return; // L'URL est déjà prête, le clic natif fonctionnera
+
+      e.preventDefault(); // Empêche la navigation si l'URL n'est pas prête
+      setIsLoading(true);
+      try {
+        const generatedUrl = await getFileUrl(msg.id);
+        if (generatedUrl) {
+          setUrl(generatedUrl);
+          // Redéclenche le clic sur le lien maintenant qu'il a une URL valide
+          e.currentTarget.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+        }
+      } catch (error) {
+        console.error("Erreur lors de la génération de l'URL du fichier:", error);
+        alert("Impossible de charger le fichier depuis la base de données.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    return (
+      <a
+        href={url || '#'} // Utilise l'URL de l'état, ou # si pas encore générée
+        download={msg.fileData?.name}
+        onClick={handleClick}
+        className={`inline-block px-3 py-1 rounded text-xs font-medium transition-colors ${
+          msg.senderId === myId ? 'bg-blue-500 hover:bg-blue-400 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+        }`}
+      >
+        {isLoading ? 'Chargement...' : '📥 Télécharger'}
+      </a>
+    );
+  };
 
   return (
     <div className="flex-1 flex flex-col">
@@ -731,18 +795,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
                     <Paperclip size={16} className="flex-shrink-0" />
                     <span className="font-medium">{msg.content}</span>
                   </div>
-                  {msg.fileData?.url ? (
+                  {msg.fileData?.name ? (
                     <div className="space-y-1">
                       <div className="text-xs opacity-75">Taille: {msg.fileData.size ? (msg.fileData.size / 1024).toFixed(1) + ' KB' : 'Inconnue'}</div>
-                      <a
-                        href={msg.fileData.url}
-                        download={msg.fileData.name}
-                        className={`inline-block px-3 py-1 rounded text-xs font-medium transition-colors ${
-                          msg.senderId === myId ? 'bg-blue-500 hover:bg-blue-400 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
-                        }`}
-                      >
-                        📥 Télécharger
-                      </a>
+                      <DownloadLink msg={msg} />
                     </div>
                   ) : (
                     <div className="space-y-2">
