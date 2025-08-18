@@ -478,6 +478,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       });
 
       try {
+        // 👉 Sauvegarde locale pour permettre le Download côté émetteur
+        await dbService.saveFileBlob(messageId, selectedFile);
         const onSendProgress = (progress: number) => {
           setSendingProgress(prev => {
             const np = new Map(prev);

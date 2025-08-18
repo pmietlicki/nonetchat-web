@@ -98,6 +98,7 @@ class IndexedDBService {
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
         this.db = request.result;
+        this.db.onversionchange = () => { try { this.db?.close(); } catch {} };
         resolve();
       };
 
@@ -260,35 +261,38 @@ class IndexedDBService {
   // -------------------- MESSAGES & CONVERSATIONS --------------------
 
   async saveMessage(message: StoredMessage, conversationId: string): Promise<void> {
-    const db = this.ensureDb();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(['messages', 'conversations'], 'readwrite');
-      const messageStore = tx.objectStore('messages');
-      const conversationStore = tx.objectStore('conversations');
+  const db = this.ensureDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(['messages', 'conversations'], 'readwrite');
+    const messageStore = tx.objectStore('messages');
+    const conversationStore = tx.objectStore('conversations');
 
-      const getRequest = conversationStore.get(conversationId);
-      getRequest.onsuccess = () => {
-        const conversation = getRequest.result as StoredConversation | undefined;
-        const updatedConversation: StoredConversation = {
-          id: conversationId,
-          participantId: message.senderId === 'current_user' ? message.receiverId : message.senderId,
-          participantName: conversation?.participantName || 'Unknown User',
-          participantAvatar: conversation?.participantAvatar || '',
-          participantAge: conversation?.participantAge,
-          participantGender: conversation?.participantGender,
-          lastMessage: { ...message, conversationId },
-          unreadCount: message.senderId === 'current_user' ? (conversation?.unreadCount || 0) : (conversation?.unreadCount || 0) + 1,
-          updatedAt: Date.now(),
-        };
+    const getRequest = conversationStore.get(conversationId);
+    getRequest.onsuccess = () => {
+      const conversation = getRequest.result as StoredConversation | undefined;
 
-        conversationStore.put(updatedConversation);
-        messageStore.put({ ...message, conversationId });
+      const isIncoming = message.senderId === conversationId; // le pair parle
+      const updatedConversation: StoredConversation = {
+        id: conversationId,
+        participantId: conversationId, // ← canonique et stable
+        participantName: conversation?.participantName || 'Unknown User',
+        participantAvatar: conversation?.participantAvatar || '',
+        participantAge: conversation?.participantAge,
+        participantGender: conversation?.participantGender,
+        lastMessage: { ...message, conversationId },
+        unreadCount: (conversation?.unreadCount || 0) + (isIncoming ? 1 : 0),
+        updatedAt: Date.now(),
       };
 
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  }
+      conversationStore.put(updatedConversation);
+      messageStore.put({ ...message, conversationId });
+    };
+
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
 
   async getMessages(conversationId: string, limit = 50): Promise<StoredMessage[]> {
     const db = this.ensureDb();
@@ -367,47 +371,116 @@ class IndexedDBService {
     });
   }
 
-  async deleteMessage(messageId: string): Promise<void> {
-    const db = this.ensureDb();
+  async deleteFileBlob(id: string): Promise<void> {
+  const db = this.ensureDb();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(['fileBlobs'], 'readwrite');
+    tx.objectStore('fileBlobs').delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+private async refreshConversationAfterDelete(conversationId: string): Promise<void> {
+  const db = this.ensureDb();
+  const last = await new Promise<StoredMessage | undefined>((resolve, reject) => {
+    const tx = db.transaction(['messages'], 'readonly');
+    const store = tx.objectStore('messages');
+    const idx = store.index('conversationId');
+    const req = idx.getAll(conversationId);
+    req.onsuccess = () => {
+      const all = (req.result as StoredMessage[]).sort((a,b) => b.timestamp - a.timestamp);
+      resolve(all[0]);
+    };
+    req.onerror = () => reject(req.error);
+  });
+
+  const conv = await this.getConversation(conversationId);
+  if (!conv) return;
+
+  if (!last) {
+    // plus aucun message : on peut supprimer la convo (ou la laisser vide)
+    const db2 = this.ensureDb();
     await new Promise<void>((resolve, reject) => {
-      const tx = db.transaction(['messages'], 'readwrite');
-      tx.objectStore('messages').delete(messageId);
+      const tx = db2.transaction(['conversations'], 'readwrite');
+      tx.objectStore('conversations').delete(conversationId);
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });
+    return;
   }
+
+  conv.lastMessage = { ...last, conversationId };
+  conv.updatedAt = last.timestamp;
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(['conversations'], 'readwrite');
+    tx.objectStore('conversations').put(conv);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+
+async deleteMessage(messageId: string): Promise<void> {
+  const db = this.ensureDb();
+
+  // 1) Récupérer le message pour connaître conversationId
+  const msg = await new Promise<StoredMessage | undefined>((resolve, reject) => {
+    const tx = db.transaction(['messages'], 'readonly');
+    const store = tx.objectStore('messages');
+    const req = store.get(messageId);
+    req.onsuccess = () => resolve(req.result as StoredMessage | undefined);
+    req.onerror = () => reject(req.error);
+  });
+  const conversationId = msg?.conversationId;
+
+  // 2) Suppression atomique: message + blob
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(['messages', 'fileBlobs'], 'readwrite');
+    tx.objectStore('messages').delete(messageId);
+    tx.objectStore('fileBlobs').delete(messageId);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+
+  // 3) Mettre à jour la conversation (dernier message / suppression si vide)
+  if (conversationId) {
+    await this.refreshConversationAfterDelete(conversationId);
+  }
+}
+
+
 
   async deleteConversation(conversationId: string): Promise<void> {
-    const db = this.ensureDb();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(['messages', 'conversations', 'fileBlobs'], 'readwrite');
-      const messagesStore = tx.objectStore('messages');
-      const conversationsStore = tx.objectStore('conversations');
-      const fileBlobsStore = tx.objectStore('fileBlobs');
+  const db = this.ensureDb();
 
-      const index = messagesStore.index('conversationId');
-      const cursorReq = index.openCursor(IDBKeyRange.only(conversationId));
-      cursorReq.onsuccess = (ev) => {
-        const cursor = (ev.target as IDBRequest<IDBCursorWithValue | null>).result;
-        if (cursor) {
-          const message = cursor.value as StoredMessage;
-          // Si le message est un fichier, on supprime aussi son blob stocké
-          if (message.type === 'file') {
-            fileBlobsStore.delete(message.id);
-          }
-          // On supprime le message lui-même
-          cursor.delete();
-          cursor.continue();
-        } else {
-          // Une fois tous les messages supprimés, on supprime la conversation
-          const delReq = conversationsStore.delete(conversationId);
-          delReq.onsuccess = () => resolve(undefined);
-          delReq.onerror = () => reject(delReq.error);
-        }
-      };
-      cursorReq.onerror = () => reject(cursorReq.error);
-    });
-  }
+  // 1) Supprimer tous les messages + blobs associés (UNE transaction)
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(['messages', 'fileBlobs'], 'readwrite');
+    const messagesStore = tx.objectStore('messages');
+    const fileBlobsStore = tx.objectStore('fileBlobs');
+    const index = messagesStore.index('conversationId');
+
+    const cursorReq = index.openCursor(IDBKeyRange.only(conversationId));
+    cursorReq.onsuccess = (ev) => {
+      const cursor = (ev.target as IDBRequest<IDBCursorWithValue | null>).result;
+      if (cursor) {
+        const message = cursor.value as StoredMessage;
+        fileBlobsStore.delete(message.id);  // supprime le blob (s’il existe)
+        cursor.delete();                    // supprime le message
+        cursor.continue();
+      } else {
+        resolve();
+      }
+    };
+    cursorReq.onerror = () => reject(cursorReq.error);
+  });
+
+  // 2) Laisser la "refresh" décider s’il faut supprimer la conversation
+  //    (si plus aucun message → suppression ; sinon, mise à jour du lastMessage/updatedAt)
+  await this.refreshConversationAfterDelete(conversationId);
+}
+
 
   async updateConversationParticipant(
     conversationId: string,
