@@ -549,8 +549,22 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       : 'Envoyer le message';
 
   // NOUVEAU: Composant pour le lien de téléchargement qui gère son état d'URL
-  const DownloadLink = ({ msg }: { msg: Message }) => {
+  // Remplace intégralement DownloadLink par ceci
+const DownloadLink = ({ msg }: { msg: Message }) => {
   const [isLoading, setIsLoading] = useState(false);
+
+  const safeGetBlob = async (id: string) => {
+    try {
+      return await dbService.getFileBlob(id);
+    } catch (e: any) {
+      // Auto-init si la DB n’a pas encore été initialisée
+      if (String(e?.message || '').includes('Database not initialized')) {
+        await IndexedDBService.getInstance().initialize();
+        return await dbService.getFileBlob(id);
+      }
+      throw e;
+    }
+  };
 
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -559,21 +573,19 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
     setIsLoading(true);
     try {
-      const blobFromDb = await dbService.getFileBlob(msg.id);
-
+      const blobFromDb = await safeGetBlob(msg.id);
       if (!blobFromDb) {
-        alert("Fichier non trouvé dans la base de données locale.");
+        console.warn('[DownloadLink] Blob introuvable pour', msg.id);
+        alert('Fichier non trouvé dans la base de données locale.');
         return;
       }
 
-      // S’assure que le Blob a le bon type MIME si absent
+      const filename = msg.fileData?.name || 'download';
       const desiredType = msg.fileData?.type || blobFromDb.type || 'application/octet-stream';
       const blob = blobFromDb.type ? blobFromDb : new Blob([blobFromDb], { type: desiredType });
       const url = URL.createObjectURL(blob);
 
-      const filename = msg.fileData?.name || 'download';
-
-      // Fallback IE/Edge legacy
+      // IE/Edge legacy
       // @ts-ignore
       if (typeof navigator !== 'undefined' && navigator.msSaveOrOpenBlob) {
         // @ts-ignore
@@ -582,54 +594,61 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         return;
       }
 
-      // iOS Safari ignore souvent l’attribut download : on ouvre dans un nouvel onglet
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-
+      // iOS / Safari : ouvre dans un nouvel onglet (l’attribut download est souvent ignoré)
+      const ua = navigator.userAgent;
+      const isIOS = /iPad|iPhone|iPod/.test(ua);
+      const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
       if (isIOS || isSafari) {
         window.open(url, '_blank');
-        // Attendre un peu avant de révoquer (laisser le temps au navigateur d’ouvrir)
         setTimeout(() => URL.revokeObjectURL(url), 3000);
         return;
       }
 
-      // Voie standard : ancre invisible + download
-      const tempLink = document.createElement('a');
-      tempLink.href = url;
-      tempLink.download = filename;
-      tempLink.rel = 'noopener';
-      tempLink.style.display = 'none';
-      document.body.appendChild(tempLink);
+      // Chemin standard
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.rel = 'noopener';
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
 
-      tempLink.click();
-
-      // Ne PAS révoquer tout de suite: certains navigateurs n’ont pas encore démarré le download
       setTimeout(() => {
-        try {
-          document.body.removeChild(tempLink);
-        } catch {}
+        try { document.body.removeChild(a); } catch {}
         URL.revokeObjectURL(url);
       }, 1500);
     } catch (error) {
-      console.error("Erreur lors du téléchargement du fichier:", error);
+      console.error('Erreur lors du téléchargement du fichier:', error);
       alert("Une erreur est survenue lors du téléchargement.");
     } finally {
       setIsLoading(false);
     }
   };
 
+  // IMPORTANT : stopper la propagation dès le pointer pour ne pas déclencher le long-press parent
+  const stopBubble = (e: React.SyntheticEvent) => {
+    e.stopPropagation();
+  };
+
   return (
-    <a
-      href="#"
+    <button
+      type="button"
+      onPointerDown={stopBubble}
+      onMouseDown={stopBubble}
+      onTouchStart={stopBubble}
       onClick={handleClick}
       className={`inline-block px-3 py-1 rounded text-xs font-medium transition-colors ${
         msg.senderId === myId ? 'bg-blue-500 hover:bg-blue-400 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
       }`}
+      title="Télécharger le fichier"
+      aria-label="Télécharger le fichier"
+      data-testid={`download-${msg.id}`}
     >
       {isLoading ? 'Chargement...' : '📥 Télécharger'}
-    </a>
+    </button>
   );
 };
+
 
 
   return (
