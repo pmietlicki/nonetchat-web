@@ -15,8 +15,13 @@ interface ProfileDetailModalProps {
   onClose: () => void;
 }
 
-const safeAvatar = (peer: User) =>
-  peer.avatar && peer.avatar.trim() !== '' ? peer.avatar : `https://i.pravatar.cc/150?u=${encodeURIComponent(peer.id)}`;
+const safeAvatar = (peer: User) => {
+  const ver = (peer as any).avatarVersion || 1;
+  return peer.avatar?.trim()
+    ? peer.avatar
+    : `https://i.pravatar.cc/150?u=${encodeURIComponent(`${peer.id}:${ver}`)}`;
+};
+
 
 const formatJoinTime = (joinedAt: string) => {
   const date = new Date(joinedAt);
