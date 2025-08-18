@@ -571,24 +571,37 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
   // NOUVEAU: Composant pour le lien de téléchargement qui gère son état d'URL
   const DownloadLink = ({ msg }: { msg: Message }) => {
-    const [url, setUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
     const handleClick = async (e: React.MouseEvent) => {
-      if (url) return; // L'URL est déjà prête, le clic natif fonctionnera
+      e.preventDefault(); // On empêche toujours l'action par défaut du lien
+      if (isLoading) return;
 
-      e.preventDefault(); // Empêche la navigation si l'URL n'est pas prête
       setIsLoading(true);
       try {
-        const generatedUrl = await getFileUrl(msg.id);
-        if (generatedUrl) {
-          setUrl(generatedUrl);
-          // Redéclenche le clic sur le lien maintenant qu'il a une URL valide
-          e.currentTarget.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+        const blob = await dbService.getFileBlob(msg.id);
+        if (blob) {
+          // Créer une URL temporaire
+          const url = URL.createObjectURL(blob);
+
+          // Créer un lien temporaire et invisible
+          const tempLink = document.createElement('a');
+          tempLink.href = url;
+          tempLink.download = msg.fileData?.name || 'download';
+
+          // L'ajouter au corps du document, le cliquer, puis le retirer
+          document.body.appendChild(tempLink);
+          tempLink.click();
+          document.body.removeChild(tempLink);
+
+          // Nettoyer l'URL temporaire
+          URL.revokeObjectURL(url);
+        } else {
+          alert("Fichier non trouvé dans la base de données locale.");
         }
       } catch (error) {
-        console.error("Erreur lors de la génération de l'URL du fichier:", error);
-        alert("Impossible de charger le fichier depuis la base de données.");
+        console.error("Erreur lors du téléchargement du fichier:", error);
+        alert("Une erreur est survenue lors du téléchargement.");
       } finally {
         setIsLoading(false);
       }
@@ -596,8 +609,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
     return (
       <a
-        href={url || '#'} // Utilise l'URL de l'état, ou # si pas encore générée
-        download={msg.fileData?.name}
+        href="#"
         onClick={handleClick}
         className={`inline-block px-3 py-1 rounded text-xs font-medium transition-colors ${
           msg.senderId === myId ? 'bg-blue-500 hover:bg-blue-400 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
