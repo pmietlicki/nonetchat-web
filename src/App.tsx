@@ -1,3 +1,4 @@
+// src/App.tsx
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import PeerList from './components/PeerList';
@@ -16,7 +17,7 @@ import NotificationService from './services/NotificationService';
 import { MessageSquare, Users, X, User as UserIcon, Bell, Cog, AlertCircle } from 'lucide-react';
 
 const DEFAULT_SIGNALING_URL = 'wss://chat.nonetchat.com';
-// Clé publique VAPID (base64url). Utilisée à l'enregistrement initial ET lors d'une demande de réinscription depuis le SW.
+// Clé publique VAPID (base64url)
 const VAPID_PUBLIC_KEY = 'BMc-eDAKQrPghLx7eLZJvoAK6ZtfS5EvLWun9MbOvIw8_nuBpGlkDTm8NnvR_dfjFf2QuhZEcUCBzCtQaYh6NPU';
 
 const GeolocationError = ({ message, onDismiss }: { message: string; onDismiss: () => void }) => (
@@ -45,7 +46,7 @@ function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
 
-  // Bouton d'installation PWA (event beforeinstallprompt)
+  // Bouton d'installation PWA
   const [installEvent, setInstallEvent] = useState<any>(null);
 
   // Profil + avatar
@@ -94,14 +95,13 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userProfile.id, avatarRefreshKey]);
 
-  // Initialisation + abonnements
+  // --- INITIALISATION et abonnements *non liés* aux messages (open/peer-joined/left, notif, geoloc)
   useEffect(() => {
     const initialize = async () => {
       await dbService.initialize();
 
-      // ProfileService garantit l’ID (deviceId) ; on récupère aussi l’avatar local éventuel
+      // ProfileService garantit l’ID (deviceId)
       const profileAny = await profileService.getProfile();
-      // Normalisation: map displayName -> name pour l’UI existante
       const normalized: Partial<User> & { avatarBlob?: Blob | null } = {
         ...profileAny,
         name: (profileAny as any).displayName ?? (profileAny as any).name ?? '',
@@ -110,7 +110,6 @@ function App() {
       };
 
       if (!normalized.id) {
-        // Par sécurité (dev), même si ProfileService doit fournir l’id
         normalized.id = uuidv4();
         await profileService.saveProfile({ displayName: normalized.name || '' });
       }
@@ -149,21 +148,6 @@ function App() {
       });
     };
 
-    const onData = (peerId: string, data: PeerMessage) => {
-      // Les nouveaux messages 'profile'/'profile-update' portent un PublicProfile (displayName, avatarHash, avatarVersion) + avatar résolu par PeerService
-      if (data.type === 'profile' || data.type === 'profile-update') {
-        const payload: any = data.payload || {};
-        setPeers(prev => {
-          const m = new Map(prev);
-          const existing = m.get(peerId) || createBaseUser(peerId);
-          const name = payload.displayName ?? existing.name ?? '';
-          const avatar = payload.avatar ?? existing.avatar ?? `https://i.pravatar.cc/150?u=${peerId}`;
-          m.set(peerId, { ...existing, ...payload, name, avatar, status: 'online' });
-          return m;
-        });
-      }
-    };
-
     const onGeolocationError = (error: GeolocationPositionError) => {
       switch (error.code) {
         case 1:
@@ -183,7 +167,6 @@ function App() {
     peerService.on('open', onOpen);
     peerService.on('peer-joined', onPeerJoined);
     peerService.on('peer-left', onPeerLeft);
-    peerService.on('data', onData);
     peerService.on('geolocation-error', onGeolocationError);
 
     const onUnreadCountChanged = (count: number) => setTotalUnreadCount(count);
@@ -205,7 +188,6 @@ function App() {
       peerService.removeListener('open', onOpen);
       peerService.removeListener('peer-joined', onPeerJoined);
       peerService.removeListener('peer-left', onPeerLeft);
-      peerService.removeListener('data', onData);
       peerService.removeListener('geolocation-error', onGeolocationError);
       notificationService.off('unread-count-changed', onUnreadCountChanged);
       notificationService.off('conversation-unread-changed', onUnreadConversationsChanged);
@@ -213,6 +195,86 @@ function App() {
       peerService.destroy();
     };
   }, [signalingUrl, searchRadius]);
+
+ // --- LISTENER DÉDIÉ aux messages de données (chat-message)
+useEffect(() => {
+  const onData = async (peerId: string, data: PeerMessage) => {
+    // Profils
+    if (data.type === 'profile' || data.type === 'profile-update') {
+      const payload: any = data.payload || {};
+      setPeers(prev => {
+        const m = new Map(prev);
+        const existing = m.get(peerId) || createBaseUser(peerId);
+        const name = payload.displayName ?? existing.name ?? '';
+        const avatar = payload.avatar ?? existing.avatar ?? `https://i.pravatar.cc/150?u=${peerId}`;
+        m.set(peerId, { ...existing, ...payload, name, avatar, status: 'online' });
+        return m;
+      });
+      return;
+    }
+
+    // Messages texte entrants (payload déjà en clair via PeerService)
+    if (data.type === 'chat-message') {
+      const plaintext = String((data as any).payload ?? '');
+      const id = (data as any).messageId || uuidv4();
+      const now = Date.now();
+
+      try {
+        await dbService.saveMessage({
+          id,
+          senderId: peerId,
+          receiverId: myId,
+          content: plaintext,
+          timestamp: now,
+          type: 'text',
+          encrypted: false, // on stocke en clair
+          status: 'delivered',
+        }, peerId);
+
+        const p = peers.get(peerId);
+        if (p) {
+          await dbService.updateConversationParticipant(
+            peerId, p.name, p.avatar, p.age, p.gender as any
+          );
+        }
+
+        notificationService.addMessage(peerId, {
+          id,
+          conversationId: peerId,
+          content: plaintext,
+          timestamp: now,
+          type: 'text',
+          senderName: p?.name || 'Utilisateur',
+        });
+
+        (peerService as any)?.sendMessageDeliveredAck?.(peerId, id);
+
+        // Mise à jour live si la fenêtre est ouverte
+        peerService.emit('ui-message-received', {
+          id,
+          senderId: peerId,
+          receiverId: myId,
+          content: plaintext,
+          timestamp: now,
+          type: 'text',
+          encrypted: false,
+          status: 'delivered',
+        });
+      } catch (err) {
+        console.error('[App] Erreur persistance message entrant:', err);
+      }
+      return;
+    }
+
+    // (fichiers, acks, réactions...) : gérés ailleurs
+  };
+
+  peerService.on('data', onData);
+  return () => {
+    peerService.removeListener('data', onData);
+  };
+}, [myId, selectedPeerId, peers, peerService, dbService, notificationService]);
+
 
   // ✅ Helper VAPID: base64url -> Uint8Array
   function urlBase64ToUint8Array(base64String: string) {
@@ -224,14 +286,14 @@ function App() {
     return output;
   }
 
-  // ✅ Helper: ws:// -> http://, wss:// -> https://, sinon tel quel
+  // ✅ Helper: ws:// -> http://, wss:// -> https://
   function toApiUrl(from: string) {
     if (from.startsWith('wss://')) return 'https://' + from.slice(6);
     if (from.startsWith('ws://'))  return 'http://'  + from.slice(5);
     return from;
   }
 
-  // --- Gestion du bouton "Installer l'app" via beforeinstallprompt ---
+  // --- Bouton "Installer l'app"
   useEffect(() => {
     const onBip = (e: any) => { e.preventDefault(); setInstallEvent(e); };
     const onInstalled = () => setInstallEvent(null);
@@ -243,13 +305,12 @@ function App() {
     };
   }, []);
 
-  // --- Enregistrement Service Worker + Push (VAPID) ---
+  // --- Service Worker + Push (VAPID)
   useEffect(() => {
     async function registerServiceWorkerAndPush(userId: string) {
       if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
 
       try {
-        // (optionnel) Demander la permission notif si nécessaire
         if ('Notification' in window && Notification.permission === 'default') {
           try { await Notification.requestPermission(); } catch {}
         }
@@ -258,14 +319,14 @@ function App() {
         let subscription = await swReg.pushManager.getSubscription();
 
         if (!subscription) {
-          const appServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY); // ✅ conversion requise
+          const appServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
           subscription = await swReg.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey: appServerKey,
           });
         }
 
-        const apiUrl = toApiUrl(signalingUrl); // ✅ mapping correct
+        const apiUrl = toApiUrl(signalingUrl);
         const res = await fetch(`${apiUrl}/api/save-subscription`, {
           method: 'POST',
           body: JSON.stringify({ userId, subscription }),
@@ -285,7 +346,7 @@ function App() {
     }
   }, [myId, signalingUrl]);
 
-  // ✅ Écoute les messages du SW (ex: FOCUS_CONVERSATION après clic notif, et RESUBSCRIBE_PUSH)
+  // ✅ Messages SW (FOCUS_CONVERSATION, RESUBSCRIBE_PUSH)
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
 
@@ -327,7 +388,7 @@ function App() {
     return () => navigator.serviceWorker.removeEventListener('message', handler);
   }, [myId, signalingUrl]);
 
-  // --- Ajout pour le Wake Lock ---
+  // --- Wake Lock
   useEffect(() => {
     let wakeLock: WakeLockSentinel | null = null;
 
@@ -364,10 +425,8 @@ function App() {
       document.removeEventListener('fullscreenchange', handleVisibilityChange);
     };
   }, []);
-  // --- Fin Wake Lock ---
 
   const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) => {
-    // Appelle le nouveau service en mappant name -> displayName
     await profileService.saveProfile({
       displayName: profileData.name,
       age: profileData.age,
@@ -384,7 +443,6 @@ function App() {
     };
     setUserProfile(normalized);
 
-    // L’avatar d’affichage est recalculé par l’effet [userProfile.id, avatarRefreshKey]
     await peerService.broadcastProfileUpdate();
   };
 
@@ -398,7 +456,7 @@ function App() {
       gender: (refreshed as any).gender,
       avatarBlob: (refreshed as any).avatarBlob,
     });
-    setAvatarRefreshKey(prev => prev + 1); // force le recalcul d’URL (fallback pravatar versionné)
+    setAvatarRefreshKey(prev => prev + 1);
     await peerService.broadcastProfileUpdate();
   };
 
@@ -450,7 +508,7 @@ function App() {
     joinedAt: new Date().toISOString(),
   });
 
-  // Ne garder que les profils “renseignés” (compat: on passe par name normalisé)
+  // Ne garder que les profils renseignés
   const peerList = Array.from(peers.values()).filter(
     p => p.name && p.name.trim() !== '' && (p.age !== undefined || p.gender !== undefined)
   );
@@ -507,7 +565,7 @@ function App() {
             </div>
 
             <div className="space-y-4">
-              {/* Raccourci profil (mobile-friendly) */}
+              {/* Raccourci profil */}
               <div className="rounded-lg border border-gray-200 p-3 flex items-center justify-between">
                 <div className="flex items-center gap-3 min-w-0">
                   <img
@@ -610,7 +668,6 @@ function App() {
 
           {/* Actions desktop */}
           <div className="hidden sm:flex items-center gap-3">
-            {/* Bouton Installer (s'affiche seulement si l'event est dispo) */}
             {installEvent && (
               <button
                 onClick={async () => {
@@ -723,7 +780,7 @@ function App() {
 
       {/* Contenu principal */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Colonne gauche – listes. Mobile: plein écran quand pas de chat ouvert */}
+        {/* Colonne gauche */}
         <div
           className={`w-full sm:w-80 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col ${
             (!!selectedPeer) ? 'hidden sm:flex' : 'flex'
@@ -744,7 +801,7 @@ function App() {
           )}
         </div>
 
-        {/* Panneau droit – chat. Mobile: plein écran quand un pair est sélectionné */}
+        {/* Panneau droit – chat */}
         <div className={`flex-1 flex flex-col ${!!selectedPeer ? 'flex' : 'hidden sm:flex'}`}>
           {selectedPeer ? (
             <ChatWindow selectedPeer={selectedPeer} myId={myId} onBack={() => setSelectedPeerId(undefined)} />
@@ -778,7 +835,7 @@ function App() {
         </div>
       </div>
 
-      {/* Bottom Navigation – mobile uniquement */}
+      {/* Bottom Navigation – mobile */}
       <nav className="sm:hidden sticky bottom-0 z-40 bg-white border-t border-gray-200">
         <div className="grid grid-cols-4">
           <button

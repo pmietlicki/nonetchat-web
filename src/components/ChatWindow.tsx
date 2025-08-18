@@ -65,19 +65,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   const handleData = useCallback(async (peerId: string, data: any) => {
     if (peerId !== selectedPeer.id) return;
 
-    if (data.type === 'chat-message') {
-      const messageId = data.messageId || uuidv4();
-      addMessage({
-        id: messageId,
-        senderId: peerId,
-        receiverId: myId,
-        content: data.payload,
-        timestamp: Date.now(),
-        type: 'text',
-        encrypted: true,
-        status: 'delivered',
-      });
-    } else if (data.type === 'file-start') {
+    // Le traitement des 'chat-message' est maintenant géré globalement dans App.tsx
+    // pour assurer la persistance même si la fenêtre n'est pas ouverte.
+
+    if (data.type === 'file-start') {
       fileReceivers.current.set(data.messageId, {
         chunks: [],
         metadata: data.payload,
@@ -283,6 +274,20 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     };
     // ⚠️ On ne dépend PAS de `messages` pour éviter de ré-attacher les listeners à chaque message
   }, [selectedPeer.id, handleData, handleFileChunk, handleMessageDelivered, handleMessageRead, isAtBottom, longPressTimer, handleReactionReceived]);
+
+  // Écoute l'événement global de message reçu pour mettre à jour l'UI en temps réel
+  useEffect(() => {
+    const handleUiMessageReceived = (message: Message) => {
+      if (message.senderId === selectedPeer.id) {
+        setMessages(prev => [...prev, message]);
+      }
+    };
+
+    peerService.on('ui-message-received', handleUiMessageReceived);
+    return () => {
+      peerService.removeListener('ui-message-received', handleUiMessageReceived);
+    };
+  }, [selectedPeer.id, peerService]);
 
   // Fermer menus/emoji quand on clique ailleurs
   useEffect(() => {
