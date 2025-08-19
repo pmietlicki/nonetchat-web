@@ -372,6 +372,64 @@ class IndexedDBService {
     });
   }
 
+  // À placer DANS la classe IndexedDBService (p.ex. juste avant updateMessageStatus)
+
+async getMessageById(messageId: string): Promise<StoredMessage | undefined> {
+  const db = this.ensureDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(['messages'], 'readonly');
+    const store = tx.objectStore('messages');
+    const req = store.get(messageId);
+    req.onsuccess = () => resolve(req.result as StoredMessage | undefined);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+/**
+ * Toggle atomique d'une réaction (add/remove) pour un reactorId donné.
+ * Retourne l'objet reactions mis à jour, ou undefined si le message n'existe pas.
+ */
+async toggleMessageReaction(
+  messageId: string,
+  emoji: string,
+  reactorId: string
+): Promise<{ [emoji: string]: string[] } | undefined> {
+  const db = this.ensureDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(['messages'], 'readwrite');
+    const store = tx.objectStore('messages');
+
+    const getReq = store.get(messageId);
+    getReq.onsuccess = () => {
+      const msg = getReq.result as StoredMessage | undefined;
+      if (!msg) {
+        resolve(undefined);
+        return;
+      }
+      const reactions = { ...(msg.reactions || {}) };
+      const arr = reactions[emoji] ? [...reactions[emoji]] : [];
+      const i = arr.indexOf(reactorId);
+      if (i >= 0) {
+        arr.splice(i, 1);
+      } else {
+        arr.push(reactorId);
+      }
+      if (arr.length === 0) {
+        delete reactions[emoji];
+      } else {
+        reactions[emoji] = arr;
+      }
+
+      msg.reactions = reactions;
+      const putReq = store.put(msg);
+      putReq.onsuccess = () => resolve(reactions);
+      putReq.onerror = () => reject(putReq.error);
+    };
+    getReq.onerror = () => reject(getReq.error);
+  });
+}
+
+
   async updateMessageStatus(messageId: string, status: 'sending' | 'sent' | 'delivered' | 'read'): Promise<void> {
     const db = this.ensureDb();
     return new Promise((resolve, reject) => {

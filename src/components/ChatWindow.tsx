@@ -202,27 +202,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     setMessages(prev => prev.map(m => (m.id === messageId ? { ...m, status: 'read' } : m)));
   }, [selectedPeer.id]);
 
-  const handleReactionReceived = useCallback(async (peerId: string, messageId: string, emoji: string) => {
-    if (peerId !== selectedPeer.id) return;
+  // ChatWindow.tsx – handler plus robuste (idempotent)
+const handleReactionReceived = useCallback(async (_peerId: string, messageId: string) => {
+  const updated = await dbService.getMessageById(messageId);
+  if (!updated) return;
+  setMessages(prev => prev.map(m => m.id === messageId ? { ...m, reactions: updated.reactions || {} } : m));
+}, [dbService]);
 
-    setMessages(prev => {
-      const newMessages = prev.map(msg => {
-        if (msg.id !== messageId) return msg;
-        const reactions = { ...(msg.reactions || {}) };
-        const reactorIds = reactions[emoji] || [];
-
-        if (reactorIds.includes(peerId)) {
-          reactions[emoji] = reactorIds.filter(id => id !== peerId);
-          if (reactions[emoji].length === 0) delete reactions[emoji];
-        } else {
-          reactions[emoji] = [...reactorIds, peerId];
-        }
-        dbService.updateMessageReactions(messageId, reactions);
-        return { ...msg, reactions };
-      });
-      return newMessages;
-    });
-  }, [selectedPeer.id, dbService]);
 
   useEffect(() => {
     loadMessages();

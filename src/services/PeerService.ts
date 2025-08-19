@@ -637,10 +637,20 @@ class PeerService extends EventEmitter {
       }
 
       if (message.type === 'reaction') {
-        const { messageId, emoji } = message.payload;
-        this.emit('reaction-received', peerId, messageId, emoji);
-        return;
-      }
+  const { messageId, emoji } = message.payload as { messageId: string; emoji: string };
+
+  try {
+    // Écrit tout de suite en DB pour être robuste même si la fenêtre de chat n'est pas ouverte
+    await this.dbService.toggleMessageReaction(messageId, emoji, peerId);
+  } catch (e) {
+    this.diagnosticService.log('Failed to toggle reaction in DB', { peerId, messageId, emoji, error: e });
+    // En cas d’erreur, on continue quand même l’emit UI (au pire l’UI resynchronisera depuis la DB plus tard)
+  }
+
+  // Notifie l'UI (ChatWindow peut rafraîchir sa copie locale sans recalculer)
+  this.emit('reaction-received', peerId, messageId, emoji);
+  return;
+}
 
       // Par défaut, on relaie
       this.emit('data', peerId, message);
