@@ -1,5 +1,5 @@
 // src/components/FilePreview.tsx
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import IndexedDBService from '../services/IndexedDBService';
 
 type MsgLike = {
@@ -7,8 +7,19 @@ type MsgLike = {
   fileData?: { name?: string; size?: number; type?: string };
 };
 
+type Props = {
+  msg: MsgLike;
+  /** Précharger l’aperçu image quand la bulle entre dans le viewport (sinon uniquement sur clic). */
+  autoPreviewImagesOnVisible?: boolean;
+  /** Reprendre la position audio au ré-écoute. */
+  resumeAudio?: boolean;
+  /** Utiliser Media Session API pour affichage écran verrouillé (Android) + contrôle basique. */
+  enableMediaSession?: boolean;
+};
+
 const db = IndexedDBService.getInstance();
 
+/* ---------- Utils ---------- */
 async function safeGetBlob(messageId: string): Promise<Blob | null> {
   try {
     return await db.getFileBlob(messageId);
@@ -21,49 +32,149 @@ async function safeGetBlob(messageId: string): Promise<Blob | null> {
   }
 }
 
-export default function FilePreview({ msg }: { msg: MsgLike }) {
+const fmtBytes = (n?: number) => {
+  if (!n && n !== 0) return 'taille inconnue';
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const fmtTime = (s: number) => {
+  if (!isFinite(s)) return '–:–';
+  const m = Math.floor(s / 60);
+  const ss = Math.floor(s % 60).toString().padStart(2, '0');
+  return `${m}:${ss}`;
+};
+
+/* ---------- Component ---------- */
+export default function FilePreview({
+  msg,
+  autoPreviewImagesOnVisible = false,
+  resumeAudio = true,
+  enableMediaSession = true,
+}: Props) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const mounted = useRef(true);
+
   const [open, setOpen] = useState(false);
+  const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+
   const [objUrl, setObjUrl] = useState<string | null>(null);
   const [displayType, setDisplayType] = useState<string>('application/octet-stream');
   const [textSample, setTextSample] = useState<string | null>(null);
-  const mounted = useRef(true);
 
+  // Audio state
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [duration, setDuration] = useState<number>(NaN);
+  const [current, setCurrent] = useState<number>(0);
+  const [rate, setRate] = useState<1 | 1.5 | 2>(1);
+  const [audioErr, setAudioErr] = useState<string | null>(null);
+
+  const fileName = msg.fileData?.name || 'fichier';
+  const fileType = useMemo(
+    () => (msg.fileData?.type ? msg.fileData.type.split(';')[0].trim() : 'application/octet-stream'),
+    [msg.fileData?.type]
+  );
+
+  const isImage = /^image\//.test(fileType);
+  const isVideo = /^video\//.test(fileType);
+  const isAudio = /^audio\//.test(fileType);
+  const isPDF = fileType === 'application/pdf';
+  const isTextLike = /^(text\/|application\/(json|xml))/.test(fileType);
+
+  const audioPlayable = useMemo(() => {
+    if (!isAudio) return false;
+    const test = document.createElement('audio');
+    return !!test.canPlayType(fileType);
+  }, [isAudio, fileType]);
+
+  /* ---------- Lifecycle & cleanup ---------- */
   useEffect(() => {
+    mounted.current = true;
     return () => {
       mounted.current = false;
       if (objUrl) {
-        try { URL.revokeObjectURL(objUrl); } catch {}
+        try {
+          URL.revokeObjectURL(objUrl);
+        } catch {}
+      }
+      if (audioRef.current) {
+        try {
+          audioRef.current.pause();
+        } catch {}
+      }
+      // Media Session cleanup
+      if ('mediaSession' in navigator && enableMediaSession) {
+        try {
+          // @ts-ignore
+          navigator.mediaSession.metadata = null;
+          // @ts-ignore
+          navigator.mediaSession.playbackState = 'none';
+        } catch {}
       }
     };
-  }, [objUrl]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // IntersectionObserver: détecte l’entrée dans le viewport
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const el = containerRef.current;
+    const io = new IntersectionObserver(
+      (entries) => {
+        const ent = entries[0];
+        if (ent && ent.isIntersecting) {
+          setVisible(true);
+        }
+      },
+      { rootMargin: '100px' }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  // Auto-preview images au scroll si demandé (sans ouvrir la section)
+  useEffect(() => {
+    if (!autoPreviewImagesOnVisible || !visible || !isImage || objUrl || loading) return;
+    // On ne charge que l’image (pas texte/pdf/audio/vidéo) pour éviter des coûts mémoire non désirés
+    void prefetchImage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoPreviewImagesOnVisible, visible, isImage]);
+
+  /* ---------- Loaders ---------- */
+  const loadBlob = async (): Promise<Blob | null> => {
+    const blob = await safeGetBlob(msg.id);
+    if (!blob) {
+      alert('Fichier introuvable dans la base locale.');
+      return null;
+    }
+    setDisplayType(msg.fileData?.type || blob.type || 'application/octet-stream');
+    return blob;
+  };
 
   const load = async () => {
-    if (loading || objUrl) return;
+    if (loading || objUrl || textSample !== null) return;
     setLoading(true);
     try {
-      const blob = await safeGetBlob(msg.id);
-      if (!blob) {
-        alert('Fichier introuvable dans la base locale.');
-        setLoading(false);
-        return;
-      }
-      const type = msg.fileData?.type || blob.type || 'application/octet-stream';
-      setDisplayType(type);
+      const blob = await loadBlob();
+      if (!blob || !mounted.current) return;
 
-      // text-like: on extrait un aperçu (8 KB)
-      if (/^(text\/|application\/(json|xml))/.test(type)) {
+      // Texte: extrait un aperçu (8 KB)
+      if (isTextLike) {
         const slice = blob.slice(0, 8192);
         const text = await slice.text();
         if (!mounted.current) return;
         setTextSample(text);
       }
 
-      // pour image/video/audio/pdf on crée l’URL
-      if (/^(image|video|audio)\//.test(type) || type === 'application/pdf') {
+      // Image/Video/Audio/PDF: URL objet
+      if (isImage || isVideo || isAudio || isPDF) {
         const url = URL.createObjectURL(blob);
         if (!mounted.current) {
-          try { URL.revokeObjectURL(url); } catch {}
+          try {
+            URL.revokeObjectURL(url);
+          } catch {}
           return;
         }
         setObjUrl(url);
@@ -73,28 +184,152 @@ export default function FilePreview({ msg }: { msg: MsgLike }) {
     }
   };
 
+  const prefetchImage = async () => {
+    try {
+      const blob = await loadBlob();
+      if (!blob || !mounted.current) return;
+      if (!/^image\//.test(displayType)) return; // sécurité
+      const url = URL.createObjectURL(blob);
+      if (!mounted.current) {
+        try {
+          URL.revokeObjectURL(url);
+        } catch {}
+        return;
+      }
+      setObjUrl(url);
+    } catch {
+      // silencieux: l’auto-preview ne doit pas gêner l’UX
+    }
+  };
+
+  const closePreview = () => {
+    setOpen(false);
+    if (objUrl) {
+      try {
+        URL.revokeObjectURL(objUrl);
+      } catch {}
+      setObjUrl(null);
+    }
+    setTextSample(null);
+    if (audioRef.current) {
+      try {
+        audioRef.current.pause();
+      } catch {}
+    }
+  };
+
   const toggle = async (e: React.SyntheticEvent) => {
     e.stopPropagation();
     if (!open) {
       await load();
       setOpen(true);
     } else {
-      setOpen(false);
-      if (objUrl) {
-        try { URL.revokeObjectURL(objUrl); } catch {}
-        setObjUrl(null);
-      }
-      setTextSample(null);
+      closePreview();
     }
   };
 
-  const fileName = msg.fileData?.name || 'fichier';
+  /* ---------- Clipboard ---------- */
+  const copyText = async () => {
+    if (!textSample) return;
+    try {
+      await navigator.clipboard.writeText(textSample);
+      // Optionnel : petit feedback
+    } catch {
+      alert('Impossible de copier le texte dans le presse-papiers.');
+    }
+  };
 
+  /* ---------- Audio helpers ---------- */
+  const audioKey = useMemo(() => `audioProgress:${msg.id}`, [msg.id]);
+
+  useEffect(() => {
+    if (!open || !isAudio || !resumeAudio) return;
+    const a = audioRef.current;
+    if (!a) return;
+    const onLoaded = () => {
+      const p = Number(localStorage.getItem(audioKey));
+      if (isFinite(p) && p > 0 && p < (a.duration || 9e9)) {
+        a.currentTime = p;
+      }
+    };
+    a.addEventListener('loadedmetadata', onLoaded, { once: true });
+    return () => {
+      a.removeEventListener('loadedmetadata', onLoaded);
+    };
+  }, [open, isAudio, resumeAudio, audioKey]);
+
+  useEffect(() => {
+    if (!open || !isAudio) return;
+    const a = audioRef.current;
+    if (!a) return;
+
+    const onTime = () => {
+      setCurrent(a.currentTime || 0);
+      if (resumeAudio) localStorage.setItem(audioKey, String(a.currentTime || 0));
+    };
+    const onLoadedMeta = () => setDuration(a.duration ?? NaN);
+    const onRate = () => setRate(((a.playbackRate as 1 | 1.5 | 2) ?? 1));
+    const onError = () => setAudioErr('Impossible de lire ce fichier audio.');
+
+    a.addEventListener('timeupdate', onTime);
+    a.addEventListener('loadedmetadata', onLoadedMeta);
+    a.addEventListener('ratechange', onRate);
+    a.addEventListener('error', onError);
+
+    return () => {
+      a.removeEventListener('timeupdate', onTime);
+      a.removeEventListener('loadedmetadata', onLoadedMeta);
+      a.removeEventListener('ratechange', onRate);
+      a.removeEventListener('error', onError);
+    };
+  }, [open, isAudio, resumeAudio, audioKey]);
+
+  // Media Session (Android/Chrome) pour audio/vidéo
+  useEffect(() => {
+    if (!enableMediaSession || !open || (!isAudio && !isVideo)) return;
+    if (!('mediaSession' in navigator)) return;
+
+    const title = fileName;
+    // @ts-ignore
+    navigator.mediaSession.metadata = new window.MediaMetadata({
+      title,
+      artist: 'NoNetChat',
+      album: 'Pièces jointes',
+      artwork: [],
+    });
+    // @ts-ignore
+    navigator.mediaSession.playbackState = 'playing';
+
+    // @ts-ignore
+    navigator.mediaSession.setActionHandler?.('seekbackward', (details: any) => {
+      const delta = details?.seekOffset || 10;
+      const el = isAudio ? audioRef.current : null;
+      if (el) el.currentTime = Math.max(0, el.currentTime - delta);
+    });
+    // @ts-ignore
+    navigator.mediaSession.setActionHandler?.('seekforward', (details: any) => {
+      const delta = details?.seekOffset || 10;
+      const el = isAudio ? audioRef.current : null;
+      if (el && isFinite(el.duration)) el.currentTime = Math.min(el.duration, el.currentTime + delta);
+    });
+
+    return () => {
+      try {
+        // @ts-ignore
+        navigator.mediaSession.metadata = null;
+        // @ts-ignore
+        navigator.mediaSession.playbackState = 'none';
+      } catch {}
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enableMediaSession, open, isAudio, isVideo, fileName]);
+
+  /* ---------- Render ---------- */
   return (
-    <div className="mt-2">
-      <div className="flex items-center gap-2">
+    <div ref={containerRef} className="mt-2 select-text" onPointerDown={(e) => e.stopPropagation()}>
+      {/* Header */}
+      <div className="flex flex-wrap items-center gap-2">
         <button
-          onPointerDown={(e) => e.stopPropagation()}
           onClick={toggle}
           className="px-2 py-1 text-xs rounded bg-gray-200 hover:bg-gray-300"
           aria-label={open ? 'Masquer l’aperçu' : 'Afficher l’aperçu'}
@@ -102,49 +337,116 @@ export default function FilePreview({ msg }: { msg: MsgLike }) {
           {open ? 'Masquer l’aperçu' : loading ? 'Chargement…' : 'Afficher l’aperçu'}
         </button>
         <span className="text-[11px] text-gray-500">
-          {msg.fileData?.type || 'type inconnu'} • {msg.fileData?.size ? `${(msg.fileData.size/1024).toFixed(1)} KB` : 'taille inconnue'}
+          {fileType || 'type inconnu'} • {fmtBytes(msg.fileData?.size)}
         </span>
+        {objUrl && (
+          <a
+            href={objUrl}
+            download={fileName}
+            className="ml-auto px-2 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700"
+            onClick={(e) => e.stopPropagation()}
+          >
+            Télécharger
+          </a>
+        )}
       </div>
 
+      {/* Body */}
       {open && (
-        <div className="mt-2 rounded overflow-hidden bg-white">
+        <div className="mt-2 rounded bg-white border border-gray-100 p-2">
           {/* Images */}
-          {/^image\//.test(displayType) && objUrl && (
+          {isImage && objUrl && (
             <img
               src={objUrl}
               alt={fileName}
               loading="lazy"
               decoding="async"
               referrerPolicy="no-referrer"
-              className="max-h-72 rounded object-contain"
+              className="max-h-80 w-full object-contain rounded"
               onClick={(e) => e.stopPropagation()}
             />
           )}
 
           {/* Vidéos */}
-          {/^video\//.test(displayType) && objUrl && (
+          {isVideo && objUrl && (
             <video
               src={objUrl}
               controls
               preload="metadata"
               playsInline
-              className="max-h-72 rounded"
+              className="max-h-80 w-full rounded bg-black"
               onPointerDown={(e) => e.stopPropagation()}
             />
           )}
 
-          {/* Audio */}
-          {/^audio\//.test(displayType) && objUrl && (
-            <audio
-              src={objUrl}
-              controls
-              onPointerDown={(e) => e.stopPropagation()}
-            />
+          {/* Audio amélioré */}
+          {isAudio && (
+            <div className="p-1">
+              {!audioPlayable && (
+                <div className="text-sm text-amber-600 mb-2">
+                  Ce format audio n’est peut-être pas lisible dans ce navigateur. Vous pouvez le télécharger ci-dessus.
+                </div>
+              )}
+              {objUrl && audioPlayable && (
+                <>
+                  <audio
+                    ref={audioRef}
+                    src={objUrl}
+                    controls
+                    preload="metadata"
+                    onPointerDown={(e) => e.stopPropagation()}
+                  />
+                  <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                    <span>
+                      {fmtTime(current)} / {fmtTime(duration)}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const a = audioRef.current;
+                        if (!a) return;
+                        a.currentTime = Math.max(0, (a.currentTime || 0) - 10);
+                      }}
+                      className="px-2 py-0.5 rounded bg-gray-200 hover:bg-gray-300"
+                    >
+                      ⟲ 10s
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const a = audioRef.current;
+                        if (!a) return;
+                        const end = isFinite(a.duration) ? a.duration : a.currentTime + 10;
+                        a.currentTime = Math.min(end, (a.currentTime || 0) + 10);
+                      }}
+                      className="px-2 py-0.5 rounded bg-gray-200 hover:bg-gray-300"
+                    >
+                      ⟳ 10s
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const a = audioRef.current;
+                        if (!a) return;
+                        const next: 1 | 1.5 | 2 = rate === 1 ? 1.5 : rate === 1.5 ? 2 : 1;
+                        a.playbackRate = next;
+                        setRate(next);
+                      }}
+                      className="px-2 py-0.5 rounded bg-gray-200 hover:bg-gray-300"
+                      aria-label="Changer la vitesse"
+                    >
+                      {rate}×
+                    </button>
+                  </div>
+                </>
+              )}
+              {audioErr && <div className="text-sm text-red-600 mt-1">{audioErr}</div>}
+            </div>
           )}
 
           {/* PDF */}
-          {displayType === 'application/pdf' && (
-            <div className="p-2 text-sm">
+          {isPDF && (
+            <div className="p-1 text-sm">
               {objUrl ? (
                 <a
                   href={objUrl}
@@ -164,16 +466,26 @@ export default function FilePreview({ msg }: { msg: MsgLike }) {
 
           {/* Texte / JSON / XML */}
           {textSample !== null && (
-            <pre
-              className="max-h-72 overflow-auto bg-gray-50 p-2 text-xs rounded whitespace-pre-wrap break-words"
-              onPointerDown={(e) => e.stopPropagation()}
-            >
-{String(textSample)}
-            </pre>
+            <div className="relative">
+              <pre className="max-h-80 overflow-auto bg-gray-50 p-2 text-xs rounded whitespace-pre-wrap break-words">
+                {String(textSample)}
+              </pre>
+              <div className="mt-2 flex gap-2">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void copyText();
+                  }}
+                  className="px-2 py-1 text-xs rounded bg-gray-200 hover:bg-gray-300"
+                >
+                  Copier le texte
+                </button>
+              </div>
+            </div>
           )}
 
           {/* Type inconnu */}
-          {open && !objUrl && textSample === null && (
+          {!isImage && !isVideo && !isAudio && !isPDF && textSample === null && (
             <div className="p-2 text-sm text-gray-500">Aperçu indisponible pour ce type de fichier.</div>
           )}
         </div>
