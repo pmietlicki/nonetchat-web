@@ -33,6 +33,9 @@ interface Message {
   reactions?: { [emoji: string]: string[] };
 }
 
+const reactionEmojis = ['👍', '❤️', '😂', '😮', '😢', '😡'];
+const commonEmojis = ['😀', '😂', '😍', '🥰', '😊', '😎', '🤔', '😢', '😡', '👍', '👎', '❤️', '🔥', '💯', '🎉', '👏', '🙏', '💪', '🤝', '✨'];
+
 const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -55,7 +58,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
-  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+
+  // Long press (Pointer Events) – refs (pas de state pour éviter les re-renders)
+  const longPressRef = useRef<number | null>(null);
+  const pressPosRef = useRef<{ x: number; y: number } | null>(null);
+  const MOVE_CANCEL_THRESHOLD = 10; // px
 
   // URLs blob créées localement, pour un nettoyage fiable à l’unmount uniquement
   const blobUrlsRef = useRef<Set<string>>(new Set());
@@ -65,9 +72,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
   const handleData = useCallback(async (peerId: string, data: any) => {
     if (peerId !== selectedPeer.id) return;
-
-    // Le traitement des 'chat-message' est maintenant géré globalement dans App.tsx
-    // pour assurer la persistance même si la fenêtre n'est pas ouverte.
 
     if (data.type === 'file-start') {
       fileReceivers.current.set(data.messageId, {
@@ -97,7 +101,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       if (receiver) {
         try {
           const totalSize = receiver.chunks.reduce((sum, chunk) => sum + chunk.byteLength, 0);
-
           const expectedEncryptedSize = receiver.metadata.encryptedSize || receiver.expectedSize;
           if (expectedEncryptedSize && totalSize !== expectedEncryptedSize) {
             const sizeDifference = Math.abs(totalSize - expectedEncryptedSize);
@@ -115,16 +118,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
           const decryptedFile = await cryptoService.decryptFile(encryptedFile);
           if (decryptedFile.size === 0) throw new Error('Le fichier déchiffré est vide');
 
-          // --- MODIFICATION CLÉ ---
-          // 1. Sauvegarder le Blob déchiffré dans la nouvelle table
           await dbService.saveFileBlob(data.messageId, decryptedFile);
 
-          // 2. Mettre à jour le message dans l'UI (sans URL persistante)
           const updatedFileData = {
             name: receiver.metadata.name,
             size: receiver.metadata.size,
             type: receiver.metadata.type,
-            url: '', // On ne stocke plus l'URL
+            url: '',
           };
 
           await dbService.updateMessageFileData(data.messageId, updatedFileData);
@@ -132,12 +132,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
           setMessages(prev =>
             prev.map(m =>
               m.id === data.messageId
-                ? {
-                    ...m,
-                    content: receiver.metadata.name,
-                    fileData: updatedFileData,
-                    status: 'delivered',
-                  }
+                ? { ...m, content: receiver.metadata.name, fileData: updatedFileData, status: 'delivered' }
                 : m
             )
           );
@@ -155,11 +150,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
           setMessages(prev =>
             prev.map(m =>
               m.id === data.messageId
-                ? {
-                    ...m,
-                    content: `Erreur: Impossible de déchiffrer ${receiver.metadata.name}`,
-                    status: 'delivered',
-                  }
+                ? { ...m, content: `Erreur: Impossible de déchiffrer ${receiver?.metadata?.name ?? 'fichier'}`, status: 'delivered' }
                 : m
             )
           );
@@ -201,14 +192,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
   const handleMessageDelivered = useCallback((peerId: string, messageId: string) => {
     if (peerId !== selectedPeer.id) return;
-
     dbService.updateMessageStatus(messageId, 'delivered');
     setMessages(prev => prev.map(m => (m.id === messageId ? { ...m, status: 'delivered' } : m)));
   }, [selectedPeer.id]);
 
   const handleMessageRead = useCallback((peerId: string, messageId: string) => {
     if (peerId !== selectedPeer.id) return;
-
     dbService.updateMessageStatus(messageId, 'read');
     setMessages(prev => prev.map(m => (m.id === messageId ? { ...m, status: 'read' } : m)));
   }, [selectedPeer.id]);
@@ -217,25 +206,21 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     if (peerId !== selectedPeer.id) return;
 
     setMessages(prev => {
-        const newMessages = prev.map(msg => {
-            if (msg.id !== messageId) return msg;
+      const newMessages = prev.map(msg => {
+        if (msg.id !== messageId) return msg;
+        const reactions = { ...(msg.reactions || {}) };
+        const reactorIds = reactions[emoji] || [];
 
-            const reactions = { ...(msg.reactions || {}) };
-            const reactorIds = reactions[emoji] || [];
-
-            if (reactorIds.includes(peerId)) {
-                reactions[emoji] = reactorIds.filter(id => id !== peerId);
-                if (reactions[emoji].length === 0) delete reactions[emoji];
-            } else {
-                reactions[emoji] = [...reactorIds, peerId];
-            }
-            
-            // Persiste la modification reçue dans la base de données
-            dbService.updateMessageReactions(messageId, reactions);
-
-            return { ...msg, reactions };
-        });
-        return newMessages;
+        if (reactorIds.includes(peerId)) {
+          reactions[emoji] = reactorIds.filter(id => id !== peerId);
+          if (reactions[emoji].length === 0) delete reactions[emoji];
+        } else {
+          reactions[emoji] = [...reactorIds, peerId];
+        }
+        dbService.updateMessageReactions(messageId, reactions);
+        return { ...msg, reactions };
+      });
+      return newMessages;
     });
   }, [selectedPeer.id, dbService]);
 
@@ -256,7 +241,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    // Cleanup unique à l’unmount
     return () => {
       if (typeof peerService.removeListener === 'function') {
         peerService.removeListener('data', handleData);
@@ -267,14 +251,16 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
 
-      if (longPressTimer) clearTimeout(longPressTimer);
+      if (longPressRef.current !== null) {
+        clearTimeout(longPressRef.current);
+        longPressRef.current = null;
+      }
 
       // Révoquer toutes les URLs blob créées par ce composant
       blobUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
       blobUrlsRef.current.clear();
     };
-    // ⚠️ On ne dépend PAS de `messages` pour éviter de ré-attacher les listeners à chaque message
-  }, [selectedPeer.id, handleData, handleFileChunk, handleMessageDelivered, handleMessageRead, isAtBottom, longPressTimer, handleReactionReceived]);
+  }, [selectedPeer.id, handleData, handleFileChunk, handleMessageDelivered, handleMessageRead, isAtBottom, handleReactionReceived]);
 
   // Écoute l'événement global de message reçu pour mettre à jour l'UI en temps réel
   useEffect(() => {
@@ -290,13 +276,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     };
   }, [selectedPeer.id, peerService]);
 
-  // Fermer menus/emoji quand on clique ailleurs
+  // Fermer menus/emoji/reactions quand on clique ailleurs
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
       if (!target.closest('.relative')) {
         setOpenMenuId(null);
         setShowEmojiPicker(false);
+        setShowReactionPicker(null);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -370,7 +357,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       );
 
       for (const message of unreadMessages) {
-        // Appel défensif pour éviter les erreurs si la méthode est absente dans les mocks/tests
         (peerService as any)?.sendMessageReadAck?.(selectedPeer.id, message.id);
         await dbService.updateMessageStatus(message.id, 'read');
       }
@@ -434,30 +420,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     setShowEmojiPicker(false);
   };
 
-  const commonEmojis = ['😀', '😂', '😍', '🥰', '😊', '😎', '🤔', '😢', '😡', '👍', '👎', '❤️', '🔥', '💯', '🎉', '👏', '🙏', '💪', '🤝', '✨'];
-  const reactionEmojis = ['👍', '❤️', '😂', '😮', '😢', '😡'];
-
-  const handleLongPressStart = (messageId: string) => {
-    const timer = setTimeout(() => {
-      if (navigator.vibrate) navigator.vibrate(50);
-      setShowReactionPicker(messageId);
-    }, 300);
-    setLongPressTimer(timer);
-  };
-
-  
-
-  const handleLongPressEnd = () => {
-    if (longPressTimer) {
-      clearTimeout(longPressTimer);
-      setLongPressTimer(null);
-    }
-  };
-
+  // Réaction (texte ou fichier) – envoi garanti au pair
   const addReaction = async (messageId: string, emoji: string) => {
     let newReactions: { [key: string]: string[] } | undefined;
 
-    // Met à jour l'état de l'UI immédiatement pour une meilleure réactivité
     setMessages(prev =>
       prev.map(msg => {
         if (msg.id !== messageId) return msg;
@@ -470,21 +436,20 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         } else {
           reactions[emoji] = [...reactorIds, myId];
         }
-        
-        newReactions = reactions; // Capture les nouvelles réactions pour la persistance
+
+        newReactions = reactions;
         return { ...msg, reactions };
       })
     );
     setShowReactionPicker(null);
 
-    // Persiste la modification et l'envoie au pair
     if (newReactions) {
       try {
         await dbService.updateMessageReactions(messageId, newReactions);
+        // Qu'il s'agisse d'un message texte ou fichier, l’ID est le même : on envoie la réaction au pair
         peerService.sendReaction(selectedPeer.id, messageId, emoji);
       } catch (error) {
-        console.error("Erreur lors de la mise à jour de la réaction:", error);
-        // Optionnel: implémenter une logique pour annuler la modification de l'UI si la persistance échoue
+        console.error('Erreur lors de la mise à jour de la réaction:', error);
       }
     }
   };
@@ -501,6 +466,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     setIsAtBottom(nearBottom);
     if (nearBottom) {
       setNewMessagesCount(0);
+      setShowReactionPicker(null); // ferme le picker si on scrolle
       if (document.visibilityState === 'visible') markAsRead();
     }
   };
@@ -521,7 +487,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       });
 
       try {
-        // 👉 Sauvegarde locale pour permettre le Download côté émetteur
         await dbService.saveFileBlob(messageId, selectedFile);
         const onSendProgress = (progress: number) => {
           setSendingProgress(prev => {
@@ -585,7 +550,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     }
   };
 
-  // Accessibilité: nom du bouton (utilisé par les tests) + titres
   const sendAriaLabel =
     selectedPeer.status !== 'online'
       ? 'Utilisateur hors ligne - envoi désactivé'
@@ -593,108 +557,130 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       ? 'Envoyer le fichier'
       : 'Envoyer le message';
 
-  // NOUVEAU: Composant pour le lien de téléchargement qui gère son état d'URL
-  // Remplace intégralement DownloadLink par ceci
-const DownloadLink = ({ msg }: { msg: Message }) => {
-  const [isLoading, setIsLoading] = useState(false);
+  // Lien de téléchargement (stop propagation dès pointerDown pour ne pas déclencher l’appui long)
+  const DownloadLink = ({ msg }: { msg: Message }) => {
+    const [isLoading, setIsLoading] = useState(false);
 
-  const safeGetBlob = async (id: string) => {
-    try {
-      return await dbService.getFileBlob(id);
-    } catch (e: any) {
-      // Auto-init si la DB n’a pas encore été initialisée
-      if (String(e?.message || '').includes('Database not initialized')) {
-        await IndexedDBService.getInstance().initialize();
+    const safeGetBlob = async (id: string) => {
+      try {
         return await dbService.getFileBlob(id);
+      } catch (e: any) {
+        if (String(e?.message || '').includes('Database not initialized')) {
+          await IndexedDBService.getInstance().initialize();
+          return await dbService.getFileBlob(id);
+        }
+        throw e;
       }
-      throw e;
-    }
-  };
+    };
 
-  const handleClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (isLoading) return;
+    const handleClick = async (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (isLoading) return;
 
-    setIsLoading(true);
-    try {
-      const blobFromDb = await safeGetBlob(msg.id);
-      if (!blobFromDb) {
-        console.warn('[DownloadLink] Blob introuvable pour', msg.id);
-        alert('Fichier non trouvé dans la base de données locale.');
-        return;
-      }
+      setIsLoading(true);
+      try {
+        const blobFromDb = await safeGetBlob(msg.id);
+        if (!blobFromDb) {
+          console.warn('[DownloadLink] Blob introuvable pour', msg.id);
+          alert('Fichier non trouvé dans la base de données locale.');
+          return;
+        }
 
-      const filename = msg.fileData?.name || 'download';
-      const desiredType = msg.fileData?.type || blobFromDb.type || 'application/octet-stream';
-      const blob = blobFromDb.type ? blobFromDb : new Blob([blobFromDb], { type: desiredType });
-      const url = URL.createObjectURL(blob);
+        const filename = msg.fileData?.name || 'download';
+        const desiredType = msg.fileData?.type || blobFromDb.type || 'application/octet-stream';
+        const blob = (blobFromDb as any).type ? blobFromDb : new Blob([blobFromDb], { type: desiredType });
+        const url = URL.createObjectURL(blob);
 
-      // IE/Edge legacy
-      // @ts-ignore
-      if (typeof navigator !== 'undefined' && navigator.msSaveOrOpenBlob) {
         // @ts-ignore
-        navigator.msSaveOrOpenBlob(blob, filename);
-        setTimeout(() => URL.revokeObjectURL(url), 0);
-        return;
+        if (typeof navigator !== 'undefined' && navigator.msSaveOrOpenBlob) {
+          // @ts-ignore
+          navigator.msSaveOrOpenBlob(blob, filename);
+          setTimeout(() => URL.revokeObjectURL(url), 0);
+          return;
+        }
+
+        const ua = navigator.userAgent;
+        const isIOS = /iPad|iPhone|iPod/.test(ua);
+        const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+        if (isIOS || isSafari) {
+          window.open(url, '_blank');
+          setTimeout(() => URL.revokeObjectURL(url), 3000);
+          return;
+        }
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.rel = 'noopener';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+
+        setTimeout(() => {
+          try { document.body.removeChild(a); } catch {}
+          URL.revokeObjectURL(url);
+        }, 1500);
+      } catch (error) {
+        console.error('Erreur lors du téléchargement du fichier:', error);
+        alert('Une erreur est survenue lors du téléchargement.');
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      // iOS / Safari : ouvre dans un nouvel onglet (l’attribut download est souvent ignoré)
-      const ua = navigator.userAgent;
-      const isIOS = /iPad|iPhone|iPod/.test(ua);
-      const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
-      if (isIOS || isSafari) {
-        window.open(url, '_blank');
-        setTimeout(() => URL.revokeObjectURL(url), 3000);
-        return;
-      }
+    const stopBubble = (e: React.SyntheticEvent) => {
+      e.stopPropagation();
+    };
 
-      // Chemin standard
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.rel = 'noopener';
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
+    return (
+      <button
+        type="button"
+        onPointerDown={stopBubble}
+        onMouseDown={stopBubble}
+        onTouchStart={stopBubble}
+        onClick={handleClick}
+        className={`inline-block px-3 py-1 rounded text-xs font-medium transition-colors ${
+          msg.senderId === myId ? 'bg-blue-500 hover:bg-blue-400 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+        }`}
+        title="Télécharger le fichier"
+        aria-label="Télécharger le fichier"
+        data-testid={`download-${msg.id}`}
+      >
+        {isLoading ? 'Chargement...' : '📥 Télécharger'}
+      </button>
+    );
+  };
 
-      setTimeout(() => {
-        try { document.body.removeChild(a); } catch {}
-        URL.revokeObjectURL(url);
-      }, 1500);
-    } catch (error) {
-      console.error('Erreur lors du téléchargement du fichier:', error);
-      alert("Une erreur est survenue lors du téléchargement.");
-    } finally {
-      setIsLoading(false);
+  // Handlers d’appui long (unifiés Pointer Events)
+  const onBubblePointerDown = (msgId: string) => (e: React.PointerEvent) => {
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+    pressPosRef.current = { x: e.clientX, y: e.clientY };
+    if (longPressRef.current !== null) clearTimeout(longPressRef.current);
+    longPressRef.current = window.setTimeout(() => {
+      if (navigator.vibrate) navigator.vibrate(50);
+      setShowReactionPicker(msgId);
+    }, 300);
+  };
+
+  const onBubblePointerMove = (e: React.PointerEvent) => {
+    const p = pressPosRef.current;
+    if (!p || longPressRef.current === null) return;
+    const dx = Math.abs(e.clientX - p.x);
+    const dy = Math.abs(e.clientY - p.y);
+    if (dx > MOVE_CANCEL_THRESHOLD || dy > MOVE_CANCEL_THRESHOLD) {
+      clearTimeout(longPressRef.current);
+      longPressRef.current = null;
     }
   };
 
-  // IMPORTANT : stopper la propagation dès le pointer pour ne pas déclencher le long-press parent
-  const stopBubble = (e: React.SyntheticEvent) => {
-    e.stopPropagation();
+  const onBubblePointerUpOrCancel = () => {
+    if (longPressRef.current !== null) {
+      clearTimeout(longPressRef.current);
+      longPressRef.current = null;
+    }
+    pressPosRef.current = null;
   };
-
-  return (
-    <button
-      type="button"
-      onPointerDown={stopBubble}
-      onMouseDown={stopBubble}
-      onTouchStart={stopBubble}
-      onClick={handleClick}
-      className={`inline-block px-3 py-1 rounded text-xs font-medium transition-colors ${
-        msg.senderId === myId ? 'bg-blue-500 hover:bg-blue-400 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
-      }`}
-      title="Télécharger le fichier"
-      aria-label="Télécharger le fichier"
-      data-testid={`download-${msg.id}`}
-    >
-      {isLoading ? 'Chargement...' : '📥 Télécharger'}
-    </button>
-  );
-};
-
-
 
   return (
     <div className="flex-1 flex flex-col">
@@ -822,14 +808,17 @@ const DownloadLink = ({ msg }: { msg: Message }) => {
               className={`relative max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                 msg.senderId === myId ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'
               }`}
-              onMouseDown={() => handleLongPressStart(msg.id)}
-              onMouseUp={handleLongPressEnd}
-              onMouseLeave={handleLongPressEnd}
-              onTouchStart={() => handleLongPressStart(msg.id)}
-              onTouchEnd={handleLongPressEnd}
+              onContextMenu={(e) => e.preventDefault()}
+              onPointerDown={onBubblePointerDown(msg.id)}
+              onPointerMove={onBubblePointerMove}
+              onPointerUp={onBubblePointerUpOrCancel}
+              onPointerCancel={onBubblePointerUpOrCancel}
             >
               <div className="absolute top-1 right-1">
                 <button
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                   onClick={() => toggleMessageMenu(msg.id)}
                   className={`opacity-0 group-hover:opacity-100 p-1 rounded transition-all duration-200 ${
                     msg.senderId === myId ? 'text-blue-200 hover:text-white hover:bg-blue-500' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'
@@ -878,7 +867,7 @@ const DownloadLink = ({ msg }: { msg: Message }) => {
               )}
 
               {msg.type === 'file' ? (
-                <div className="space-y-2">
+                <div className="space-y-2" onPointerDown={(e) => e.stopPropagation()}>
                   <div className="flex items-center gap-2">
                     <Paperclip size={16} className="flex-shrink-0" />
                     <span className="font-medium">{msg.content}</span>
@@ -887,7 +876,10 @@ const DownloadLink = ({ msg }: { msg: Message }) => {
                     <div className="space-y-1">
                       <div className="text-xs opacity-75">Taille: {msg.fileData.size ? (msg.fileData.size / 1024).toFixed(1) + ' KB' : 'Inconnue'}</div>
                       <DownloadLink msg={msg} />
-                      <FilePreview msg={msg} />
+                      {/* Prévisualisation : stopPropagation interne déjà géré via wrapper */}
+                      <div onPointerDown={(e) => e.stopPropagation()}>
+                        <FilePreview msg={msg} />
+                      </div>
                     </div>
                   ) : (
                     <div className="space-y-2">
@@ -934,6 +926,7 @@ const DownloadLink = ({ msg }: { msg: Message }) => {
                   {Object.entries(msg.reactions).map(([emoji, userIds]) => (
                     <button
                       key={emoji}
+                      onPointerDown={(e) => e.stopPropagation()}
                       onClick={() => addReaction(msg.id, emoji)}
                       className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs transition-all duration-200 hover:scale-105 shadow-sm ${
                         userIds.includes(myId) ? 'bg-blue-500 text-white border border-blue-600' : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
