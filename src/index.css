@@ -36,3 +36,15 @@
 .duration-200 {
   animation-duration: 200ms;
 }
+
+/* --- Minimise la chrome (onglets Pairs/Messages/...) quand un chat est actif --- */
+.chat-active .app-tabbar {
+  display: none !important;
+}
+
+/* (optionnel) si tu as une nav bas dédiée, masque-la aussi en chat */
+@media (max-width: 768px) {
+  .chat-active .bottom-nav {
+    display: none !important;
+  }
+}

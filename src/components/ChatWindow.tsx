@@ -72,12 +72,21 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   const SWIPE_MIN_PX = 90; // distance horizontale minimale
   const SWIPE_MAX_ANGLE = 20; // degrés de tolérance verticale
 
+  // Ref dédiée au picker d’émojis (pour l’outside click)
+  const emojiWrapRef = useRef<HTMLDivElement>(null);
+
   // URLs blob créées localement
   const blobUrlsRef = useRef<Set<string>>(new Set());
 
   // Limites
   const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
   const MAX_VOICE_DURATION = 180; // 3 min
+
+  // Masque la tabbar (Pairs/Messages/…) pendant le chat
+  useEffect(() => {
+    document.body.classList.add('chat-active');
+    return () => { document.body.classList.remove('chat-active'); };
+  }, []);
 
   // --- Notes vocales
   const sendVoiceFile = async (voiceFile: File, durationSec: number) => {
@@ -321,18 +330,21 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     return () => { peerService.removeListener('ui-message-received', handleUiMessageReceived); };
   }, [selectedPeer.id, peerService]);
 
-  // Fermer menus/emoji/reactions quand on clique ailleurs
+  // Fermer menus/emoji/reactions quand on clique ailleurs (sans fermer si clic dans la zone emoji)
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      if (!target.closest('.relative')) {
-        setOpenMenuId(null);
-        setShowEmojiPicker(false);
-        setShowReactionPicker(null);
-      }
+    const onDocDown = (event: MouseEvent | TouchEvent) => {
+      const t = event.target as Node;
+      if (emojiWrapRef.current?.contains(t)) return; // clic sur bouton/picker emoji => ne pas fermer
+      setOpenMenuId(null);
+      setShowReactionPicker(null);
+      setShowEmojiPicker(false);
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', onDocDown);
+    document.addEventListener('touchstart', onDocDown);
+    return () => {
+      document.removeEventListener('mousedown', onDocDown);
+      document.removeEventListener('touchstart', onDocDown);
+    };
   }, []);
 
   useEffect(() => { scrollToBottom(); }, [messages]);
@@ -565,8 +577,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
   // --- Clavier
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Enter pour envoyer, Shift+Enter pour nouvelle ligne dans textarea (si vous migrez plus tard),
-    // Ctrl/Cmd+Enter pour envoyer aussi (desktop-friendly).
     const isMac = navigator.platform.toLowerCase().includes('mac');
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -881,7 +891,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 relative bg-gray-50" onScroll={handleScroll} style={{ WebkitOverflowScrolling: 'touch' }}>
+      <div
+        className="flex-1 overflow-y-auto p-4 space-y-4 relative bg-gray-50"
+        onScroll={handleScroll}
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
         {messages.map(msg => (
           <div
             key={msg.id}
@@ -1099,130 +1113,134 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
           </div>
         )}
 
-         {/* barre de feedback swipe (si tu l’utilises) */}
-  {swipeHint > 0 && (
-    <div className="h-1.5 w-full bg-gray-200 rounded-full mb-2 overflow-hidden">
-      <div className="h-full bg-blue-500 transition-all" style={{ width: `${Math.round(swipeHint * 100)}%` }} />
-    </div>
-  )}
-
-  {/* >>> CORRECTION: rangée compacte, no overflow, icônes non compressées <<< */}
-  <div className="flex items-center w-full overflow-hidden gap-1.5 sm:gap-2">
-    {/* Trombone (masqué sous 360px) */}
-    <button
-      onClick={() => fileInputRef.current?.click()}
-      className="shrink-0 p-2 text-gray-500 hover:text-gray-700 max-[360px]:hidden"
-      disabled={selectedPeer.status !== 'online'}
-      title={selectedPeer.status !== 'online' ? 'Peer hors ligne - envoi de fichiers indisponible' : 'Joindre un fichier'}
-      aria-label="Joindre un fichier"
-    >
-      <Paperclip size={18} />
-    </button>
-    <input
-      type="file"
-      ref={fileInputRef}
-      onChange={(e) => {
-        const file = e.target.files?.[0];
-        if (file) {
-          if (file.size > MAX_FILE_SIZE) {
-            alert(
-              `Le fichier est trop volumineux. Taille maximale autorisée: ${Math.round(
-                MAX_FILE_SIZE / (1024 * 1024)
-              )} MB\n\nNote: Les fichiers sont automatiquement compressés avant l'envoi pour optimiser le transfert.`
-            );
-            e.target.value = '';
-            return;
-          }
-          setSelectedFile(file);
-        }
-      }}
-      className="hidden"
-    />
-
-    {/* >>> l’input doit pouvoir rétrécir : flex-1 + min-w-0 <<< */}
-    <div className="flex-1 min-w-0">
-      <input
-        type="text"
-        value={selectedFile ? '' : newMessage}
-        onChange={(e) => setNewMessage(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={
-          selectedFile
-            ? `Fichier sélectionné: ${selectedFile.name}`
-            : selectedPeer.status === 'online'
-            ? 'Tapez votre message...'
-            : 'Utilisateur hors ligne - envoi de messages désactivé'
-        }
-        disabled={selectedPeer.status !== 'online' || !!selectedFile}
-        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-          selectedPeer.status !== 'online' || selectedFile ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-        }`}
-        aria-label="Saisie du message"
-        inputMode="text"
-        autoComplete="off"
-      />
-    </div>
-
-    {/* Emoji (masqué sous 360px pour garder ENVOYER visible) */}
-    <div className="relative shrink-0 max-[360px]:hidden">
-      <button
-        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-        className="p-2 text-gray-500 hover:text-gray-700"
-        disabled={selectedPeer.status !== 'online' || !!selectedFile}
-        title="Ajouter un émoji"
-        aria-label="Ajouter un émoji"
-      >
-        <Smile size={18} />
-      </button>
-      {showEmojiPicker && (
-        <div className="absolute bottom-12 right-0 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-10 w-64">
-          <div className="grid grid-cols-10 gap-1">
-            {commonEmojis.map((emoji, index) => (
-              <button
-                key={index}
-                onClick={() => insertEmoji(emoji)}
-                className="text-lg hover:bg-gray-100 rounded p-1 transition-colors"
-                title={emoji}
-              >
-                {emoji}
-              </button>
-            ))}
+        {/* barre de feedback swipe */}
+        {swipeHint > 0 && (
+          <div className="h-1.5 w-full bg-gray-200 rounded-full mb-2 overflow-hidden">
+            <div className="h-full bg-blue-500 transition-all" style={{ width: `${Math.round(swipeHint * 100)}%` }} />
           </div>
+        )}
+
+        {/* Rangée compacte */}
+        <div className="flex items-center w-full overflow-hidden gap-1.5 sm:gap-2">
+          {/* Trombone (masqué sous 360px) */}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="shrink-0 p-2 text-gray-500 hover:text-gray-700 max-[360px]:hidden"
+            disabled={selectedPeer.status !== 'online'}
+            title={selectedPeer.status !== 'online' ? 'Peer hors ligne - envoi de fichiers indisponible' : 'Joindre un fichier'}
+            aria-label="Joindre un fichier"
+          >
+            <Paperclip size={18} />
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                if (file.size > MAX_FILE_SIZE) {
+                  alert(
+                    `Le fichier est trop volumineux. Taille maximale autorisée: ${Math.round(
+                      MAX_FILE_SIZE / (1024 * 1024)
+                    )} MB\n\nNote: Les fichiers sont automatiquement compressés avant l'envoi pour optimiser le transfert.`
+                  );
+                  e.target.value = '';
+                  return;
+                }
+                setSelectedFile(file);
+              }
+            }}
+            className="hidden"
+          />
+
+          {/* Champ texte : flex-1 + min-w-0 pour rétrécir correctement */}
+          <div className="flex-1 min-w-0">
+            <input
+              type="text"
+              value={selectedFile ? '' : newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={
+                selectedFile
+                  ? `Fichier sélectionné: ${selectedFile.name}`
+                  : selectedPeer.status === 'online'
+                  ? 'Tapez votre message...'
+                  : 'Utilisateur hors ligne - envoi de messages désactivé'
+              }
+              disabled={selectedPeer.status !== 'online' || !!selectedFile}
+              className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                selectedPeer.status !== 'online' || selectedFile ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+              }`}
+              aria-label="Saisie du message"
+              inputMode="text"
+              autoComplete="off"
+            />
+          </div>
+
+          {/* Emoji (toujours visible) */}
+          <div ref={emojiWrapRef} className="relative shrink-0">
+            <button
+              onClick={() => setShowEmojiPicker(v => !v)}
+              className="p-2 text-gray-500 hover:text-gray-700"
+              disabled={selectedPeer.status !== 'online' || !!selectedFile}
+              title="Ajouter un émoji"
+              aria-label="Ajouter un émoji"
+              aria-expanded={showEmojiPicker}
+            >
+              <Smile size={18} />
+            </button>
+            {showEmojiPicker && (
+              <div
+                className="absolute bottom-12 right-0 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-50 w-64 max-h-60 overflow-y-auto"
+                role="dialog"
+              >
+                <div className="grid grid-cols-10 gap-1">
+                  {commonEmojis.map((emoji, index) => (
+                    <button
+                      key={index}
+                      onClick={() => insertEmoji(emoji)}
+                      className="text-lg hover:bg-gray-100 rounded p-1 transition-colors"
+                      title={emoji}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Micro */}
+          <div className="shrink-0">
+            <VoiceRecorderButton
+              disabled={selectedPeer.status !== 'online' || !!selectedFile}
+              maxDurationMs={MAX_VOICE_DURATION * 1000}
+              onRecorded={sendVoiceFile}
+            />
+          </div>
+
+          {/* Envoyer (toujours visible) */}
+          <button
+            onClick={handleSendMessage}
+            disabled={selectedPeer.status !== 'online' || (!selectedFile && !newMessage.trim())}
+            className={`shrink-0 p-2 rounded-lg ${
+              selectedPeer.status === 'online' && (selectedFile || newMessage.trim())
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-gray-300 text-gray-500'
+            }`}
+            title={sendAriaLabel}
+            aria-label={sendAriaLabel}
+          >
+            <Send size={18} />
+          </button>
         </div>
-      )}
-    </div>
 
-    {/* Micro */}
-    <div className="shrink-0">
-      <VoiceRecorderButton
-        disabled={selectedPeer.status !== 'online' || !!selectedFile}
-        maxDurationMs={MAX_VOICE_DURATION * 1000}
-        onRecorded={sendVoiceFile}
-      />
-    </div>
-
-    {/* >>> BOUTON ENVOYER TOUJOURS VISIBLE (shrink-0) <<< */}
-    <button
-      onClick={handleSendMessage}
-      disabled={selectedPeer.status !== 'online' || (!selectedFile && !newMessage.trim())}
-      className={`shrink-0 p-2 rounded-lg ${
-        selectedPeer.status === 'online' && (selectedFile || newMessage.trim())
-          ? 'bg-blue-600 text-white hover:bg-blue-700'
-          : 'bg-gray-300 text-gray-500'
-      }`}
-      title={sendAriaLabel}
-      aria-label={sendAriaLabel}
-    >
-      <Send size={18} />
-    </button>
-  </div>
-
-  {selectedPeer.status !== 'online' && (
-    <div className="text-center mt-2">
-      <p className="text-xs text-red-500">{selectedPeer.name} est hors ligne. L'envoi de messages est désactivé.</p>
-    </div>
-  )}
-</div>
+        {selectedPeer.status !== 'online' && (
+          <div className="text-center mt-2">
+            <p className="text-xs text-red-500">{selectedPeer.name} est hors ligne. L'envoi de messages est désactivé.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
