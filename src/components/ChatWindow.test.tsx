@@ -97,7 +97,7 @@ describe('ChatWindow', () => {
 
     await screen.findByText('Hello Bob');
 
-    const input = screen.getByPlaceholderText('Tapez votre message...');
+    const input = screen.getByPlaceholderText('Tapez votre message... (Swipe → pour envoyer)');
     // On cible le bouton via son nom accessible (aria-label dynamique)
     const sendButton = screen.getByRole('button', { name: /envoyer le message/i });
 
