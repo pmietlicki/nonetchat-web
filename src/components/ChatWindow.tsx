@@ -789,7 +789,12 @@ const handleReactionReceived = useCallback(async (_peerId: string, messageId: st
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 relative bg-gray-50" onScroll={handleScroll}>
         {messages.map(msg => (
-          <div key={msg.id} className={`flex ${msg.senderId === myId ? 'justify-end' : 'justify-start'} mb-4 group`}>
+           <div
+   key={msg.id}
+   className={`flex ${msg.senderId === myId ? 'justify-end' : 'justify-start'} ${
+     msg.reactions && Object.keys(msg.reactions).length > 0 ? 'mb-6' : 'mb-4'
+   } group`}
+ >
             <div
               className={`relative max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                 msg.senderId === myId ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'
@@ -908,24 +913,27 @@ const handleReactionReceived = useCallback(async (_peerId: string, messageId: st
               )}
 
               {msg.reactions && Object.keys(msg.reactions).length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-1 -mb-1">
-                  {Object.entries(msg.reactions).map(([emoji, userIds]) => (
-                    <button
-                      key={emoji}
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onClick={() => addReaction(msg.id, emoji)}
-                      className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs transition-all duration-200 hover:scale-105 shadow-sm ${
-                        userIds.includes(myId) ? 'bg-blue-500 text-white border border-blue-600' : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-                      }`}
-                      title={`${userIds.length} réaction${userIds.length > 1 ? 's' : ''}`}
-                    >
-                      <span className="text-sm">{emoji}</span>
-                      {userIds.length > 1 && <span className="text-xs font-medium">{userIds.length}</span>}
-                    </button>
-                  ))}
-                </div>
-              )}
-
+   <div
+     className={`absolute -bottom-3 ${msg.senderId === myId ? 'right-2' : 'left-2'} flex gap-1 items-center transform translate-y-1/2 z-20`}
+   >
+     {Object.entries(msg.reactions).map(([emoji, userIds]) => (
+       <button
+         key={emoji}
+         onPointerDown={(e) => e.stopPropagation()}
+         onClick={() => addReaction(msg.id, emoji)}
+         className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] leading-none shadow-sm border transition ${
+           userIds.includes(myId)
+             ? 'bg-blue-500 text-white border-blue-600'
+             : 'bg-white/90 text-gray-800 border-gray-200 hover:bg-white'
+         }`}
+         title={`${userIds.length} réaction${userIds.length > 1 ? 's' : ''}`}
+       >
+         <span className="text-sm leading-none">{emoji}</span>
+         {userIds.length > 1 && <span className="text-[10px] font-medium leading-none">{userIds.length}</span>}
+       </button>
+     ))}
+   </div>
+ )}
               <div className="flex items-center justify-end mt-1">
                 <div className="text-xs opacity-75 mr-2">{new Date(msg.timestamp).toLocaleTimeString()}</div>
                 {msg.senderId === myId && <MessageStatusIndicator status={msg.status} />}
