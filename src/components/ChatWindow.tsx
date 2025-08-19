@@ -203,11 +203,25 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   }, [selectedPeer.id]);
 
   // ChatWindow.tsx – handler plus robuste (idempotent)
-const handleReactionReceived = useCallback(async (_peerId: string, messageId: string) => {
-  const updated = await dbService.getMessageById(messageId);
-  if (!updated) return;
-  setMessages(prev => prev.map(m => m.id === messageId ? { ...m, reactions: updated.reactions || {} } : m));
-}, [dbService]);
+// Remplace ton handleReactionReceived par ceci
+const handleReactionReceived = useCallback(
+  async (peerId: string, messageId: string, emoji: string) => {
+    if (peerId !== selectedPeer.id) return;
+
+    try {
+      // Persistance atomique en DB (ajoute/retire le peerId)
+      const reactions = await dbService.toggleMessageReaction(messageId, emoji, peerId);
+      if (reactions) {
+        // MAJ UI
+        setMessages(prev => prev.map(m => m.id === messageId ? { ...m, reactions } : m));
+      }
+    } catch (e) {
+      console.error('Erreur lors de la MAJ des réactions (réception):', e);
+    }
+  },
+  [selectedPeer.id, dbService]
+);
+
 
 
   useEffect(() => {
@@ -408,37 +422,33 @@ const handleReactionReceived = useCallback(async (_peerId: string, messageId: st
 
   // Réaction (texte ou fichier) – envoi garanti au pair
   const addReaction = async (messageId: string, emoji: string) => {
-    let newReactions: { [key: string]: string[] } | undefined;
+  // Optimistic UI : on bascule immédiatement dans le state
+  setMessages(prev =>
+    prev.map(msg => {
+      if (msg.id !== messageId) return msg;
+      const reactions = { ...(msg.reactions || {}) };
+      const arr = reactions[emoji] ? [...reactions[emoji]] : [];
+      const i = arr.indexOf(myId);
+      if (i >= 0) arr.splice(i, 1); else arr.push(myId);
+      if (arr.length === 0) delete reactions[emoji]; else reactions[emoji] = arr;
+      return { ...msg, reactions };
+    })
+  );
+  setShowReactionPicker(null);
 
-    setMessages(prev =>
-      prev.map(msg => {
-        if (msg.id !== messageId) return msg;
-        const reactions = { ...(msg.reactions || {}) };
-        const reactorIds = reactions[emoji] || [];
-
-        if (reactorIds.includes(myId)) {
-          reactions[emoji] = reactorIds.filter(id => id !== myId);
-          if (reactions[emoji].length === 0) delete reactions[emoji];
-        } else {
-          reactions[emoji] = [...reactorIds, myId];
-        }
-
-        newReactions = reactions;
-        return { ...msg, reactions };
-      })
-    );
-    setShowReactionPicker(null);
-
-    if (newReactions) {
-      try {
-        await dbService.updateMessageReactions(messageId, newReactions);
-        // Qu'il s'agisse d'un message texte ou fichier, l’ID est le même : on envoie la réaction au pair
-        peerService.sendReaction(selectedPeer.id, messageId, emoji);
-      } catch (error) {
-        console.error('Erreur lors de la mise à jour de la réaction:', error);
-      }
+  try {
+    // Persistance atomique DB
+    const reactions = await dbService.toggleMessageReaction(messageId, emoji, myId);
+    if (reactions) {
+      setMessages(prev => prev.map(m => m.id === messageId ? { ...m, reactions } : m));
     }
-  };
+    // Diffusion réseau
+    peerService.sendReaction(selectedPeer.id, messageId, emoji);
+  } catch (e) {
+    console.error('Erreur lors de la MAJ des réactions (émission):', e);
+  }
+};
+
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -840,22 +850,31 @@ const handleReactionReceived = useCallback(async (_peerId: string, messageId: st
               </div>
 
               {showReactionPicker === msg.id && (
-                <div className="absolute bottom-0 left-0 transform translate-y-full bg-white rounded-lg shadow-lg border border-gray-200 z-30 px-2 py-1 mt-1 animate-in fade-in zoom-in duration-200">
-                  <div className="flex gap-1">
-                    {reactionEmojis.map((emoji, index) => (
-                      <button
-                        key={index}
-                        onClick={() => addReaction(msg.id, emoji)}
-                        className="text-lg hover:scale-110 transition-transform duration-200 p-1 rounded hover:bg-gray-100 animate-in fade-in zoom-in"
-                        style={{ animationDelay: `${index * 30}ms` }}
-                        title={`Réagir avec ${emoji}`}
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+  <div
+    className="absolute bottom-0 left-0 transform translate-y-full bg-white rounded-lg shadow-lg border border-gray-200 z-30 px-2 py-1 mt-1"
+    onPointerDown={(e) => e.stopPropagation()}
+    onMouseDown={(e) => e.stopPropagation()}
+    onTouchStart={(e) => e.stopPropagation()}
+  >
+    <div className="flex gap-1">
+      {reactionEmojis.map((emoji, index) => (
+        <button
+          key={index}
+          onPointerDown={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          onClick={() => addReaction(msg.id, emoji)}
+          className="text-lg hover:scale-110 transition-transform duration-200 p-1 rounded hover:bg-gray-100"
+          style={{ animationDelay: `${index * 30}ms` }}
+          title={`Réagir avec ${emoji}`}
+        >
+          {emoji}
+        </button>
+      ))}
+    </div>
+  </div>
+)}
+
 
               {msg.type === 'file' ? (
                 <div className="space-y-2" onPointerDown={(e) => e.stopPropagation()}>
