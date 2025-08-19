@@ -7,6 +7,7 @@ import NotificationService from '../services/NotificationService';
 import { Send, Paperclip, ArrowLeft, X, Trash2, MoreVertical, Info, Smile } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import MessageStatusIndicator from './MessageStatusIndicator';
+import FilePreview from './FilePreview';
 
 interface ChatWindowProps {
   selectedPeer: User;
@@ -886,6 +887,7 @@ const DownloadLink = ({ msg }: { msg: Message }) => {
                     <div className="space-y-1">
                       <div className="text-xs opacity-75">Taille: {msg.fileData.size ? (msg.fileData.size / 1024).toFixed(1) + ' KB' : 'Inconnue'}</div>
                       <DownloadLink msg={msg} />
+                      <FilePreview msg={msg} />
                     </div>
                   ) : (
                     <div className="space-y-2">
