@@ -5,6 +5,7 @@ import IndexedDBService from '../services/IndexedDBService';
 import CryptoService from '../services/CryptoService';
 import NotificationService from '../services/NotificationService';
 import { Send, Paperclip, ArrowLeft, X, Trash2, MoreVertical, Info, Smile } from 'lucide-react';
+import VoiceRecorderButton from './VoiceRecorderButton';
 import { v4 as uuidv4 } from 'uuid';
 import MessageStatusIndicator from './MessageStatusIndicator';
 import FilePreview from './FilePreview';
@@ -69,6 +70,50 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
   // Limite de taille (avant chiffrement)
   const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+  const MAX_VOICE_DURATION = 180; // 3 min
+  const sendVoiceFile = async (voiceFile: File, durationSec: number) => {
+    const messageId = uuidv4();
+    const nice = `${Math.floor(durationSec/60)}:${String(durationSec%60).padStart(2,'0')}`;
+    const displayName = `Note vocale (${nice})`;
+
+    // Message optimiste
+    addMessage({
+      id: messageId,
+      senderId: myId,
+      receiverId: selectedPeer.id,
+      content: `${displayName} (Envoi en cours...)`,
+      timestamp: Date.now(),
+      type: 'file',
+      encrypted: true,
+      status: 'sending',
+      fileData: { name: voiceFile.name, size: voiceFile.size, type: voiceFile.type, url: '' },
+    });
+
+    try {
+      await dbService.saveFileBlob(messageId, voiceFile);
+      const onSendProgress = (progress: number) => {
+        setSendingProgress(prev => {
+          const np = new Map(prev);
+          np.set(messageId, progress);
+          return np;
+        });
+        setMessages(prev => prev.map(m =>
+          m.id === messageId ? { ...m, content: `${displayName} (Envoi: ${progress}%)` } : m
+        ));
+      };
+      await peerService.sendFile(selectedPeer.id, voiceFile, messageId, onSendProgress);
+      setSendingProgress(prev => { const np = new Map(prev); np.delete(messageId); return np; });
+      dbService.updateMessageStatus(messageId, 'sent');
+      setMessages(prev => prev.map(m =>
+        m.id === messageId ? { ...m, content: displayName, status: 'sent' } : m
+      ));
+    } catch (e) {
+      console.error('[Voice] send error', e);
+      setMessages(prev => prev.map(m =>
+        m.id === messageId ? { ...m, content: `${displayName} (Erreur d'envoi)` } : m
+      ));
+    }
+  };
 
   const handleData = useCallback(async (peerId: string, data: any) => {
     if (peerId !== selectedPeer.id) return;
@@ -650,6 +695,9 @@ const handleReactionReceived = useCallback(
 
   // Handlers d’appui long (unifiés Pointer Events)
   const onBubblePointerDown = (msgId: string) => (e: React.PointerEvent) => {
+     // Ne pas armer l'appui long depuis un élément interactif
+ const t = e.target as HTMLElement;
+ if (t.closest('button, a, input, textarea, [role="menu"]')) return;
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
     pressPosRef.current = { x: e.clientX, y: e.clientY };
     if (longPressRef.current !== null) clearTimeout(longPressRef.current);
@@ -830,8 +878,16 @@ const handleReactionReceived = useCallback(
                   <MoreVertical size={12} />
                 </button>
                 {openMenuId === msg.id && (
-                  <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]">
+                     <div
+     className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]"
+     onPointerDown={(e) => e.stopPropagation()}
+     onMouseDown={(e) => e.stopPropagation()}
+     onTouchStart={(e) => e.stopPropagation()}
+   >
                     <button
+                     onPointerDown={(e) => e.stopPropagation()}
+                     onMouseDown={(e) => e.stopPropagation()}
+                     onTouchStart={(e) => e.stopPropagation()}
                       onClick={() => showMessageInfo(msg)}
                       className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg"
                     >
@@ -839,6 +895,9 @@ const handleReactionReceived = useCallback(
                       Informations
                     </button>
                     <button
+                           onPointerDown={(e) => e.stopPropagation()}
+       onMouseDown={(e) => e.stopPropagation()}
+       onTouchStart={(e) => e.stopPropagation()}
                       onClick={() => deleteMessageFromMenu(msg.id)}
                       className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-b-lg"
                     >
@@ -884,11 +943,15 @@ const handleReactionReceived = useCallback(
                   </div>
                   {msg.fileData?.name ? (
                     <div className="space-y-1">
-                      <div className="text-xs opacity-75">Taille: {msg.fileData.size ? (msg.fileData.size / 1024).toFixed(1) + ' KB' : 'Inconnue'}</div>
+                      <div className="text-xs opacity-75">
+                        Taille: {msg.fileData.size ? (msg.fileData.size / 1024).toFixed(1) + ' KB' : 'Inconnue'}
+                      </div>
                       <DownloadLink msg={msg} />
-                      {/* Prévisualisation : stopPropagation interne déjà géré via wrapper */}
                       <div onPointerDown={(e) => e.stopPropagation()}>
-                        <FilePreview msg={msg} />
+                        {/^audio\//.test(msg.fileData.type)
+                          ? <FilePreview msg={msg} resumeAudio enableMediaSession autoPreviewImagesOnVisible />
+                          : <FilePreview msg={msg} />
+                        }
                       </div>
                     </div>
                   ) : (
@@ -1075,6 +1138,12 @@ const handleReactionReceived = useCallback(
               </div>
             )}
           </div>
+          {/* Micro — appui long / verrouillage / annulation */}
+          <VoiceRecorderButton
+            disabled={selectedPeer.status !== 'online' || !!selectedFile}
+            maxDurationMs={MAX_VOICE_DURATION * 1000}
+            onRecorded={sendVoiceFile}
+          />
           <button
             onClick={handleSendMessage}
             disabled={selectedPeer.status !== 'online' || (!selectedFile && !newMessage.trim())}
