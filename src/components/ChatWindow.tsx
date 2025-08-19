@@ -1121,7 +1121,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         )}
 
         {/* Rangée compacte */}
-        <div className="flex items-center w-full overflow-hidden gap-1.5 sm:gap-2">
+        <div className="flex items-center w-full overflow-visible gap-1.5 sm:gap-2">
           {/* Trombone (masqué sous 360px) */}
           <button
             onClick={() => fileInputRef.current?.click()}

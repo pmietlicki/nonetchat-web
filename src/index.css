@@ -42,9 +42,15 @@
   display: none !important;
 }
 
-/* (optionnel) si tu as une nav bas dédiée, masque-la aussi en chat */
-@media (max-width: 768px) {
+/* Compacte la chrome (onglets, nav bas) pendant un chat – mobile & tablette */
+@media (max-width: 1024px) {
+  .chat-active .app-tabbar,
   .chat-active .bottom-nav {
     display: none !important;
   }
+}
+
+/* (optionnel) évite que des popovers (emoji…) se fassent clipper par des parents */
+.overflow-visible {
+  overflow: visible !important;
 }

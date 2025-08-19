@@ -880,7 +880,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
               }}
             />
 
-            <div className="flex bg-gray-100 rounded-lg p-1">
+            <div className="flex bg-gray-100 rounded-lg p-1 app-tabbar">
               <button
                 onClick={() => setActiveTab('peers')}
                 className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
@@ -1025,7 +1025,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
       </div>
 
       {/* Bottom Navigation – mobile */}
-      <nav className="sm:hidden sticky bottom-0 z-40 bg-white border-t border-gray-200">
+      <nav className="bottom-nav sm:hidden sticky bottom-0 z-40 bg-white border-t border-gray-200">
         <div className="grid grid-cols-4">
           <button
             onClick={() => {
