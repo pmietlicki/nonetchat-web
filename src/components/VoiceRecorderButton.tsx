@@ -1,19 +1,12 @@
 // src/components/VoiceRecorderButton.tsx
 import React, { useEffect, useRef, useState } from 'react';
-import { Mic, Square, Lock, ChevronUp, X } from 'lucide-react';
+import { Mic, Send, Lock as LockIcon, X, ChevronUp } from 'lucide-react';
 
 type Props = {
   disabled?: boolean;
-  /** Durée max (ms). Par défaut 180 s. */
-  maxDurationMs?: number;
+  maxDurationMs?: number;                 // défaut: 180s
   onRecorded: (file: File, durationSec: number) => void;
-  /**
-   * Mode desktop :
-   *  - 'auto'       : souris => clic unique démarre verrouillé, touch => appui long
-   *  - 'hold'       : souris aussi en appui long
-   *  - 'clickToLock': souris toujours verrouillé en un clic
-   */
-  desktopMode?: 'auto' | 'hold' | 'clickToLock';
+  desktopMode?: 'auto' | 'hold' | 'clickToLock'; // voir doc ci-dessous
 };
 
 type RecorderState = 'idle' | 'recording' | 'locked' | 'finishing';
@@ -30,10 +23,9 @@ const pickBestMime = () => {
     // @ts-ignore
     if (window.MediaRecorder && MediaRecorder.isTypeSupported?.(t)) return t;
   }
-  return ''; // laisser le navigateur choisir
+  return '';
 };
 
-// Détection “souris” à partir d’un PointerEvent
 const isMousePointer = (e: PointerEvent | React.PointerEvent) =>
   (e as any).pointerType === 'mouse' || ((e as any).pointerType === 'pen' && window.matchMedia?.('(pointer: fine)').matches);
 
@@ -44,11 +36,10 @@ export default function VoiceRecorderButton({
   desktopMode = 'auto',
 }: Props) {
   const [state, setState] = useState<RecorderState>('idle');
-  const [timer, setTimer] = useState(0); // ms
+  const [timer, setTimer] = useState(0);
   const [hint, setHint] = useState<'slide-cancel' | 'slide-lock' | null>(null);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
-
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -60,18 +51,16 @@ export default function VoiceRecorderButton({
   const cancelledRef = useRef(false);
   const lastPointerWasMouse = useRef(false);
 
-  const lockThresholdPx = 70;     // glisser vers le haut
-  const cancelThresholdPx = 70;   // glisser vers la gauche
+  const lockThresholdPx = 70;
+  const cancelThresholdPx = 70;
 
   const preferClickToLock = (isMouse: boolean) => {
     if (!isMouse) return false;
     if (desktopMode === 'hold') return false;
     if (desktopMode === 'clickToLock') return true;
-    // auto
-    return true; // souris => clic unique verrouillé
+    return true; // auto: souris => clic = verrouillé
   };
 
-  // --------- Cleanup global ----------
   const cleanup = () => {
     try { mediaRecorderRef.current?.stop(); } catch {}
     mediaRecorderRef.current = null;
@@ -91,18 +80,13 @@ export default function VoiceRecorderButton({
 
   useEffect(() => () => cleanup(), []);
 
-  // Focus pendant l’enregistrement (capte Enter/Esc au clavier)
   useEffect(() => {
     if (state === 'idle') return;
-    const el = containerRef.current;
-    if (!el) return;
-    el.focus({ preventScroll: true });
+    containerRef.current?.focus({ preventScroll: true });
   }, [state]);
 
-  // --------- Start / Stop ----------
   const start = async () => {
     if (disabled || state !== 'idle') return;
-
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
@@ -112,32 +96,26 @@ export default function VoiceRecorderButton({
       mediaRecorderRef.current = rec;
       chunksRef.current = [];
 
-      rec.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
-      };
+      rec.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunksRef.current.push(e.data); };
 
       rec.onstop = () => {
         const durMs = Date.now() - startTsRef.current;
         const wasCancelled = cancelledRef.current;
 
-        // En cas d'annulation (ou "tap" trop court), on nettoie et on sort.
+        // Annulation / tap trop court -> on nettoie et on revient idle
         if (wasCancelled || durMs < 350) {
           cleanup();
           setState('idle');
           return;
         }
 
-        // Sinon, on produit le fichier puis on nettoie.
+        // OK -> on produit le fichier, puis on nettoie
         const blob = new Blob(chunksRef.current, { type: rec.mimeType || 'audio/webm' });
-        const ext =
-          blob.type.includes('mp4') ? 'm4a'
-          : blob.type.includes('ogg') ? 'ogg'
-          : 'webm';
+        const ext = blob.type.includes('mp4') ? 'm4a' : blob.type.includes('ogg') ? 'ogg' : 'webm';
         const durSec = Math.round(durMs / 1000);
         const nice = `${Math.floor(durSec/60)}:${String(durSec%60).padStart(2,'0')}`;
         const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0,19);
-        const fname = `Note vocale (${nice}) ${ts}.${ext}`;
-        const file = new File([blob], fname, { type: blob.type, lastModified: Date.now() });
+        const file = new File([blob], `Note vocale (${nice}) ${ts}.${ext}`, { type: blob.type, lastModified: Date.now() });
 
         cleanup();
         setState('idle');
@@ -157,7 +135,7 @@ export default function VoiceRecorderButton({
 
       setState('recording');
       setHint('slide-cancel');
-      if (navigator.vibrate) navigator.vibrate(15);
+      navigator.vibrate?.(15);
     } catch (e) {
       console.error('[Voice] getUserMedia/MediaRecorder error:', e);
       cleanup();
@@ -179,7 +157,7 @@ export default function VoiceRecorderButton({
     }
   };
 
-  // --------- Pointer gestures ----------
+  // Gestes
   const onPointerDown = async (e: React.PointerEvent) => {
     if (disabled) return;
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
@@ -187,7 +165,6 @@ export default function VoiceRecorderButton({
     startPointRef.current = { x: e.clientX, y: e.clientY };
     await start();
 
-    // mode desktop “clic = verrouillé” (évite d’avoir à maintenir)
     if (preferClickToLock(lastPointerWasMouse.current)) {
       lockedRef.current = true;
       setState('locked');
@@ -199,67 +176,53 @@ export default function VoiceRecorderButton({
     if (state !== 'recording' || !startPointRef.current) return;
     const dx = e.clientX - startPointRef.current.x;
     const dy = e.clientY - startPointRef.current.y;
-
-    // Verrouillage par glisser vers le haut
     if (!lockedRef.current && -dy > lockThresholdPx) {
       lockedRef.current = true;
       setState('locked');
       setHint(null);
-      if (navigator.vibrate) navigator.vibrate(10);
+      navigator.vibrate?.(10);
       return;
     }
-    // Indice dynamique
-    if (!lockedRef.current) {
-      setHint(-dx > cancelThresholdPx ? 'slide-lock' : 'slide-cancel');
-    }
+    if (!lockedRef.current) setHint(-dx > cancelThresholdPx ? 'slide-lock' : 'slide-cancel');
   };
 
   const onPointerUp = () => {
-    // Si on a auto-verrouillé pour la souris, on ignore le “up” initial
     if (preferClickToLock(lastPointerWasMouse.current)) {
       if (lockedRef.current) return;
       if (Date.now() - startTsRef.current < 200) return;
     }
-    if (state === 'recording' && !lockedRef.current) {
-      stop(true); // relâcher = envoyer
-    }
+    if (state === 'recording' && !lockedRef.current) stop(true);
   };
 
-  // --------- Actions visibles / clavier ----------
-  const onCancel = () => {
-    cancelledRef.current = true;
-    stop(false);
-  };
-  const onLockNow = () => {
-    if (state === 'recording') {
-      lockedRef.current = true;
-      setState('locked');
-      setHint(null);
-    }
-  };
+  // Actions / clavier
+  const onCancel = () => { cancelledRef.current = true; stop(false); };
+  const onLockNow = () => { if (state === 'recording') { lockedRef.current = true; setState('locked'); setHint(null); } };
   const onStopAndSend = () => stop(true);
-
   const onKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (e) => {
     if (state === 'idle') return;
     if (e.key === 'Escape') { e.preventDefault(); onCancel(); }
     if (e.key === 'Enter')  { e.preventDefault(); onStopAndSend(); }
   };
 
-  // --------- UI helpers ----------
+  // UI helpers
   const mm = Math.floor(timer / 60000);
   const ss = String(Math.floor((timer % 60000) / 1000)).padStart(2, '0');
   const label = `${mm}:${ss}`;
-
   const idleTitle = (() => {
     const fine = window.matchMedia?.('(pointer: fine)')?.matches;
-    if (fine && desktopMode !== 'hold') return 'Clic : enregistrer (mode verrouillé) • Entrée pour envoyer, Échap pour annuler';
-    return 'Appui long pour enregistrer • Glisser à gauche pour annuler • Glisser vers le haut pour verrouiller';
+    if (fine && desktopMode !== 'hold') return 'Clic : enregistrer (verrouillé) • Entrée: envoyer • Échap: annuler';
+    return 'Appui long pour enregistrer • Glissez ← pour annuler • Glissez ↑ pour verrouiller';
   })();
+
+  // Styles utilitaires pour les icônes (touch target >= 44px)
+  const iconBtn = "inline-flex items-center justify-center w-11 h-11 rounded-full";
+  const ghost = "bg-gray-200 text-gray-700 hover:bg-gray-300";
+  const primary = "bg-blue-600 text-white hover:bg-blue-700";
 
   return (
     <div
       ref={containerRef}
-      className="relative outline-none"
+      className="relative outline-none touch-manipulation"
       tabIndex={state === 'idle' ? -1 : 0}
       onKeyDown={onKeyDown}
       onContextMenu={(e) => e.preventDefault()}
@@ -281,74 +244,81 @@ export default function VoiceRecorderButton({
 
       {(state === 'recording' || state === 'locked' || state === 'finishing') && (
         <div className="flex items-center gap-2">
-          {/* Pastille + chrono */}
+          {/* Pastille + chrono (compact) */}
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-600 text-white shadow">
             <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
             <span className="font-mono text-sm" aria-live="polite">{label}</span>
           </div>
 
-          {/* Indication tactile */}
+          {/* Indice gestes (mobile, compact) */}
           {state === 'recording' && (
             <div className="hidden sm:block text-xs text-gray-500 select-none">
               {hint === 'slide-cancel' ? 'Glissez à gauche pour annuler' : 'Glissez vers le haut pour verrouiller'}
             </div>
           )}
 
-          {/* Boutons action visibles */}
+          {/* === BARRE D’ACTIONS COMPACTE : icônes seules === */}
           {state === 'recording' && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={onCancel}
-                className="px-2 py-1 text-sm rounded bg-gray-200 text-gray-700 hover:bg-gray-300 flex items-center gap-1"
+                className={`${iconBtn} ${ghost}`}
+                aria-label="Annuler l’enregistrement"
                 title="Annuler"
               >
-                <X size={14} /> Annuler
+                <X size={18} />
               </button>
               <button
                 type="button"
                 onClick={onLockNow}
-                className="px-2 py-1 text-sm rounded bg-gray-200 text-gray-700 hover:bg-gray-300 flex items-center gap-1"
-                title="Verrouiller l’enregistrement"
+                className={`${iconBtn} ${ghost}`}
+                aria-label="Verrouiller l’enregistrement"
+                title="Verrouiller"
               >
-                <Lock size={14} /> Verrouiller
+                <LockIcon size={18} />
               </button>
               <button
                 type="button"
                 onClick={onStopAndSend}
-                className="px-2 py-1 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-1"
+                className={`${iconBtn} ${primary}`}
+                aria-label="Envoyer la note vocale"
                 title="Envoyer"
               >
-                <Square size={14} /> Envoyer
+                <Send size={18} />
               </button>
             </div>
           )}
 
           {state === 'locked' && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={onCancel}
-                className="px-2 py-1 text-sm rounded bg-gray-200 text-gray-700 hover:bg-gray-300 flex items-center gap-1"
+                className={`${iconBtn} ${ghost}`}
+                aria-label="Annuler l’enregistrement"
                 title="Annuler"
               >
-                <X size={14} /> Annuler
+                <X size={18} />
               </button>
               <button
                 type="button"
                 onClick={onStopAndSend}
-                className="px-2 py-1 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-1"
+                className={`${iconBtn} ${primary}`}
+                aria-label="Envoyer la note vocale"
                 title="Envoyer"
               >
-                <Square size={14} /> Envoyer
+                <Send size={18} />
               </button>
-              <span className="text-gray-400 ml-2 flex items-center gap-1 text-xs"><Lock size={12}/> verrouillé</span>
+              <span className="text-gray-400 ml-1 flex items-center gap-1 text-xs">
+                <LockIcon size={12}/> verrouillé
+              </span>
             </div>
           )}
         </div>
       )}
 
-      {/* Aide visuelle mobile (optionnelle) */}
+      {/* Aide visuelle mobile */}
       {state === 'recording' && (
         <div className="absolute -top-6 left-1/2 -translate-x-1/2 flex items-center gap-2 text-[11px] text-gray-400 sm:hidden">
           <span className="inline-flex items-center gap-1"><ChevronUp size={12}/> Verrouiller</span>
