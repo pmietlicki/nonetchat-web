@@ -37,11 +37,6 @@
   animation-duration: 200ms;
 }
 
-/* --- Minimise la chrome (onglets Pairs/Messages/...) quand un chat est actif --- */
-.chat-active .app-tabbar {
-  display: none !important;
-}
-
 /* Compacte la chrome (onglets, nav bas) pendant un chat – mobile & tablette */
 @media (max-width: 1024px) {
   .chat-active .app-tabbar,
