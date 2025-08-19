@@ -9,9 +9,9 @@ type Props = {
   onRecorded: (file: File, durationSec: number) => void;
   /**
    * Mode desktop :
-   *  - 'auto'     : souris => clic unique démarre verrouillé, touch => appui long
-   *  - 'hold'     : souris aussi en appui long
-   *  - 'clickToLock' : souris toujours verrouillé en un clic
+   *  - 'auto'       : souris => clic unique démarre verrouillé, touch => appui long
+   *  - 'hold'       : souris aussi en appui long
+   *  - 'clickToLock': souris toujours verrouillé en un clic
    */
   desktopMode?: 'auto' | 'hold' | 'clickToLock';
 };
@@ -35,7 +35,7 @@ const pickBestMime = () => {
 
 // Détection “souris” à partir d’un PointerEvent
 const isMousePointer = (e: PointerEvent | React.PointerEvent) =>
-  (e as any).pointerType === 'mouse' || (e as any).pointerType === 'pen' && window.matchMedia?.('(pointer: fine)').matches;
+  (e as any).pointerType === 'mouse' || ((e as any).pointerType === 'pen' && window.matchMedia?.('(pointer: fine)').matches);
 
 export default function VoiceRecorderButton({
   disabled,
@@ -96,7 +96,6 @@ export default function VoiceRecorderButton({
     if (state === 'idle') return;
     const el = containerRef.current;
     if (!el) return;
-    // donne le focus pour onKeyDown
     el.focus({ preventScroll: true });
   }, [state]);
 
@@ -118,14 +117,17 @@ export default function VoiceRecorderButton({
       };
 
       rec.onstop = () => {
-        if (cancelledRef.current) return;
         const durMs = Date.now() - startTsRef.current;
-        // anti-clic accidentel
-        if (durMs < 350) {
+        const wasCancelled = cancelledRef.current;
+
+        // En cas d'annulation (ou "tap" trop court), on nettoie et on sort.
+        if (wasCancelled || durMs < 350) {
           cleanup();
           setState('idle');
           return;
         }
+
+        // Sinon, on produit le fichier puis on nettoie.
         const blob = new Blob(chunksRef.current, { type: rec.mimeType || 'audio/webm' });
         const ext =
           blob.type.includes('mp4') ? 'm4a'
@@ -216,7 +218,6 @@ export default function VoiceRecorderButton({
     // Si on a auto-verrouillé pour la souris, on ignore le “up” initial
     if (preferClickToLock(lastPointerWasMouse.current)) {
       if (lockedRef.current) return;
-      // garde-fou si release trop rapide par rapport à start()
       if (Date.now() - startTsRef.current < 200) return;
     }
     if (state === 'recording' && !lockedRef.current) {
@@ -293,7 +294,7 @@ export default function VoiceRecorderButton({
             </div>
           )}
 
-          {/* Boutons action visibles pour la souris (et utiles aussi sur mobile) */}
+          {/* Boutons action visibles */}
           {state === 'recording' && (
             <div className="flex items-center gap-1">
               <button
