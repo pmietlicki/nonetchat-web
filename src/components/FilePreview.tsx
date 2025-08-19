@@ -17,21 +17,7 @@ type Props = {
   enableMediaSession?: boolean;
 };
 
-const db = IndexedDBService.getInstance();
-
 /* ---------- Utils ---------- */
-async function safeGetBlob(messageId: string): Promise<Blob | null> {
-  try {
-    return await db.getFileBlob(messageId);
-  } catch (e: any) {
-    if (String(e?.message || '').includes('Database not initialized')) {
-      await IndexedDBService.getInstance().initialize();
-      return await db.getFileBlob(messageId);
-    }
-    throw e;
-  }
-}
-
 const fmtBytes = (n?: number) => {
   if (!n && n !== 0) return 'taille inconnue';
   if (n < 1024) return `${n} B`;
@@ -45,6 +31,26 @@ const fmtTime = (s: number) => {
   const ss = Math.floor(s % 60).toString().padStart(2, '0');
   return `${m}:${ss}`;
 };
+
+// Lazy helper pour éviter tout appel singleton au module load
+async function safeGetBlob(messageId: string): Promise<Blob | null> {
+  const db = IndexedDBService.getInstance();
+  try {
+    // @ts-ignore - selon ton service, getFileBlob peut être async
+    return await db.getFileBlob(messageId);
+  } catch (e: any) {
+    if (String(e?.message || '').includes('Database not initialized')) {
+      const db2 = IndexedDBService.getInstance();
+      // @ts-ignore - initialize peut ne pas exister dans le mock
+      if (typeof db2.initialize === 'function') {
+        await db2.initialize();
+      }
+      // @ts-ignore
+      return await db2.getFileBlob(messageId);
+    }
+    throw e;
+  }
+}
 
 /* ---------- Component ---------- */
 export default function FilePreview({
@@ -85,8 +91,8 @@ export default function FilePreview({
 
   const audioPlayable = useMemo(() => {
     if (!isAudio) return false;
-    const test = document.createElement('audio');
-    return !!test.canPlayType(fileType);
+    const test = typeof document !== 'undefined' ? document.createElement('audio') : null;
+    return !!test?.canPlayType && !!test.canPlayType(fileType);
   }, [isAudio, fileType]);
 
   /* ---------- Lifecycle & cleanup ---------- */
@@ -95,17 +101,12 @@ export default function FilePreview({
     return () => {
       mounted.current = false;
       if (objUrl) {
-        try {
-          URL.revokeObjectURL(objUrl);
-        } catch {}
+        try { URL.revokeObjectURL(objUrl); } catch {}
       }
       if (audioRef.current) {
-        try {
-          audioRef.current.pause();
-        } catch {}
+        try { audioRef.current.pause(); } catch {}
       }
-      // Media Session cleanup
-      if ('mediaSession' in navigator && enableMediaSession) {
+      if (typeof navigator !== 'undefined' && 'mediaSession' in navigator && enableMediaSession) {
         try {
           // @ts-ignore
           navigator.mediaSession.metadata = null;
@@ -119,14 +120,12 @@ export default function FilePreview({
 
   // IntersectionObserver: détecte l’entrée dans le viewport
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || typeof IntersectionObserver === 'undefined') return;
     const el = containerRef.current;
     const io = new IntersectionObserver(
       (entries) => {
         const ent = entries[0];
-        if (ent && ent.isIntersecting) {
-          setVisible(true);
-        }
+        if (ent && ent.isIntersecting) setVisible(true);
       },
       { rootMargin: '100px' }
     );
@@ -137,7 +136,6 @@ export default function FilePreview({
   // Auto-preview images au scroll si demandé (sans ouvrir la section)
   useEffect(() => {
     if (!autoPreviewImagesOnVisible || !visible || !isImage || objUrl || loading) return;
-    // On ne charge que l’image (pas texte/pdf/audio/vidéo) pour éviter des coûts mémoire non désirés
     void prefetchImage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoPreviewImagesOnVisible, visible, isImage]);
@@ -160,7 +158,6 @@ export default function FilePreview({
       const blob = await loadBlob();
       if (!blob || !mounted.current) return;
 
-      // Texte: extrait un aperçu (8 KB)
       if (isTextLike) {
         const slice = blob.slice(0, 8192);
         const text = await slice.text();
@@ -168,15 +165,9 @@ export default function FilePreview({
         setTextSample(text);
       }
 
-      // Image/Video/Audio/PDF: URL objet
       if (isImage || isVideo || isAudio || isPDF) {
         const url = URL.createObjectURL(blob);
-        if (!mounted.current) {
-          try {
-            URL.revokeObjectURL(url);
-          } catch {}
-          return;
-        }
+        if (!mounted.current) { try { URL.revokeObjectURL(url); } catch {} return; }
         setObjUrl(url);
       }
     } finally {
@@ -188,55 +179,36 @@ export default function FilePreview({
     try {
       const blob = await loadBlob();
       if (!blob || !mounted.current) return;
-      if (!/^image\//.test(displayType)) return; // sécurité
+      if (!/^image\//.test(displayType)) return;
       const url = URL.createObjectURL(blob);
-      if (!mounted.current) {
-        try {
-          URL.revokeObjectURL(url);
-        } catch {}
-        return;
-      }
+      if (!mounted.current) { try { URL.revokeObjectURL(url); } catch {} return; }
       setObjUrl(url);
     } catch {
-      // silencieux: l’auto-preview ne doit pas gêner l’UX
+      // silencieux
     }
   };
 
   const closePreview = () => {
     setOpen(false);
     if (objUrl) {
-      try {
-        URL.revokeObjectURL(objUrl);
-      } catch {}
+      try { URL.revokeObjectURL(objUrl); } catch {}
       setObjUrl(null);
     }
     setTextSample(null);
-    if (audioRef.current) {
-      try {
-        audioRef.current.pause();
-      } catch {}
-    }
+    if (audioRef.current) { try { audioRef.current.pause(); } catch {} }
   };
 
   const toggle = async (e: React.SyntheticEvent) => {
     e.stopPropagation();
-    if (!open) {
-      await load();
-      setOpen(true);
-    } else {
-      closePreview();
-    }
+    if (!open) { await load(); setOpen(true); }
+    else { closePreview(); }
   };
 
   /* ---------- Clipboard ---------- */
   const copyText = async () => {
-    if (!textSample) return;
-    try {
-      await navigator.clipboard.writeText(textSample);
-      // Optionnel : petit feedback
-    } catch {
-      alert('Impossible de copier le texte dans le presse-papiers.');
-    }
+    if (!textSample || typeof navigator === 'undefined') return;
+    try { await navigator.clipboard.writeText(textSample); }
+    catch { alert('Impossible de copier le texte dans le presse-papiers.'); }
   };
 
   /* ---------- Audio helpers ---------- */
@@ -248,14 +220,10 @@ export default function FilePreview({
     if (!a) return;
     const onLoaded = () => {
       const p = Number(localStorage.getItem(audioKey));
-      if (isFinite(p) && p > 0 && p < (a.duration || 9e9)) {
-        a.currentTime = p;
-      }
+      if (isFinite(p) && p > 0 && p < (a.duration || 9e9)) a.currentTime = p;
     };
     a.addEventListener('loadedmetadata', onLoaded, { once: true });
-    return () => {
-      a.removeEventListener('loadedmetadata', onLoaded);
-    };
+    return () => { a.removeEventListener('loadedmetadata', onLoaded); };
   }, [open, isAudio, resumeAudio, audioKey]);
 
   useEffect(() => {
@@ -287,7 +255,7 @@ export default function FilePreview({
   // Media Session (Android/Chrome) pour audio/vidéo
   useEffect(() => {
     if (!enableMediaSession || !open || (!isAudio && !isVideo)) return;
-    if (!('mediaSession' in navigator)) return;
+    if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return;
 
     const title = fileName;
     // @ts-ignore
@@ -403,8 +371,7 @@ export default function FilePreview({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        const a = audioRef.current;
-                        if (!a) return;
+                        const a = audioRef.current; if (!a) return;
                         a.currentTime = Math.max(0, (a.currentTime || 0) - 10);
                       }}
                       className="px-2 py-0.5 rounded bg-gray-200 hover:bg-gray-300"
@@ -414,8 +381,7 @@ export default function FilePreview({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        const a = audioRef.current;
-                        if (!a) return;
+                        const a = audioRef.current; if (!a) return;
                         const end = isFinite(a.duration) ? a.duration : a.currentTime + 10;
                         a.currentTime = Math.min(end, (a.currentTime || 0) + 10);
                       }}
@@ -426,8 +392,7 @@ export default function FilePreview({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        const a = audioRef.current;
-                        if (!a) return;
+                        const a = audioRef.current; if (!a) return;
                         const next: 1 | 1.5 | 2 = rate === 1 ? 1.5 : rate === 1.5 ? 2 : 1;
                         a.playbackRate = next;
                         setRate(next);
@@ -472,10 +437,7 @@ export default function FilePreview({
               </pre>
               <div className="mt-2 flex gap-2">
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    void copyText();
-                  }}
+                  onClick={(e) => { e.stopPropagation(); void copyText(); }}
                   className="px-2 py-1 text-xs rounded bg-gray-200 hover:bg-gray-300"
                 >
                   Copier le texte
