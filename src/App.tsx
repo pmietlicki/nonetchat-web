@@ -14,19 +14,19 @@ import PeerService, { PeerMessage } from './services/PeerService';
 import IndexedDBService from './services/IndexedDBService';
 import ProfileService from './services/ProfileService';
 import NotificationService from './services/NotificationService';
-import { MessageSquare, Users, X, User as UserIcon, Bell, Cog, AlertCircle } from 'lucide-react';
+import { MessageSquare, Users, X, User as UserIcon, Bell, Cog } from 'lucide-react';
 
 const DEFAULT_SIGNALING_URL = 'wss://chat.nonetchat.com';
 // Clé publique VAPID (base64url)
 const VAPID_PUBLIC_KEY = 'BMc-eDAKQrPghLx7eLZJvoAK6ZtfS5EvLWun9MbOvIw8_nuBpGlkDTm8NnvR_dfjFf2QuhZEcUCBzCtQaYh6NPU';
 
-const GeolocationError = ({ message, onDismiss }: { message: string; onDismiss: () => void }) => (
+const GeolocationError = ({ message, onDismiss, onRetry }:{ message:string; onDismiss:()=>void; onRetry:()=>void }) => (
   <div className="fixed top-16 left-1/2 -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 max-w-[90vw]">
-    <AlertCircle className="h-5 w-5" />
     <span className="block sm:inline">{message}</span>
-    <button onClick={onDismiss} className="absolute top-0 bottom-0 right-0 px-4 py-3" aria-label="Fermer l’alerte">
-      <X className="h-6 w-6 text-red-500" />
+    <button onClick={onRetry} className="px-2 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700">
+      Activer la localisation
     </button>
+    <button onClick={onDismiss} className="absolute top-0 bottom-0 right-0 px-4 py-3" aria-label="Fermer l’alerte">✕</button>
   </div>
 );
 
@@ -67,6 +67,72 @@ function App() {
   const profileService = ProfileService.getInstance();
   const dbService = IndexedDBService.getInstance();
   const notificationService = NotificationService.getInstance();
+
+  // --- Géolocalisation (Safari-friendly) ---
+const [hasGeoInit, setHasGeoInit] = useState(false);
+
+async function requestBrowserLocationOnce(): Promise<void> {
+  // 1) Contexte sécurisé obligatoire (iOS/macOS Safari)
+  if (!isSecureContext) {
+    setGeolocationError('La localisation requiert HTTPS. Ouvrez l’application via https://');
+    return;
+  }
+
+  // 2) Si l’API n’existe pas (vieux WebKit), on tente le fallback GeoIP
+  if (!('geolocation' in navigator)) {
+    await fallbackGeoIp();
+    return;
+  }
+
+  // 3) Tente la vraie géoloc (déclenche la popup sur Safari)
+  await new Promise<void>((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        try {
+          (peerService as any)?.updateLocation?.({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            accuracyMeters: pos.coords.accuracy ?? null,
+            timestamp: Date.now(),
+            method: 'geolocation',
+          });
+          // Optionnel : ajuste le rayon souvent utile en mobilité
+          peerService.setSearchRadius(searchRadius);
+        } finally {
+          resolve();
+        }
+      },
+      async (_err) => {
+        // 4) Permission refusée / timeout => fallback GeoIP
+        await fallbackGeoIp();
+        resolve();
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 }
+    );
+  });
+}
+
+async function fallbackGeoIp() {
+  try {
+    const apiUrl = toApiUrl(signalingUrl); // déjà présent dans ton fichier
+    const res = await fetch(`${apiUrl}/api/geoip`, { credentials: 'include' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const j = await res.json();
+    (peerService as any)?.updateLocation?.({
+      latitude: j.latitude,
+      longitude: j.longitude,
+      accuracyMeters: (j.accuracyKm ?? 25) * 1000,
+      timestamp: Date.now(),
+      method: 'geoip',
+    });
+    setGeolocationError(null);
+  } catch {
+    setGeolocationError(
+      "Impossible d'obtenir votre position. Autorisez la localisation dans Safari (Réglages > Safari > Localisation) ou réessayez."
+    );
+  }
+}
+
 
   // Résolution centralisée de l’avatar à afficher (blob local ou pravatar versionné)
 useEffect(() => {
@@ -197,6 +263,15 @@ useEffect(() => {
       peerService.destroy();
     };
   }, [signalingUrl, searchRadius]);
+
+  useEffect(() => {
+  if (isConnected && !hasGeoInit) {
+    setHasGeoInit(true);
+    // Déclenche la popup Safari si nécessaire puis envoie la position au serveur
+    requestBrowserLocationOnce();
+  }
+}, [isConnected, hasGeoInit, signalingUrl, searchRadius]);
+
 
  // --- LISTENER DÉDIÉ aux messages de données (chat-message)
 useEffect(() => {
@@ -541,7 +616,11 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
   return (
     <div className={`min-h-screen bg-gray-100 flex flex-col ${safeTop} ${safeBottom}`}>
       {geolocationError && (
-        <GeolocationError message={geolocationError} onDismiss={() => setGeolocationError(null)} />
+        <GeolocationError
+          message={geolocationError}
+          onDismiss={() => setGeolocationError(null)}
+          onRetry={requestBrowserLocationOnce}
+        />
       )}
 
       <ProfileModal
