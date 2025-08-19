@@ -166,10 +166,16 @@ export default function FilePreview({
       }
 
       if (isImage || isVideo || isAudio || isPDF) {
-        const url = URL.createObjectURL(blob);
+        let finalBlob = blob;
+        if (isPDF && blob.type !== 'application/pdf') {
+          // On force le type MIME à PDF pour que le navigateur déclenche bien son viewer
+          finalBlob = new Blob([blob], { type: 'application/pdf' });
+        }
+        const url = URL.createObjectURL(finalBlob);
         if (!mounted.current) { try { URL.revokeObjectURL(url); } catch {} return; }
         setObjUrl(url);
       }
+
     } finally {
       if (mounted.current) setLoading(false);
     }
@@ -410,24 +416,24 @@ export default function FilePreview({
           )}
 
           {/* PDF */}
-          {isPDF && (
-            <div className="p-1 text-sm">
-              {objUrl ? (
-                <a
-                  href={objUrl}
-                  target="_blank"
-                  rel="noopener"
-                  className="px-2 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Ouvrir le PDF
-                </a>
-              ) : (
-                <span className="text-gray-500">Aperçu PDF non disponible</span>
-              )}
-              <div className="text-[11px] text-gray-500 mt-1">Sur iOS, l’aperçu peut s’ouvrir dans un onglet.</div>
+          {isPDF && objUrl && (
+            <div className="space-y-2">
+              <iframe
+                src={objUrl}
+                title={fileName}
+                className="w-full h-80 border rounded"
+              />
+              <a
+                href={objUrl}
+                target="_blank"
+                rel="noopener"
+                className="px-2 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700"
+              >
+                Ouvrir dans un onglet
+              </a>
             </div>
           )}
+
 
           {/* Texte / JSON / XML */}
           {textSample !== null && (

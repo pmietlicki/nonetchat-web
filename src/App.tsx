@@ -1,5 +1,5 @@
 // src/App.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import PeerList from './components/PeerList';
 import ConversationList from './components/ConversationList';
@@ -15,6 +15,8 @@ import IndexedDBService from './services/IndexedDBService';
 import ProfileService from './services/ProfileService';
 import NotificationService from './services/NotificationService';
 import { MessageSquare, Users, X, User as UserIcon, Bell, Cog } from 'lucide-react';
+import CryptoService from './services/CryptoService';
+
 
 const DEFAULT_SIGNALING_URL = 'wss://chat.nonetchat.com';
 // Clé publique VAPID (base64url)
@@ -45,6 +47,11 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
+
+  const globalFileReceivers = useRef(
+    new Map<string, { peerId: string; chunks: ArrayBuffer[]; metadata: any; expectedSize?: number; startTime: number }>()
+  );
+
 
   // Bouton d'installation PWA
   const [installEvent, setInstallEvent] = useState<any>(null);
@@ -273,6 +280,14 @@ useEffect(() => {
 }, [isConnected, hasGeoInit, signalingUrl, searchRadius]);
 
 
+  const createBaseUser = (peerId: string): User => ({
+    id: peerId,
+    name: '',
+    avatar: `https://i.pravatar.cc/150?u=${encodeURIComponent(`${peerId}:1`)}`,
+    status: 'online',
+    joinedAt: new Date().toISOString(),
+  });
+
  // --- LISTENER DÉDIÉ aux messages de données (chat-message)
 useEffect(() => {
   const onData = async (peerId: string, data: PeerMessage) => {
@@ -346,7 +361,87 @@ const avatar = payload.avatar
       return;
     }
 
-    // (fichiers, acks, réactions...) : gérés ailleurs
+      if (data.type === 'file-start') {
+        if (!data.messageId) return; // sécurité
+    // Si la conversation est ouverte, ChatWindow gère
+    if (selectedPeerId === peerId) return;
+
+    const meta = data.payload || {};
+    globalFileReceivers.current.set(data.messageId!, {
+      peerId,
+      chunks: [],
+      metadata: meta,
+      expectedSize: meta.encryptedSize || meta.size,
+      startTime: Date.now(),
+    });
+
+    const id = data.messageId!;
+    const now = Date.now();
+    await dbService.saveMessage({
+      id,
+      senderId: peerId,
+      receiverId: myId,
+      content: `${meta.name} (En réception...)`,
+      timestamp: now,
+      type: 'file',
+      encrypted: true,
+      status: 'delivered',
+      fileData: { name: meta.name, size: meta.size, type: meta.type, url: '' },
+    }, peerId);
+
+    const p = peers.get(peerId);
+    if (p) {
+      await dbService.updateConversationParticipant(peerId, p.name, p.avatar, p.age, p.gender as any);
+    }
+    notificationService.addMessage(peerId, {
+      id,
+      conversationId: peerId,
+      content: meta.name,
+      timestamp: now,
+      type: 'file',
+      senderName: p?.name || 'Utilisateur',
+    });
+    return;
+  }
+
+  if (data.type === 'file-end') {
+    if (!data.messageId) return; // sécurité
+    // Si la conversation est ouverte, ChatWindow gère
+    if (selectedPeerId === peerId) return;
+
+    const rec = globalFileReceivers.current.get(data.messageId!);
+    if (!rec) return;
+
+    try {
+      const total = rec.chunks.reduce((s, c) => s + c.byteLength, 0);
+      const exp = rec.expectedSize || 0;
+      const diff = Math.abs(total - exp);
+      const tol = Math.max(1024, (exp * 0.1) / 100); // tolérance 0,1% ou 1KB
+
+      if (exp && diff > tol) {
+        throw new Error(`Taille incorrecte: reçu ${total}, attendu ${exp}`);
+      }
+
+      const encryptedFile = new Blob(rec.chunks);
+      const crypto = CryptoService.getInstance();
+      const decrypted = await crypto.decryptFile(encryptedFile);
+
+      await dbService.saveFileBlob(data.messageId!, decrypted);
+      await dbService.updateMessageFileData(data.messageId!, {
+        name: rec.metadata.name,
+        size: rec.metadata.size,
+        type: rec.metadata.type,
+        url: '',
+      });
+
+    } catch (e) {
+      console.error('[App] Erreur réception fichier:', e);
+      // Optionnel: tu peux marquer le message en erreur dans la DB
+    } finally {
+      globalFileReceivers.current.delete(data.messageId!);
+    }
+    return;
+  }
   };
 
   peerService.on('data', onData);
@@ -354,6 +449,15 @@ const avatar = payload.avatar
     peerService.removeListener('data', onData);
   };
 }, [myId, selectedPeerId, peers, peerService, dbService, notificationService]);
+
+ useEffect(() => {
+  const onFileChunk = (peerId: string, messageId: string, chunk: ArrayBuffer) => {
+    const r = globalFileReceivers.current.get(messageId);
+    if (r && r.peerId === peerId) r.chunks.push(chunk);
+  };
+  peerService.on('file-chunk', onFileChunk);
+  return () => peerService.removeListener('file-chunk', onFileChunk);
+}, [peerService]);
 
 
   // ✅ Helper VAPID: base64url -> Uint8Array
@@ -584,13 +688,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
     }
   };
 
-  const createBaseUser = (peerId: string): User => ({
-    id: peerId,
-    name: '',
-    avatar: `https://i.pravatar.cc/150?u=${encodeURIComponent(`${peerId}:1`)}`,
-    status: 'online',
-    joinedAt: new Date().toISOString(),
-  });
+
 
   // Ne garder que les profils renseignés
   const peerList = Array.from(peers.values()).filter(
