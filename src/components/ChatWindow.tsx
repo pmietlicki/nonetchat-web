@@ -1,3 +1,4 @@
+// src/components/ChatWindow.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { User } from '../types';
 import PeerService from '../services/PeerService';
@@ -60,17 +61,25 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
 
-  // Long press (Pointer Events) – refs (pas de state pour éviter les re-renders)
+  // --- Gestes & long press
   const longPressRef = useRef<number | null>(null);
   const pressPosRef = useRef<{ x: number; y: number } | null>(null);
   const MOVE_CANCEL_THRESHOLD = 10; // px
 
-  // URLs blob créées localement, pour un nettoyage fiable à l’unmount uniquement
+  // Swipe-to-send (mobile)
+  const swipeStartRef = useRef<{ x: number; y: number } | null>(null);
+  const [swipeHint, setSwipeHint] = useState<number>(0); // 0..1 pour feedback visuel
+  const SWIPE_MIN_PX = 90; // distance horizontale minimale
+  const SWIPE_MAX_ANGLE = 20; // degrés de tolérance verticale
+
+  // URLs blob créées localement
   const blobUrlsRef = useRef<Set<string>>(new Set());
 
-  // Limite de taille (avant chiffrement)
+  // Limites
   const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
   const MAX_VOICE_DURATION = 180; // 3 min
+
+  // --- Notes vocales
   const sendVoiceFile = async (voiceFile: File, durationSec: number) => {
     const messageId = uuidv4();
     const nice = `${Math.floor(durationSec/60)}:${String(durationSec%60).padStart(2,'0')}`;
@@ -115,6 +124,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     }
   };
 
+  // --- Réception / transfert de fichiers
   const handleData = useCallback(async (peerId: string, data: any) => {
     if (peerId !== selectedPeer.id) return;
 
@@ -140,7 +150,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         fileData: { ...data.payload, url: '' },
       });
     } else if (data.type === 'file-chunk') {
-      // Les chunks bruts arrivent via l’event 'file-chunk' dédié
+      // chunks via event dédié
     } else if (data.type === 'file-end') {
       const receiver = fileReceivers.current.get(data.messageId);
       if (receiver) {
@@ -247,28 +257,24 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     setMessages(prev => prev.map(m => (m.id === messageId ? { ...m, status: 'read' } : m)));
   }, [selectedPeer.id]);
 
-  // ChatWindow.tsx – handler plus robuste (idempotent)
-// Remplace ton handleReactionReceived par ceci
-const handleReactionReceived = useCallback(
-  async (peerId: string, messageId: string, emoji: string) => {
-    if (peerId !== selectedPeer.id) return;
+  // Réactions idempotentes (DB -> UI)
+  const handleReactionReceived = useCallback(
+    async (peerId: string, messageId: string, emoji: string) => {
+      if (peerId !== selectedPeer.id) return;
 
-    try {
-      // Persistance atomique en DB (ajoute/retire le peerId)
-      const reactions = await dbService.toggleMessageReaction(messageId, emoji, peerId);
-      if (reactions) {
-        // MAJ UI
-        setMessages(prev => prev.map(m => m.id === messageId ? { ...m, reactions } : m));
+      try {
+        const reactions = await dbService.toggleMessageReaction(messageId, emoji, peerId);
+        if (reactions) {
+          setMessages(prev => prev.map(m => m.id === messageId ? { ...m, reactions } : m));
+        }
+      } catch (e) {
+        console.error('Erreur lors de la MAJ des réactions (réception):', e);
       }
-    } catch (e) {
-      console.error('Erreur lors de la MAJ des réactions (réception):', e);
-    }
-  },
-  [selectedPeer.id, dbService]
-);
+    },
+    [selectedPeer.id, dbService]
+  );
 
-
-
+  // Subscriptions
   useEffect(() => {
     loadMessages();
     markAsRead();
@@ -301,24 +307,18 @@ const handleReactionReceived = useCallback(
         longPressRef.current = null;
       }
 
-      // Révoquer toutes les URLs blob créées par ce composant
       blobUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
       blobUrlsRef.current.clear();
     };
-  }, [selectedPeer.id, handleData, handleFileChunk, handleMessageDelivered, handleMessageRead, isAtBottom, handleReactionReceived]);
+  }, [selectedPeer.id, handleData, handleFileChunk, handleMessageDelivered, handleMessageRead, isAtBottom, handleReactionReceived, peerService]);
 
-  // Écoute l'événement global de message reçu pour mettre à jour l'UI en temps réel
+  // Mise à jour live si la fenêtre est ouverte
   useEffect(() => {
     const handleUiMessageReceived = (message: Message) => {
-      if (message.senderId === selectedPeer.id) {
-        setMessages(prev => [...prev, message]);
-      }
+      if (message.senderId === selectedPeer.id) setMessages(prev => [...prev, message]);
     };
-
     peerService.on('ui-message-received', handleUiMessageReceived);
-    return () => {
-      peerService.removeListener('ui-message-received', handleUiMessageReceived);
-    };
+    return () => { peerService.removeListener('ui-message-received', handleUiMessageReceived); };
   }, [selectedPeer.id, peerService]);
 
   // Fermer menus/emoji/reactions quand on clique ailleurs
@@ -335,10 +335,9 @@ const handleReactionReceived = useCallback(
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  useEffect(() => { scrollToBottom(); }, [messages]);
 
+  // --- Data helpers
   const loadMessages = async () => {
     try {
       const stored = await dbService.getMessages(selectedPeer.id);
@@ -448,9 +447,7 @@ const handleReactionReceived = useCallback(
   };
 
   const showMessageInfo = (message: Message) => {
-    const info = `ID: ${message.id}\nType: ${message.type}\nEnvoyé: ${new Date(message.timestamp).toLocaleString()}\nStatut: ${
-      message.status || 'Envoyé'
-    }`;
+    const info = `ID: ${message.id}\nType: ${message.type}\nEnvoyé: ${new Date(message.timestamp).toLocaleString()}\nStatut: ${message.status || 'Envoyé'}`;
     alert(info);
     setOpenMenuId(null);
   };
@@ -467,52 +464,33 @@ const handleReactionReceived = useCallback(
 
   // Réaction (texte ou fichier) – envoi garanti au pair
   const addReaction = async (messageId: string, emoji: string) => {
-  // Optimistic UI : on bascule immédiatement dans le state
-  setMessages(prev =>
-    prev.map(msg => {
-      if (msg.id !== messageId) return msg;
-      const reactions = { ...(msg.reactions || {}) };
-      const arr = reactions[emoji] ? [...reactions[emoji]] : [];
-      const i = arr.indexOf(myId);
-      if (i >= 0) arr.splice(i, 1); else arr.push(myId);
-      if (arr.length === 0) delete reactions[emoji]; else reactions[emoji] = arr;
-      return { ...msg, reactions };
-    })
-  );
-  setShowReactionPicker(null);
+    // Optimistic UI
+    setMessages(prev =>
+      prev.map(msg => {
+        if (msg.id !== messageId) return msg;
+        const reactions = { ...(msg.reactions || {}) };
+        const arr = reactions[emoji] ? [...reactions[emoji]] : [];
+        const i = arr.indexOf(myId);
+        if (i >= 0) arr.splice(i, 1); else arr.push(myId);
+        if (arr.length === 0) delete reactions[emoji]; else reactions[emoji] = arr;
+        return { ...msg, reactions };
+      })
+    );
+    setShowReactionPicker(null);
 
-  try {
-    // Persistance atomique DB
-    const reactions = await dbService.toggleMessageReaction(messageId, emoji, myId);
-    if (reactions) {
-      setMessages(prev => prev.map(m => m.id === messageId ? { ...m, reactions } : m));
-    }
-    // Diffusion réseau
-    peerService.sendReaction(selectedPeer.id, messageId, emoji);
-  } catch (e) {
-    console.error('Erreur lors de la MAJ des réactions (émission):', e);
-  }
-};
-
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    setIsAtBottom(true);
-    setNewMessagesCount(0);
-  };
-
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-    const nearBottom = scrollHeight - scrollTop - clientHeight < 100;
-    setIsAtBottom(nearBottom);
-    if (nearBottom) {
-      setNewMessagesCount(0);
-      setShowReactionPicker(null); // ferme le picker si on scrolle
-      if (document.visibilityState === 'visible') markAsRead();
+    try {
+      const reactions = await dbService.toggleMessageReaction(messageId, emoji, myId);
+      if (reactions) setMessages(prev => prev.map(m => m.id === messageId ? { ...m, reactions } : m));
+      peerService.sendReaction(selectedPeer.id, messageId, emoji);
+    } catch (e) {
+      console.error('Erreur lors de la MAJ des réactions (émission):', e);
     }
   };
 
+  // --- Envoi message / fichier
   const handleSendMessage = async () => {
+    if (selectedPeer.status !== 'online') return;
+
     if (selectedFile) {
       const messageId = uuidv4();
       addMessage({
@@ -560,7 +538,10 @@ const handleReactionReceived = useCallback(
         );
         setSelectedFile(null);
       }
-    } else if (newMessage.trim()) {
+      return;
+    }
+
+    if (newMessage.trim()) {
       const messageContent = newMessage;
       const messageId = uuidv4();
 
@@ -582,12 +563,35 @@ const handleReactionReceived = useCallback(
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  // --- Clavier
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Enter pour envoyer, Shift+Enter pour nouvelle ligne dans textarea (si vous migrez plus tard),
+    // Ctrl/Cmd+Enter pour envoyer aussi (desktop-friendly).
+    const isMac = navigator.platform.toLowerCase().includes('mac');
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (selectedPeer.status === 'online') {
-        handleSendMessage();
-      }
+      if (selectedPeer.status === 'online') handleSendMessage();
+    } else if ((isMac && e.metaKey && e.key === 'Enter') || (!isMac && e.ctrlKey && e.key === 'Enter')) {
+      e.preventDefault();
+      if (selectedPeer.status === 'online') handleSendMessage();
+    }
+  };
+
+  // --- Scroll
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setIsAtBottom(true);
+    setNewMessagesCount(0);
+  };
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    const nearBottom = scrollHeight - scrollTop - clientHeight < 100;
+    setIsAtBottom(nearBottom);
+    if (nearBottom) {
+      setNewMessagesCount(0);
+      setShowReactionPicker(null);
+      if (document.visibilityState === 'visible') markAsRead();
     }
   };
 
@@ -598,7 +602,7 @@ const handleReactionReceived = useCallback(
       ? 'Envoyer le fichier'
       : 'Envoyer le message';
 
-  // Lien de téléchargement (stop propagation dès pointerDown pour ne pas déclencher l’appui long)
+  // --- Lien de téléchargement
   const DownloadLink = ({ msg }: { msg: Message }) => {
     const [isLoading, setIsLoading] = useState(false);
 
@@ -629,10 +633,11 @@ const handleReactionReceived = useCallback(
         }
 
         const filename = msg.fileData?.name || 'download';
-        const desiredType = msg.fileData?.type || blobFromDb.type || 'application/octet-stream';
-        const blob = (blobFromDb as any).type ? blobFromDb : new Blob([blobFromDb], { type: desiredType });
+        const desiredType = msg.fileData?.type || (blobFromDb as any).type || 'application/octet-stream';
+        const blob = (blobFromDb as any).type ? (blobFromDb as Blob) : new Blob([blobFromDb as any], { type: desiredType });
         const url = URL.createObjectURL(blob);
 
+        // IE/Edge Legacy
         // @ts-ignore
         if (typeof navigator !== 'undefined' && navigator.msSaveOrOpenBlob) {
           // @ts-ignore
@@ -670,9 +675,7 @@ const handleReactionReceived = useCallback(
       }
     };
 
-    const stopBubble = (e: React.SyntheticEvent) => {
-      e.stopPropagation();
-    };
+    const stopBubble = (e: React.SyntheticEvent) => { e.stopPropagation(); };
 
     return (
       <button
@@ -693,11 +696,10 @@ const handleReactionReceived = useCallback(
     );
   };
 
-  // Handlers d’appui long (unifiés Pointer Events)
+  // --- Long press sur bulles (avec protection des éléments interactifs)
   const onBubblePointerDown = (msgId: string) => (e: React.PointerEvent) => {
-     // Ne pas armer l'appui long depuis un élément interactif
- const t = e.target as HTMLElement;
- if (t.closest('button, a, input, textarea, [role="menu"]')) return;
+    const t = e.target as HTMLElement;
+    if (t.closest('button, a, input, textarea, [role="menu"], audio, video')) return; // évite conflit
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
     pressPosRef.current = { x: e.clientX, y: e.clientY };
     if (longPressRef.current !== null) clearTimeout(longPressRef.current);
@@ -726,24 +728,58 @@ const handleReactionReceived = useCallback(
     pressPosRef.current = null;
   };
 
+  // --- Swipe-to-send (mobile) sur la zone d’input
+  const onSwipeStart = (e: React.PointerEvent) => {
+    if (selectedPeer.status !== 'online') return;
+    const target = e.target as HTMLElement;
+    if (target.closest('button, [role="menu"], input[type="file"]')) return;
+    swipeStartRef.current = { x: e.clientX, y: e.clientY };
+    setSwipeHint(0);
+  };
+
+  const onSwipeMove = (e: React.PointerEvent) => {
+    const s = swipeStartRef.current;
+    if (!s) return;
+    const dx = e.clientX - s.x;
+    const dy = e.clientY - s.y;
+    const angle = Math.abs(Math.atan2(dy, dx) * 180 / Math.PI);
+    if (angle < SWIPE_MAX_ANGLE && dx > 0) {
+      const norm = Math.min(1, Math.max(0, dx / (SWIPE_MIN_PX * 1.5)));
+      setSwipeHint(norm);
+    } else {
+      setSwipeHint(0);
+    }
+  };
+
+  const onSwipeEnd = () => {
+    const s = swipeStartRef.current;
+    swipeStartRef.current = null;
+    if (!s) return;
+    if (swipeHint >= 1 && (selectedFile || newMessage.trim())) {
+      // swipe validé -> envoi
+      void handleSendMessage();
+    }
+    setSwipeHint(0);
+  };
+
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col min-h-0">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 bg-white">
+      <div className="p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button onClick={onBack} className="md:hidden p-2 -ml-2 text-gray-600 hover:text-gray-800" aria-label="Retour">
+          <div className="flex items-center gap-3 min-w-0">
+            <button onClick={onBack} className="md:hidden p-2 -ml-2 text-gray-600 hover:text-gray-800 shrink-0" aria-label="Retour">
               <ArrowLeft size={20} />
             </button>
             <img
               src={selectedPeer.avatar || `https://i.pravatar.cc/150?u=${selectedPeer.id}`}
               alt={selectedPeer.name}
-              className="w-10 h-10 rounded-full object-cover"
+              className="w-10 h-10 rounded-full object-cover shrink-0"
             />
-            <div>
-              <h3 className="font-semibold text-gray-900">{selectedPeer.name}</h3>
+            <div className="min-w-0">
+              <h3 className="font-semibold text-gray-900 truncate">{selectedPeer.name}</h3>
               <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${selectedPeer.status === 'online' ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                <div className={`w-2 h-2 rounded-full ${selectedPeer.status === 'online' ? 'bg-green-500' : 'bg-gray-400'}`} />
                 <p className="text-sm text-gray-500">{selectedPeer.status === 'online' ? 'En ligne' : 'Hors ligne'}</p>
               </div>
             </div>
@@ -845,16 +881,16 @@ const handleReactionReceived = useCallback(
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 relative bg-gray-50" onScroll={handleScroll}>
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 relative bg-gray-50" onScroll={handleScroll} style={{ WebkitOverflowScrolling: 'touch' }}>
         {messages.map(msg => (
-           <div
-   key={msg.id}
-   className={`flex ${msg.senderId === myId ? 'justify-end' : 'justify-start'} ${
-     msg.reactions && Object.keys(msg.reactions).length > 0 ? 'mb-6' : 'mb-4'
-   } group`}
- >
+          <div
+            key={msg.id}
+            className={`flex ${msg.senderId === myId ? 'justify-end' : 'justify-start'} ${
+              msg.reactions && Object.keys(msg.reactions).length > 0 ? 'mb-6' : 'mb-4'
+            } group`}
+          >
             <div
-              className={`relative max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+              className={`relative max-w-[80%] md:max-w-md px-4 py-2 rounded-lg ${
                 msg.senderId === myId ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'
               }`}
               onContextMenu={(e) => e.preventDefault()}
@@ -878,16 +914,13 @@ const handleReactionReceived = useCallback(
                   <MoreVertical size={12} />
                 </button>
                 {openMenuId === msg.id && (
-                     <div
-     className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]"
-     onPointerDown={(e) => e.stopPropagation()}
-     onMouseDown={(e) => e.stopPropagation()}
-     onTouchStart={(e) => e.stopPropagation()}
-   >
+                  <div
+                    className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[140px]"
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                  >
                     <button
-                     onPointerDown={(e) => e.stopPropagation()}
-                     onMouseDown={(e) => e.stopPropagation()}
-                     onTouchStart={(e) => e.stopPropagation()}
                       onClick={() => showMessageInfo(msg)}
                       className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg"
                     >
@@ -895,9 +928,6 @@ const handleReactionReceived = useCallback(
                       Informations
                     </button>
                     <button
-                           onPointerDown={(e) => e.stopPropagation()}
-       onMouseDown={(e) => e.stopPropagation()}
-       onTouchStart={(e) => e.stopPropagation()}
                       onClick={() => deleteMessageFromMenu(msg.id)}
                       className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-b-lg"
                     >
@@ -909,37 +939,36 @@ const handleReactionReceived = useCallback(
               </div>
 
               {showReactionPicker === msg.id && (
-  <div
-    className="absolute bottom-0 left-0 transform translate-y-full bg-white rounded-lg shadow-lg border border-gray-200 z-30 px-2 py-1 mt-1"
-    onPointerDown={(e) => e.stopPropagation()}
-    onMouseDown={(e) => e.stopPropagation()}
-    onTouchStart={(e) => e.stopPropagation()}
-  >
-    <div className="flex gap-1">
-      {reactionEmojis.map((emoji, index) => (
-        <button
-          key={index}
-          onPointerDown={(e) => e.stopPropagation()}
-          onMouseDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
-          onClick={() => addReaction(msg.id, emoji)}
-          className="text-lg hover:scale-110 transition-transform duration-200 p-1 rounded hover:bg-gray-100"
-          style={{ animationDelay: `${index * 30}ms` }}
-          title={`Réagir avec ${emoji}`}
-        >
-          {emoji}
-        </button>
-      ))}
-    </div>
-  </div>
-)}
-
+                <div
+                  className="absolute bottom-0 left-0 transform translate-y-full bg-white rounded-lg shadow-lg border border-gray-200 z-30 px-2 py-1 mt-1"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                >
+                  <div className="flex gap-1">
+                    {reactionEmojis.map((emoji, index) => (
+                      <button
+                        key={index}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onTouchStart={(e) => e.stopPropagation()}
+                        onClick={() => addReaction(msg.id, emoji)}
+                        className="text-lg hover:scale-110 transition-transform duration-200 p-1 rounded hover:bg-gray-100"
+                        style={{ animationDelay: `${index * 30}ms` }}
+                        title={`Réagir avec ${emoji}`}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {msg.type === 'file' ? (
                 <div className="space-y-2" onPointerDown={(e) => e.stopPropagation()}>
                   <div className="flex items-center gap-2">
                     <Paperclip size={16} className="flex-shrink-0" />
-                    <span className="font-medium">{msg.content}</span>
+                    <span className="font-medium break-all">{msg.content}</span>
                   </div>
                   {msg.fileData?.name ? (
                     <div className="space-y-1">
@@ -950,7 +979,7 @@ const handleReactionReceived = useCallback(
                       <div onPointerDown={(e) => e.stopPropagation()}>
                         {/^audio\//.test(msg.fileData.type)
                           ? <FilePreview msg={msg} resumeAudio enableMediaSession autoPreviewImagesOnVisible />
-                          : <FilePreview msg={msg} />
+                          : <FilePreview msg={msg} autoPreviewImagesOnVisible />
                         }
                       </div>
                     </div>
@@ -969,7 +998,7 @@ const handleReactionReceived = useCallback(
                             <div
                               className={`h-1.5 rounded-full transition-all duration-300 ${msg.senderId === myId ? 'bg-blue-300' : 'bg-gray-400'}`}
                               style={{ width: `${sendingProgress.get(msg.id)}%` }}
-                            ></div>
+                            />
                           </div>
                         </div>
                       )}
@@ -983,7 +1012,7 @@ const handleReactionReceived = useCallback(
                             <div
                               className={`h-1.5 rounded-full transition-all duration-300 ${msg.senderId === myId ? 'bg-blue-300' : 'bg-green-400'}`}
                               style={{ width: `${receivingProgress.get(msg.id)}%` }}
-                            ></div>
+                            />
                           </div>
                         </div>
                       )}
@@ -991,31 +1020,32 @@ const handleReactionReceived = useCallback(
                   )}
                 </div>
               ) : (
-                <span>{msg.content}</span>
+                <span className="whitespace-pre-wrap break-words">{msg.content}</span>
               )}
 
               {msg.reactions && Object.keys(msg.reactions).length > 0 && (
-   <div
-     className={`absolute -bottom-3 ${msg.senderId === myId ? 'right-2' : 'left-2'} flex gap-1 items-center transform translate-y-1/2 z-20`}
-   >
-     {Object.entries(msg.reactions).map(([emoji, userIds]) => (
-       <button
-         key={emoji}
-         onPointerDown={(e) => e.stopPropagation()}
-         onClick={() => addReaction(msg.id, emoji)}
-         className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] leading-none shadow-sm border transition ${
-           userIds.includes(myId)
-             ? 'bg-blue-500 text-white border-blue-600'
-             : 'bg-white/90 text-gray-800 border-gray-200 hover:bg-white'
-         }`}
-         title={`${userIds.length} réaction${userIds.length > 1 ? 's' : ''}`}
-       >
-         <span className="text-sm leading-none">{emoji}</span>
-         {userIds.length > 1 && <span className="text-[10px] font-medium leading-none">{userIds.length}</span>}
-       </button>
-     ))}
-   </div>
- )}
+                <div
+                  className={`absolute -bottom-3 ${msg.senderId === myId ? 'right-2' : 'left-2'} flex gap-1 items-center transform translate-y-1/2 z-20`}
+                >
+                  {Object.entries(msg.reactions).map(([emoji, userIds]) => (
+                    <button
+                      key={emoji}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={() => addReaction(msg.id, emoji)}
+                      className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] leading-none shadow-sm border transition ${
+                        userIds.includes(myId)
+                          ? 'bg-blue-500 text-white border-blue-600'
+                          : 'bg-white/90 text-gray-800 border-gray-200 hover:bg-white'
+                      }`}
+                      title={`${userIds.length} réaction${userIds.length > 1 ? 's' : ''}`}
+                    >
+                      <span className="text-sm leading-none">{emoji}</span>
+                      {userIds.length > 1 && <span className="text-[10px] font-medium leading-none">{userIds.length}</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <div className="flex items-center justify-end mt-1">
                 <div className="text-xs opacity-75 mr-2">{new Date(msg.timestamp).toLocaleTimeString()}</div>
                 {msg.senderId === myId && <MessageStatusIndicator status={msg.status} />}
@@ -1043,15 +1073,21 @@ const handleReactionReceived = useCallback(
         )}
       </div>
 
-      {/* Input */}
-      <div className="p-4 border-t border-gray-200 bg-white">
+      {/* Input (sticky bottom, safe-area) */}
+      <div
+        className="p-4 border-t border-gray-200 bg-white sticky bottom-0 z-10 pb-[env(safe-area-inset-bottom)]"
+        onPointerDown={onSwipeStart}
+        onPointerMove={onSwipeMove}
+        onPointerUp={onSwipeEnd}
+        onPointerCancel={onSwipeEnd}
+      >
         {selectedFile && (
           <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Paperclip size={16} className="text-blue-600" />
-                <div>
-                  <div className="text-sm font-medium text-blue-900">{selectedFile.name}</div>
+              <div className="flex items-center gap-2 min-w-0">
+                <Paperclip size={16} className="text-blue-600 shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-blue-900 truncate">{selectedFile.name}</div>
                   <div className="text-xs text-blue-600">{(selectedFile.size / 1024).toFixed(1)} KB • {selectedFile.type || 'Type inconnu'}</div>
                   <div className="text-xs text-blue-500 mt-1">🗜️ Sera compressé et chiffré automatiquement</div>
                 </div>
@@ -1060,6 +1096,13 @@ const handleReactionReceived = useCallback(
                 ✕
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Swipe feedback bar */}
+        {swipeHint > 0 && (
+          <div className="h-1.5 w-full bg-gray-200 rounded-full mb-2 overflow-hidden">
+            <div className="h-full bg-blue-500 transition-all" style={{ width: `${Math.round(swipeHint * 100)}%` }} />
           </div>
         )}
 
@@ -1097,12 +1140,12 @@ const handleReactionReceived = useCallback(
             type="text"
             value={selectedFile ? '' : newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder={
               selectedFile
                 ? `Fichier sélectionné: ${selectedFile.name}`
                 : selectedPeer.status === 'online'
-                ? 'Tapez votre message...'
+                ? 'Tapez votre message... (Swipe → pour envoyer)'
                 : 'Utilisateur hors ligne - envoi de messages désactivé'
             }
             disabled={selectedPeer.status !== 'online' || !!selectedFile}
@@ -1110,6 +1153,8 @@ const handleReactionReceived = useCallback(
               selectedPeer.status !== 'online' || selectedFile ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
             }`}
             aria-label="Saisie du message"
+            inputMode="text"
+            autoComplete="off"
           />
           <div className="relative">
             <button
@@ -1138,12 +1183,14 @@ const handleReactionReceived = useCallback(
               </div>
             )}
           </div>
+
           {/* Micro — appui long / verrouillage / annulation */}
           <VoiceRecorderButton
             disabled={selectedPeer.status !== 'online' || !!selectedFile}
             maxDurationMs={MAX_VOICE_DURATION * 1000}
             onRecorded={sendVoiceFile}
           />
+
           <button
             onClick={handleSendMessage}
             disabled={selectedPeer.status !== 'online' || (!selectedFile && !newMessage.trim())}
@@ -1158,6 +1205,7 @@ const handleReactionReceived = useCallback(
             <Send size={20} />
           </button>
         </div>
+
         {selectedPeer.status !== 'online' && (
           <div className="text-center mt-2">
             <p className="text-xs text-red-500">{selectedPeer.name} est hors ligne. L'envoi de messages est désactivé.</p>
