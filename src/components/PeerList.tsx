@@ -354,7 +354,7 @@ const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId
         ) : filteredAndSorted.length === 0 ? (
           <div className="p-4 text-center text-gray-500">
             <Users size={48} className="mx-auto mb-2 text-gray-300" />
-            <p>Aucun pair</p>
+            <p>Aucun pair en ligne</p>
             <p className="text-sm">Ajustez les filtres ci-dessus</p>
           </div>
         ) : (
