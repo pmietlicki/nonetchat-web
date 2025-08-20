@@ -40,7 +40,8 @@
 /* Compacte la chrome (onglets, nav bas) pendant un chat – mobile & tablette */
 @media (max-width: 1024px) {
   .chat-active .app-tabbar,
-  .chat-active .bottom-nav {
+  .chat-active .bottom-nav,
+  .chat-active .statusbar {
     display: none !important;
   }
 }

@@ -1080,6 +1080,8 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
         </div>
       </nav>
 
+      
+      <div className="statusbar">
       <StatusBar
         isConnected={isConnected}
         peerCount={peerList.length}
@@ -1088,6 +1090,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenDiagnostic={() => setIsDiagnosticOpen(true)}
       />
+      </div>
 
       <NotificationSettings isOpen={showNotificationSettings} onClose={() => setShowNotificationSettings(false)} />
     </div>
