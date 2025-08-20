@@ -187,6 +187,12 @@ app.get('/api/geoip', async (req, res) => {
   try {
     const resp = await geoipReader.city(ip);
     const { latitude, longitude, accuracy_radius } = resp.location || {};
+    const countryIso = resp?.country?.isoCode || resp?.registeredCountry?.isoCode || null;
+    // On prend un nom lisible si dispo, sinon l’ISO
+    const countryName =
+    resp?.country?.names?.fr || resp?.country?.names?.en ||
+    resp?.registeredCountry?.names?.fr || resp?.registeredCountry?.names?.en ||
+    countryIso || null;
     if (latitude == null || longitude == null) {
       return res.status(404).json({ error: 'No location' });
     }
@@ -194,6 +200,8 @@ app.get('/api/geoip', async (req, res) => {
       latitude,
       longitude,
       accuracyKm: accuracy_radius ?? 25,
+      countryIso,
+      countryName,
     });
   } catch {
     return res.status(204).end();

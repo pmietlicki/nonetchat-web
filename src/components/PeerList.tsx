@@ -4,7 +4,7 @@ import { User } from '../types';
 import { Users, Circle, Wifi, MessageSquare, Info, X, MapPin } from 'lucide-react';
 
 type GenderFilter = 'all' | 'male' | 'female' | 'other';
-type SortMode = 'distance' | 'ageAsc' | 'ageDesc';
+type SortMode = 'distanceAsc' | 'distanceDesc' | 'ageAsc' | 'ageDesc';
 
 interface PeerListProps {
   peers: User[];
@@ -242,7 +242,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ peer, isOpen, o
 const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId, isConnected }) => {
   const [selectedProfilePeer, setSelectedProfilePeer] = useState<User | null>(null);
   const [genderFilter, setGenderFilter] = useState<GenderFilter>('all');
-  const [sortMode, setSortMode] = useState<SortMode>('distance');
+  const [sortMode, setSortMode] = useState<SortMode>('distanceAsc');
 
   const onlinePeers = useMemo(
     () => peers.filter((peer) => peer.status === 'online'),
@@ -276,7 +276,10 @@ const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId
       case 'ageDesc':
         arr.sort((a, b) => byAgeAsc(b.age, a.age));
         break;
-      case 'distance':
+      case 'distanceDesc':
+        arr.sort((a, b) => byDistanceAsc(b.distanceKm, a.distanceKm));
+        break;
+      case 'distanceAsc':
       default:
         arr.sort((a, b) => byDistanceAsc(a.distanceKm, b.distanceKm));
         break;
@@ -327,9 +330,10 @@ const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId
               onChange={(e) => setSortMode(e.target.value as SortMode)}
               className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="distance">Trier par distance (↑)</option>
-              <option value="ageAsc">Trier par âge (↑)</option>
-              <option value="ageDesc">Trier par âge (↓)</option>
+              <option value="distanceAsc">Distance (↑)</option>
+              <option value="distanceDesc">Distance (↓)</option>
+              <option value="ageAsc">Âge (↑)</option>
+              <option value="ageDesc">Âge (↓)</option>
             </select>
           </label>
         </div>
