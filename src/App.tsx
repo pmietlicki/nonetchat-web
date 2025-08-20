@@ -65,10 +65,14 @@ function App() {
     () => localStorage.getItem('signalingUrl') || DEFAULT_SIGNALING_URL
   );
   const [tempSignalingUrl, setTempSignalingUrl] = useState(signalingUrl);
-  const [searchRadius, setSearchRadius] = useState(
-    () => parseFloat(localStorage.getItem('searchRadius') || '1.0')
+  const [searchRadius, setSearchRadius] = useState<number | 'country'>(
+    () => {
+      const stored = localStorage.getItem('searchRadius');
+      if (stored === 'country') return 'country';
+      return parseFloat(stored || '1.0');
+    }
   );
-  const [tempSearchRadius, setTempSearchRadius] = useState(searchRadius);
+  const [tempSearchRadius, setTempSearchRadius] = useState<number | 'country'>(searchRadius);
 
   const peerService = PeerService.getInstance();
   const profileService = ProfileService.getInstance();
@@ -821,7 +825,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
 
               <div>
                 <label htmlFor="search-radius" className="block text-sm font-medium text-gray-700 mb-2">
-                  Rayon de recherche (km): {tempSearchRadius}
+                  Rayon de recherche (km): {typeof tempSearchRadius === 'number' ? tempSearchRadius : 'N/A'}
                 </label>
                 <input
                   type="range"
@@ -829,14 +833,35 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                   min="0.1"
                   max="50"
                   step="0.1"
-                  value={tempSearchRadius}
+                  value={typeof tempSearchRadius === 'number' ? tempSearchRadius : 1.0}
                   onChange={(e) => setTempSearchRadius(parseFloat(e.target.value))}
-                  className="w-full"
+                  className={`w-full ${tempSearchRadius === 'country' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={tempSearchRadius === 'country'}
                 />
                 <div className="flex justify-between text-xs text-gray-500 mt-1">
                   <span>0.1 km</span>
                   <span>50 km</span>
                 </div>
+              </div>
+
+              <div className="flex items-center pt-2">
+                <input
+                  type="checkbox"
+                  id="country-search"
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  checked={tempSearchRadius === 'country'}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setTempSearchRadius('country');
+                    } else {
+                      const lastUsedRadius = typeof searchRadius === 'number' ? searchRadius : 1.0;
+                      setTempSearchRadius(lastUsedRadius);
+                    }
+                  }}
+                />
+                <label htmlFor="country-search" className="ml-2 block text-sm text-gray-900">
+                  Pays entier
+                </label>
               </div>
             </div>
 

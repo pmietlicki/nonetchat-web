@@ -64,6 +64,8 @@ class PeerService extends EventEmitter {
   // --- TURN auth éphémère injectée depuis /api/turn-credentials ---
   private turnAuth: { username: string; credential: string } | null = null;
 
+  private searchRadius: number | 'country' = 1.0; // Default 1km radius
+
   private getIceConfig(): RTCConfiguration {
     const u = this.turnAuth?.username;
     const c = this.turnAuth?.credential;
@@ -268,9 +270,9 @@ class PeerService extends EventEmitter {
     };
   }
 
-  public setSearchRadius(radius: number) {
+  public setSearchRadius(radius: number | 'country') {
     this.searchRadius = radius;
-    this.diagnosticService.log(`Search radius updated to ${radius}km`);
+    this.diagnosticService.log(`Search radius updated to ${radius === 'country' ? 'country' : `${radius}km`}`);
     this.startLocationUpdates();
   }
 

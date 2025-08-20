@@ -310,8 +310,18 @@ function broadcastPeerUpdates() {
       }
     });
 
-    // Découverte Géographique (Quadtree)
-    if (client.discoveryMode === 'geo' && client.location) {
+    // Découverte par pays
+    if (client.radius === 'country' && client.countryCode) {
+      clients.forEach((otherClient, otherClientId) => {
+        if (clientId === otherClientId || nearbyPeerIds.has(otherClientId)) return;
+        if (client.countryCode === otherClient.countryCode) {
+          nearbyPeers.add({ peerId: otherClientId, distance: 'Pays' });
+          nearbyPeerIds.add(otherClientId);
+        }
+      });
+    }
+    // Découverte Géographique (Quadtree) si pas en mode pays
+    else if (client.discoveryMode === 'geo' && client.location) {
       if (now - client.location.timestamp <= MAX_LOCATION_AGE_MS) {
         const searchRadiusKm = (typeof client.radius === 'number' ? client.radius : 1.0)
           + ((client.location.accuracyMeters || 0) / 1000);
@@ -360,169 +370,187 @@ wss.on('connection', (ws, req) => {
   let clientId = null;
 
   ws.on('message', (message) => {
-    let parsedMessage;
-    try {
-      const text = typeof message === 'string' ? message : message.toString('utf8');
-      parsedMessage = JSON.parse(text);
-    } catch {
-      ws.close();
-      return;
-    }
-
-    const { type, payload } = parsedMessage;
-
-    if (type === 'register') {
-  clientId = payload.id;
-  const ip = normalizeIp(
-    headerToStr(req.headers['cf-connecting-ip']) ||
-    headerToStr(req.headers['x-real-ip']) ||
-    firstForwardedFor(req.headers['x-forwarded-for']) ||
-    req.socket.remoteAddress
-  );
-
-  const avatarVersion = Number(payload?.profile?.avatarVersion) || 1;
-
-  clients.set(clientId, {
-    ws,
-    ip,
-    isAlive: true,
-    radius: 1.0,
-    location: null,
-    discoveryMode: 'geo',
-    profile: {
-      name: payload?.profile?.name || payload?.profile?.displayName || 'Utilisateur',
-      avatarVersion,
-      // si le client ne fournit pas d’avatar custom, fallback pravatar seedé
-      avatar: payload?.profile?.avatar || pravatarUrl(clientId, avatarVersion, 192)
-    }
-  });
-
-  console.log(`[WS] Client ${clientId} registered from IP ${ip}. Total: ${clients.size}`);
-  rebuildGeoTree();
-  broadcastPeerUpdates();
-  return;
-}
-
-    if (!clientId || !clients.has(clientId)) {
-      ws.close();
-      return;
-    }
-
-    const clientData = clients.get(clientId);
-
-    switch (type) {
-      case 'update-location': {
-        const loc = payload?.location;
-        if (!loc || typeof loc.latitude !== 'number' || typeof loc.longitude !== 'number') break;
-        clientData.location = {
-          latitude: loc.latitude,
-          longitude: loc.longitude,
-          timestamp: loc.timestamp ?? Date.now(),
-          accuracyMeters: loc.accuracyMeters ?? null,
-          method: loc.method || 'gps'
-        };
-        if (typeof payload.radius === 'number') clientData.radius = payload.radius;
-        clientData.discoveryMode = 'geo';
-        rebuildGeoTree();
-        broadcastPeerUpdates();
-        break;
+    (async () => {
+      let parsedMessage;
+      try {
+        const text = typeof message === 'string' ? message : message.toString('utf8');
+        parsedMessage = JSON.parse(text);
+      } catch {
+        ws.close();
+        return;
       }
 
-      case 'request-lan-discovery':
-        clientData.discoveryMode = 'lan';
+      const { type, payload } = parsedMessage;
+
+      if (type === 'register') {
+        clientId = payload.id;
+        const ip = normalizeIp(
+          headerToStr(req.headers['cf-connecting-ip']) ||
+          headerToStr(req.headers['x-real-ip']) ||
+          firstForwardedFor(req.headers['x-forwarded-for']) ||
+          req.socket.remoteAddress
+        );
+
+        let countryCode = null;
+        if (geoipReader) {
+          try {
+            const geoData = await geoipReader.city(ip);
+            countryCode = geoData?.country?.isoCode || geoData?.registeredCountry?.isoCode || null;
+          } catch (e) {
+            // console.warn(`[GeoIP] Lookup failed for ${ip}:`, e.message);
+          }
+        }
+
+        const avatarVersion = Number(payload?.profile?.avatarVersion) || 1;
+
+        clients.set(clientId, {
+          ws,
+          ip,
+          isAlive: true,
+          radius: 1.0,
+          location: null,
+          discoveryMode: 'geo',
+          countryCode,
+          profile: {
+            name: payload?.profile?.name || payload?.profile?.displayName || 'Utilisateur',
+            avatarVersion,
+            avatar: payload?.profile?.avatar || pravatarUrl(clientId, avatarVersion, 192)
+          }
+        });
+
+        console.log(`[WS] Client ${clientId} registered from IP ${ip} (${countryCode || 'N/A'}). Total: ${clients.size}`);
         rebuildGeoTree();
         broadcastPeerUpdates();
-        break;
+        return;
+      }
 
-      case 'heartbeat':
-        clientData.isAlive = true;
-        break;
+      if (!clientId || !clients.has(clientId)) {
+        ws.close();
+        return;
+      }
 
-      // ---- Messages applicatifs (optionnel, utile si store-and-forward) ----
-      case 'chat-message': {
-  const { to, from, text, convId, senderName, senderAvatar } = payload || {};
-  const recipient = to ? clients.get(to) : null;
-  if (recipient) {
-    sendTo(recipient.ws, { type, from, payload: { text, convId } });
-  } else {
-    const fromClient = clients.get(from);
-    const name = senderName || fromClient?.profile?.name || 'Message entrant';
-    const avatar = senderAvatar
-      || fromClient?.profile?.avatar
-      || pravatarUrl(from, fromClient?.profile?.avatarVersion || 1, 192);
+      const clientData = clients.get(clientId);
 
-    sendPushToUser(to, {
-      type: 'message',
-      title: name,
-      body: typeof text === 'string' ? String(text).slice(0, 120) : 'Nouveau message',
-      tag: convId || from,
-      convId: convId || from,
-      senderAvatar: avatar,
-      from
-    }, { TTL: 60 });
-  }
-  break;
-}
+      switch (type) {
+        case 'update-location': {
+          const loc = payload?.location;
+          if (loc && typeof loc.latitude === 'number' && typeof loc.longitude === 'number') {
+            clientData.location = {
+              latitude: loc.latitude,
+              longitude: loc.longitude,
+              timestamp: loc.timestamp ?? Date.now(),
+              accuracyMeters: loc.accuracyMeters ?? null,
+              method: loc.method || 'gps'
+            };
+          }
+          // Accepte le rayon numérique ou le mot-clé 'country'
+          if (typeof payload.radius === 'number' || payload.radius === 'country') {
+            clientData.radius = payload.radius;
+          }
+          clientData.discoveryMode = 'geo'; // reste 'geo' pour la logique du quadtree si le rayon redevient numérique
+          rebuildGeoTree();
+          broadcastPeerUpdates();
+          break;
+        }
 
+        case 'request-lan-discovery':
+          clientData.discoveryMode = 'lan';
+          rebuildGeoTree();
+          broadcastPeerUpdates();
+          break;
 
-      // ---- Signalisation WebRTC (réveil si offline) ----
-      case 'offer':
-case 'answer':
-case 'candidate': {
-  const { to, from } = payload || {};
-  const recipient = to ? clients.get(to) : null;
-  if (recipient) {
-    sendTo(recipient.ws, { type, from, payload: payload.payload });
-  } else {
-    const fromClient = clients.get(from);
-    const name = fromClient?.profile?.name || from;
-    const avatar = fromClient?.profile?.avatar || pravatarUrl(from, fromClient?.profile?.avatarVersion || 1, 192);
+        case 'heartbeat':
+          clientData.isAlive = true;
+          break;
 
-    sendPushToUser(to, {
-      type: 'webrtc',
-      title: 'Connexion entrante',
-      body: `Tentative de connexion de ${name}`,
-      tag: from,
-      convId: from,
-      senderAvatar: avatar,
-      from
-    }, { TTL: 30 });
-  }
-  break;
-}
+        // ---- Messages applicatifs (optionnel, utile si store-and-forward) ----
+        case 'chat-message': {
+          const { to, from, text, convId, senderName, senderAvatar } = payload || {};
+          const recipient = to ? clients.get(to) : null;
+          if (recipient) {
+            sendTo(recipient.ws, { type, from, payload: { text, convId } });
+          } else {
+            const fromClient = clients.get(from);
+            const name = senderName || fromClient?.profile?.name || 'Message entrant';
+            const avatar = senderAvatar
+              || fromClient?.profile?.avatar
+              || pravatarUrl(from, fromClient?.profile?.avatarVersion || 1, 192);
 
-
-     case 'server-profile-update': {
-  const name = payload?.name;
-  const version = payload?.avatarVersion;
-  const avatarPatch = payload?.avatar; // peut être null/'' pour "clear"
-  const rec = clients.get(clientId);
-  if (rec) {
-    if (name) rec.profile.name = name;
-
-    if (typeof version === 'number' && Number.isFinite(version)) {
-      rec.profile.avatarVersion = version;
-    }
-
-    if (avatarPatch === null || avatarPatch === '') {
-      // client a supprimé son avatar custom -> on repasse au pravatar seedé
-      rec.profile.avatar = pravatarUrl(clientId, rec.profile.avatarVersion || 1, 192);
-    } else if (typeof avatarPatch === 'string') {
-      // client pose un avatar custom explicite
-      rec.profile.avatar = avatarPatch;
-    } else if (!rec.profile.avatar || String(rec.profile.avatar).includes('i.pravatar.cc')) {
-      // si on n'avait que le pravatar, on le recalcule à la nouvelle version
-      rec.profile.avatar = pravatarUrl(clientId, rec.profile.avatarVersion || 1, 192);
-    }
-  }
-  break;
-}
+            sendPushToUser(to, {
+              type: 'message',
+              title: name,
+              body: typeof text === 'string' ? String(text).slice(0, 120) : 'Nouveau message',
+              tag: convId || from,
+              convId: convId || from,
+              senderAvatar: avatar,
+              from
+            }, { TTL: 60 });
+          }
+          break;
+        }
 
 
+        // ---- Signalisation WebRTC (réveil si offline) ----
+        case 'offer':
+        case 'answer':
+        case 'candidate': {
+          const { to, from } = payload || {};
+          const recipient = to ? clients.get(to) : null;
+          if (recipient) {
+            sendTo(recipient.ws, { type, from, payload: payload.payload });
+          } else {
+            const fromClient = clients.get(from);
+            const name = fromClient?.profile?.name || from;
+            const avatar = fromClient?.profile?.avatar || pravatarUrl(from, fromClient?.profile?.avatarVersion || 1, 192);
 
-      default:
-        console.warn(`[WS] Unknown message type from ${clientId}: ${type}`);
-    }
+            sendPushToUser(to, {
+              type: 'webrtc',
+              title: 'Connexion entrante',
+              body: `Tentative de connexion de ${name}`,
+              tag: from,
+              convId: from,
+              senderAvatar: avatar,
+              from
+            }, { TTL: 30 });
+          }
+          break;
+        }
+
+
+        case 'server-profile-update': {
+          const name = payload?.name;
+          const version = payload?.avatarVersion;
+          const avatarPatch = payload?.avatar; // peut être null/'' pour "clear"
+          const rec = clients.get(clientId);
+          if (rec) {
+            if (name) rec.profile.name = name;
+
+            if (typeof version === 'number' && Number.isFinite(version)) {
+              rec.profile.avatarVersion = version;
+            }
+
+            if (avatarPatch === null || avatarPatch === '') {
+              // client a supprimé son avatar custom -> on repasse au pravatar seedé
+              rec.profile.avatar = pravatarUrl(clientId, rec.profile.avatarVersion || 1, 192);
+            } else if (typeof avatarPatch === 'string') {
+              // client pose un avatar custom explicite
+              rec.profile.avatar = avatarPatch;
+            } else if (!rec.profile.avatar || String(rec.profile.avatar).includes('i.pravatar.cc')) {
+              // si on n'avait que le pravatar, on le recalcule à la nouvelle version
+              rec.profile.avatar = pravatarUrl(clientId, rec.profile.avatarVersion || 1, 192);
+            }
+          }
+          break;
+        }
+
+
+
+        default:
+          console.warn(`[WS] Unknown message type from ${clientId}: ${type}`);
+      }
+    })().catch(err => {
+      console.error(`[WS] Error processing message from ${clientId}:`, err);
+    });
   });
 
   ws.on('close', () => {
