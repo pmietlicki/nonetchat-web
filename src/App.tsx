@@ -286,6 +286,8 @@ useEffect(() => {
     avatar: `https://i.pravatar.cc/150?u=${encodeURIComponent(`${peerId}:1`)}`,
     status: 'online',
     joinedAt: new Date().toISOString(),
+    distanceKm: undefined,
+    distanceLabel: undefined,
   });
 
  // --- LISTENER DÉDIÉ aux messages de données (chat-message)
@@ -609,6 +611,30 @@ const avatar = payload.avatar
       document.removeEventListener('fullscreenchange', handleVisibilityChange);
     };
   }, []);
+
+  // Distance / proximité -> maj des peers avec distanceKm + distanceLabel
+useEffect(() => {
+  const onNearby = (entries: Array<{ peerId: string; distanceKm?: number; distanceLabel?: string }>) => {
+    setPeers(prev => {
+      const m = new Map(prev);
+      for (const { peerId, distanceKm, distanceLabel } of entries) {
+        const existing = m.get(peerId) || createBaseUser(peerId);
+        m.set(peerId, {
+          ...existing,
+          status: 'online',
+          distanceKm: (typeof distanceKm === 'number') ? distanceKm : existing.distanceKm,
+          distanceLabel: distanceLabel || existing.distanceLabel,
+        });
+      }
+      return m;
+    });
+  };
+  peerService.on('nearby-peers', onNearby);
+  return () => {
+    peerService.removeListener('nearby-peers', onNearby);
+  };
+}, [peerService]);
+
 
 const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) => {
   await profileService.saveProfile({

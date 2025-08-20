@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
+// src/components/PeerList.tsx
+import React, { useMemo, useState } from 'react';
 import { User } from '../types';
-import { Users, Circle, Wifi, MessageSquare, Info, X } from 'lucide-react';
+import { Users, Circle, Wifi, MessageSquare, Info, X, MapPin } from 'lucide-react';
+
+type GenderFilter = 'all' | 'male' | 'female' | 'other';
+type SortMode = 'distance' | 'ageAsc' | 'ageDesc';
 
 interface PeerListProps {
   peers: User[];
@@ -22,19 +26,15 @@ const safeAvatar = (peer: User) => {
     : `https://i.pravatar.cc/150?u=${encodeURIComponent(`${peer.id}:${ver}`)}`;
 };
 
-
 const formatJoinTime = (joinedAt: string) => {
   const date = new Date(joinedAt);
   if (isNaN(date.getTime())) return 'Inconnu';
   const now = new Date();
   const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-
   if (diffInMinutes < 1) return "À l'instant";
   if (diffInMinutes < 60) return `Il y a ${diffInMinutes}min`;
-
   const diffInHours = Math.floor(diffInMinutes / 60);
   if (diffInHours < 24) return `Il y a ${diffInHours}h`;
-
   return date.toLocaleDateString('fr-FR');
 };
 
@@ -45,7 +45,6 @@ interface ProfileTooltipProps {
 
 const ProfileTooltip: React.FC<ProfileTooltipProps> = ({ peer, children }) => {
   const [isVisible, setIsVisible] = useState(false);
-
   return (
     <div
       className="relative"
@@ -118,6 +117,16 @@ const ProfileTooltip: React.FC<ProfileTooltipProps> = ({ peer, children }) => {
               </div>
             )}
 
+            {peer.distanceLabel && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">Distance :</span>
+                <span className="font-medium flex items-center gap-1">
+                  <MapPin size={14} className="text-blue-600" />
+                  {peer.distanceLabel}
+                </span>
+              </div>
+            )}
+
             <div className="flex justify-between">
               <span className="text-gray-600">Connecté :</span>
               <span className="font-medium">{formatJoinTime(peer.joinedAt)}</span>
@@ -131,7 +140,6 @@ const ProfileTooltip: React.FC<ProfileTooltipProps> = ({ peer, children }) => {
 
 const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ peer, isOpen, onClose }) => {
   if (!isOpen || !peer) return null;
-
   return (
     <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
@@ -201,6 +209,16 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ peer, isOpen, o
             </div>
           )}
 
+          {peer.distanceLabel && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">Distance :</span>
+              <span className="font-medium flex items-center gap-1">
+                <MapPin size={14} className="text-blue-600" />
+                {peer.distanceLabel}
+              </span>
+            </div>
+          )}
+
           <div className="flex justify-between">
             <span className="text-gray-600">Connecté depuis :</span>
             <span className="font-medium">
@@ -223,9 +241,48 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ peer, isOpen, o
 
 const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId, isConnected }) => {
   const [selectedProfilePeer, setSelectedProfilePeer] = useState<User | null>(null);
+  const [genderFilter, setGenderFilter] = useState<GenderFilter>('all');
+  const [sortMode, setSortMode] = useState<SortMode>('distance');
 
-  // Ne montrer que les pairs en ligne (évite du bruit et un diff inutile)
-  const onlinePeers = peers.filter((peer) => peer.status === 'online');
+  const onlinePeers = useMemo(
+    () => peers.filter((peer) => peer.status === 'online'),
+    [peers]
+  );
+
+  const filteredAndSorted = useMemo(() => {
+    let list = onlinePeers;
+
+    if (genderFilter !== 'all') {
+      list = list.filter(p => (p.gender || 'other') === genderFilter);
+    }
+
+    const byAgeAsc = (a?: number, b?: number) => {
+      const A = typeof a === 'number' ? a : Number.POSITIVE_INFINITY;
+      const B = typeof b === 'number' ? b : Number.POSITIVE_INFINITY;
+      return A - B;
+    };
+
+    const byDistanceAsc = (a?: number, b?: number) => {
+      const A = typeof a === 'number' ? a : Number.POSITIVE_INFINITY;
+      const B = typeof b === 'number' ? b : Number.POSITIVE_INFINITY;
+      return A - B;
+    };
+
+    const arr = [...list];
+    switch (sortMode) {
+      case 'ageAsc':
+        arr.sort((a, b) => byAgeAsc(a.age, b.age));
+        break;
+      case 'ageDesc':
+        arr.sort((a, b) => byAgeAsc(b.age, a.age));
+        break;
+      case 'distance':
+      default:
+        arr.sort((a, b) => byDistanceAsc(a.distanceKm, b.distanceKm));
+        break;
+    }
+    return arr;
+  }, [onlinePeers, genderFilter, sortMode]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -241,12 +298,44 @@ const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId
   };
 
   return (
-    <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+    <div className="w-full sm:w-80 bg-white border-r border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">Pairs connectés ({onlinePeers.length})</h2>
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">
+          Pairs connectés ({onlinePeers.length})
+        </h2>
+
+        {/* Toolbar responsive : deux selects empilés sur mobile, inline en desktop */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <label className="w-full">
+            <span className="sr-only">Filtrer par genre</span>
+            <select
+              value={genderFilter}
+              onChange={(e) => setGenderFilter(e.target.value as GenderFilter)}
+              className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">Tous les genres</option>
+              <option value="male">Hommes</option>
+              <option value="female">Femmes</option>
+              <option value="other">Autre / Non spécifié</option>
+            </select>
+          </label>
+
+          <label className="w-full">
+            <span className="sr-only">Trier</span>
+            <select
+              value={sortMode}
+              onChange={(e) => setSortMode(e.target.value as SortMode)}
+              className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="distance">Trier par distance (↑)</option>
+              <option value="ageAsc">Trier par âge (↑)</option>
+              <option value="ageDesc">Trier par âge (↓)</option>
+            </select>
+          </label>
+        </div>
 
         {!isConnected && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-3">
             <div className="flex items-center gap-2 text-yellow-800">
               <Wifi size={16} />
               <span className="text-sm">Connexion au serveur requise</span>
@@ -262,15 +351,15 @@ const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId
             <p>Connexion requise</p>
             <p className="text-sm">Connectez-vous au serveur de signalisation</p>
           </div>
-        ) : onlinePeers.length === 0 ? (
+        ) : filteredAndSorted.length === 0 ? (
           <div className="p-4 text-center text-gray-500">
             <Users size={48} className="mx-auto mb-2 text-gray-300" />
-            <p>Aucun pair en ligne</p>
-            <p className="text-sm">En attente d'utilisateurs connectés</p>
+            <p>Aucun pair</p>
+            <p className="text-sm">Ajustez les filtres ci-dessus</p>
           </div>
         ) : (
           <div className="space-y-1">
-            {onlinePeers.map((peer) => (
+            {filteredAndSorted.map((peer) => (
               <ProfileTooltip key={`${peer.id}-${peer.joinedAt}`} peer={peer}>
                 <div
                   role="listitem"
@@ -304,6 +393,20 @@ const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-medium text-gray-900 truncate">{peer.name || 'Utilisateur'}</p>
+
+                        {/* Badge distance à droite (mobile aussi) */}
+                        {peer.distanceLabel && (
+                          <span
+                            className={`ml-auto text-[11px] px-1.5 py-0.5 rounded-full border ${
+                              peer.distanceKm === 0
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : 'bg-blue-50 text-blue-700 border-blue-200'
+                            }`}
+                            title="Distance estimée"
+                          >
+                            {peer.distanceLabel}
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-500">
                         <span className={`capitalize ${getStatusColor(peer.status)}`}>{peer.status}</span>

@@ -7,6 +7,8 @@ export interface User {
   status: 'online' | 'offline' | 'busy';
   joinedAt: string;
   publicKey?: string;
+  distanceKm?: number;
+  distanceLabel?: string;
 }
 
 export interface Message {

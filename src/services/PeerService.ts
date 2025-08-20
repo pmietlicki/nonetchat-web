@@ -7,6 +7,8 @@ import ProfileService, { PublicProfile } from './ProfileService';
 export type PeerMessage =
   | { type: 'profile' | 'profile-update' | 'chat-message' | 'key-exchange' | 'file-start' | 'file-chunk' | 'file-end' | 'message-delivered' | 'message-read' | 'avatar-request' | 'avatar-thumb' | 'reaction'; payload: any; messageId?: string };
 
+export type NearbyPeer = { peerId: string; distance: string };
+
 class EventEmitter {
   protected events: { [key: string]: Function[] } = {};
   on(event: string, listener: Function) {
@@ -32,6 +34,8 @@ class PeerService extends EventEmitter {
   private peerConnections: Map<string, RTCPeerConnection> = new Map();
   private dataChannels: Map<string, RTCDataChannel> = new Map();
   private messageQueue: Map<string, PeerMessage[]> = new Map();
+  private nearbyDistanceMeters = new Map<string, number>();
+  private nearbyDistanceLabel = new Map<string, string>();
 
   private myId: string = '';
   // Profil applicatif (hérité) – conservé pour compat, mais on n’envoie plus l’image dedans
@@ -381,11 +385,51 @@ class PeerService extends EventEmitter {
     this.diagnosticService.log('Received message from server', message);
     switch (message.type) {
       case 'nearby-peers': {
-        const allPeers = message.peers.map((p: any) => p.peerId).filter((id: string) => !this.blockList.has(id));
-        this.lastSeen = new Map(allPeers.map((id: string) => [id, Date.now()]));
-        for (const peerId of allPeers) {
+        // message.peers: [{ peerId, distance: "LAN" | "X.XX km" }]
+        const list = Array.isArray(message.peers) ? message.peers : [];
+        const now = Date.now();
+
+        // Mémorise la "présence" et distance
+        this.lastSeen = new Map(list.map((p: any) => [p.peerId, now]));
+
+        const parsed: Array<{ peerId: string; distanceKm: number | undefined; distanceLabel: string | undefined }> = [];
+
+        for (const p of list) {
+          const peerId = String(p.peerId);
+          const raw = String(p.distance || '').trim();
+
+          let distanceKm: number | undefined;
+          let distanceLabel: string | undefined;
+
+          if (raw.toUpperCase() === 'LAN') {
+            distanceKm = 0;
+            distanceLabel = 'LAN';
+          } else if (/km$/i.test(raw)) {
+            const n = parseFloat(raw.replace(/km$/i, '').trim());
+            if (Number.isFinite(n)) {
+              distanceKm = n;
+              // normalise l’affichage: 0–1km -> 2 déc, sinon 1 déc
+              const prec = n < 1 ? 2 : 1;
+              distanceLabel = `${n.toFixed(prec)} km`;
+            }
+          }
+
+          if (distanceKm !== undefined) this.nearbyDistanceMeters.set(peerId, distanceKm * 1000);
+          if (distanceLabel) this.nearbyDistanceLabel.set(peerId, distanceLabel);
+
+          parsed.push({
+            peerId,
+            distanceKm,
+            distanceLabel
+          });
+
+          // Prépare la connexion si nécessaire
           if (!this.peerConnections.has(peerId)) this.createPeerConnection(peerId);
         }
+
+        // Notifie l’UI (App.tsx écoutera "nearby-peers")
+        this.emit('nearby-peers', parsed);
+
         break;
       }
       case 'offer':
@@ -399,6 +443,24 @@ class PeerService extends EventEmitter {
         break;
     }
   }
+
+  // Dans PeerService class
+public updateLocation(loc: { latitude: number; longitude: number; accuracyMeters?: number | null; timestamp?: number; method?: string }) {
+  this.sendToServer({
+    type: 'update-location',
+    payload: {
+      location: {
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+        accuracyMeters: loc.accuracyMeters ?? null,
+        timestamp: loc.timestamp ?? Date.now(),
+        method: loc.method || 'gps',
+      },
+      radius: this.searchRadius,
+    },
+  });
+}
+
 
   private async createPeerConnection(peerId: string) {
     if (this.peerConnections.has(peerId)) return;
