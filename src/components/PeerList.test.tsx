@@ -1,8 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import PeerList from './PeerList';
 import { User } from '../types';
-import React from 'react';
 
 // --- Mocks & Test Data ---
 
