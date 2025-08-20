@@ -47,6 +47,7 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
+  const [locationInfo, setLocationInfo] = useState<{ city: string; country: string } | null>(null);
 
   const globalFileReceivers = useRef(
     new Map<string, { peerId: string; chunks: ArrayBuffer[]; metadata: any; expectedSize?: number; startTime: number }>()
@@ -65,84 +66,83 @@ function App() {
     () => localStorage.getItem('signalingUrl') || DEFAULT_SIGNALING_URL
   );
   const [tempSignalingUrl, setTempSignalingUrl] = useState(signalingUrl);
-  const [searchRadius, setSearchRadius] = useState<number | 'country'>(
+  const [searchRadius, setSearchRadius] = useState<number | 'country' | 'city'>(
     () => {
       const stored = localStorage.getItem('searchRadius');
-      if (stored === 'country') return 'country';
+      if (stored === 'country' || stored === 'city') return stored;
       return parseFloat(stored || '1.0');
     }
   );
-  const [tempSearchRadius, setTempSearchRadius] = useState<number | 'country'>(searchRadius);
+  const [tempSearchRadius, setTempSearchRadius] = useState<number | 'country' | 'city'>(searchRadius);
 
   const peerService = PeerService.getInstance();
   const profileService = ProfileService.getInstance();
   const dbService = IndexedDBService.getInstance();
   const notificationService = NotificationService.getInstance();
 
-  // --- Géolocalisation (Safari-friendly) ---
-const [hasGeoInit, setHasGeoInit] = useState(false);
+  // --- Géolocalisation ---
+  const [hasGeoInit, setHasGeoInit] = useState(false);
 
-async function requestBrowserLocationOnce(): Promise<void> {
-  // 1) Contexte sécurisé obligatoire (iOS/macOS Safari)
-  if (!isSecureContext) {
-    setGeolocationError('La localisation requiert HTTPS. Ouvrez l’application via https://');
-    return;
+  // Étape 1: Récupère les noms de lieux (ville/pays) via l'IP. Essentiel pour l'UI.
+  async function fetchLocationData() {
+    try {
+      const apiUrl = toApiUrl(signalingUrl);
+      const res = await fetch(`${apiUrl}/api/geoip`, { credentials: 'include' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const j = await res.json();
+  
+      if (j.cityName || j.countryName) {
+        setLocationInfo({ city: j.cityName, country: j.countryName });
+      }
+      // Retourne les coordonnées IP pour un fallback immédiat
+      return { latitude: j.latitude, longitude: j.longitude, accuracyMeters: (j.accuracyKm ?? 25) * 1000 };
+    } catch (err) {
+      setLocationInfo(null);
+      setGeolocationError(
+        "Impossible de déterminer votre pays/ville. La recherche étendue est désactivée."
+      );
+      return null;
+    }
   }
 
-  // 2) Si l’API n’existe pas (vieux WebKit), on tente le fallback GeoIP
-  if (!('geolocation' in navigator)) {
-    await fallbackGeoIp();
-    return;
-  }
-
-  // 3) Tente la vraie géoloc (déclenche la popup sur Safari)
-  await new Promise<void>((resolve) => {
+  // Étape 2: Tente d'obtenir une position GPS plus précise et l'envoie au serveur.
+  async function requestPreciseLocationAndUpdateServer() {
+    // D'abord, on peuple l'UI avec les noms de lieux (ville/pays)
+    const ipLocation = await fetchLocationData();
+  
+    // Si le navigateur ne supporte pas le GPS, on envoie la localisation IP et on s'arrête
+    if (!('geolocation' in navigator)) {
+      if (ipLocation) {
+        (peerService as any)?.updateLocation?.({ ...ipLocation, method: 'geoip' });
+      }
+      return;
+    }
+  
+    // Le navigateur supporte le GPS, on essaie de l'obtenir
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        try {
-          (peerService as any)?.updateLocation?.({
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-            accuracyMeters: pos.coords.accuracy ?? null,
-            timestamp: Date.now(),
-            method: 'geolocation',
-          });
-          // Optionnel : ajuste le rayon souvent utile en mobilité
-          peerService.setSearchRadius(searchRadius);
-        } finally {
-          resolve();
-        }
+        // Succès GPS : on envoie les coordonnées précises au serveur
+        setGeolocationError(null);
+        (peerService as any)?.updateLocation?.({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          accuracyMeters: pos.coords.accuracy ?? null,
+          timestamp: Date.now(),
+          method: 'geolocation',
+        });
       },
-      async (_err) => {
-        // 4) Permission refusée / timeout => fallback GeoIP
-        await fallbackGeoIp();
-        resolve();
+      () => {
+        // Échec GPS : on se rabat sur la localisation IP (déjà obtenue)
+        if (ipLocation) {
+          (peerService as any)?.updateLocation?.({ ...ipLocation, method: 'geoip' });
+        }
+        setGeolocationError(
+          "Le GPS a échoué. Utilisation de la localisation approximative par IP."
+        );
       },
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 }
     );
-  });
-}
-
-async function fallbackGeoIp() {
-  try {
-    const apiUrl = toApiUrl(signalingUrl); // déjà présent dans ton fichier
-    const res = await fetch(`${apiUrl}/api/geoip`, { credentials: 'include' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const j = await res.json();
-    (peerService as any)?.updateLocation?.({
-      latitude: j.latitude,
-      longitude: j.longitude,
-      accuracyMeters: (j.accuracyKm ?? 25) * 1000,
-      timestamp: Date.now(),
-      method: 'geoip',
-    });
-    setGeolocationError(null);
-  } catch {
-    setGeolocationError(
-      "Impossible d'obtenir votre position. Autorisez la localisation dans Safari (Réglages > Safari > Localisation) ou réessayez."
-    );
   }
-}
 
 
   // Résolution centralisée de l’avatar à afficher (blob local ou pravatar versionné)
@@ -278,8 +278,7 @@ useEffect(() => {
   useEffect(() => {
   if (isConnected && !hasGeoInit) {
     setHasGeoInit(true);
-    // Déclenche la popup Safari si nécessaire puis envoie la position au serveur
-    requestBrowserLocationOnce();
+    requestPreciseLocationAndUpdateServer();
   }
 }, [isConnected, hasGeoInit, signalingUrl, searchRadius]);
 
@@ -680,7 +679,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
 
   const handleSaveSettings = () => {
     localStorage.setItem('signalingUrl', tempSignalingUrl);
-    localStorage.setItem('searchRadius', tempSearchRadius.toString());
+    localStorage.setItem('searchRadius', String(tempSearchRadius));
     setSignalingUrl(tempSignalingUrl);
     setSearchRadius(tempSearchRadius);
     peerService.setSearchRadius(tempSearchRadius);
@@ -747,7 +746,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
         <GeolocationError
           message={geolocationError}
           onDismiss={() => setGeolocationError(null)}
-          onRetry={requestBrowserLocationOnce}
+          onRetry={requestPreciseLocationAndUpdateServer}
         />
       )}
 
@@ -824,44 +823,69 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
               </div>
 
               <div>
-                <label htmlFor="search-radius" className="block text-sm font-medium text-gray-700 mb-2">
-                  Rayon de recherche (km): {typeof tempSearchRadius === 'number' ? tempSearchRadius : 'N/A'}
-                </label>
-                <input
-                  type="range"
-                  id="search-radius"
-                  min="0.1"
-                  max="50"
-                  step="0.1"
-                  value={typeof tempSearchRadius === 'number' ? tempSearchRadius : 1.0}
-                  onChange={(e) => setTempSearchRadius(parseFloat(e.target.value))}
-                  className={`w-full ${tempSearchRadius === 'country' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  disabled={tempSearchRadius === 'country'}
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>0.1 km</span>
-                  <span>50 km</span>
+                <span className="block text-sm font-medium text-gray-700 mb-2">Mode de recherche</span>
+                <div className="space-y-2 rounded-md bg-gray-50 p-3">
+                  <div className="flex items-center">
+                    <input
+                      id="radius-mode-km"
+                      name="radius-mode"
+                      type="radio"
+                      checked={typeof tempSearchRadius === 'number'}
+                      onChange={() => setTempSearchRadius(typeof searchRadius === 'number' ? searchRadius : 1.0)}
+                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    />
+                    <label htmlFor="radius-mode-km" className="ml-3 block text-sm font-medium text-gray-900">
+                      Rayon (km)
+                    </label>
+                  </div>
+                  {typeof tempSearchRadius === 'number' && (
+                    <div className="pl-7 pt-1">
+                      <input
+                        type="range"
+                        id="search-radius"
+                        min="0.1"
+                        max="50"
+                        step="0.1"
+                        value={tempSearchRadius}
+                        onChange={(e) => setTempSearchRadius(parseFloat(e.target.value))}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>0.1 km</span>
+                        <span>{tempSearchRadius} km</span>
+                        <span>50 km</span>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center">
+                    <input
+                      id="radius-mode-city"
+                      name="radius-mode"
+                      type="radio"
+                      disabled={!locationInfo?.city}
+                      checked={tempSearchRadius === 'city'}
+                      onChange={() => setTempSearchRadius('city')}
+                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 disabled:opacity-50"
+                    />
+                    <label htmlFor="radius-mode-city" className="ml-3 block text-sm font-medium text-gray-900 disabled:opacity-50">
+                      Ville {locationInfo?.city ? `(${locationInfo.city})` : '(indisponible)'}
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      id="radius-mode-country"
+                      name="radius-mode"
+                      type="radio"
+                      disabled={!locationInfo?.country}
+                      checked={tempSearchRadius === 'country'}
+                      onChange={() => setTempSearchRadius('country')}
+                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 disabled:opacity-50"
+                    />
+                    <label htmlFor="radius-mode-country" className="ml-3 block text-sm font-medium text-gray-900 disabled:opacity-50">
+                      Pays entier {locationInfo?.country ? `(${locationInfo.country})` : '(indisponible)'}
+                    </label>
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex items-center pt-2">
-                <input
-                  type="checkbox"
-                  id="country-search"
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  checked={tempSearchRadius === 'country'}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setTempSearchRadius('country');
-                    } else {
-                      const lastUsedRadius = typeof searchRadius === 'number' ? searchRadius : 1.0;
-                      setTempSearchRadius(lastUsedRadius);
-                    }
-                  }}
-                />
-                <label htmlFor="country-search" className="ml-2 block text-sm text-gray-900">
-                  Pays entier
-                </label>
               </div>
             </div>
 

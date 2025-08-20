@@ -53,7 +53,6 @@ class PeerService extends EventEmitter {
   private pruneInterval: number | null = null;
   private heartbeatInterval: number | null = null;
   private turnRefreshTimer: number | null = null;
-  private searchRadius: number = 1.0; // Default 1km radius
   private signalingUrl: string = '';
   private lastGoodLocationKey = 'nnc:lastGoodLocation';
   private locRefreshTimer: number | null = null;
@@ -64,7 +63,7 @@ class PeerService extends EventEmitter {
   // --- TURN auth éphémère injectée depuis /api/turn-credentials ---
   private turnAuth: { username: string; credential: string } | null = null;
 
-  private searchRadius: number | 'country' = 1.0; // Default 1km radius
+  private searchRadius: number | 'country' | 'city' = 1.0; // Default 1km radius
 
   private getIceConfig(): RTCConfiguration {
     const u = this.turnAuth?.username;
@@ -270,9 +269,9 @@ class PeerService extends EventEmitter {
     };
   }
 
-  public setSearchRadius(radius: number | 'country') {
+  public setSearchRadius(radius: number | 'country' | 'city') {
     this.searchRadius = radius;
-    this.diagnosticService.log(`Search radius updated to ${radius === 'country' ? 'country' : `${radius}km`}`);
+    this.diagnosticService.log(`Search radius updated to ${typeof radius === 'string' ? radius : `${radius}km`}`);
     this.startLocationUpdates();
   }
 
@@ -387,34 +386,20 @@ class PeerService extends EventEmitter {
     this.diagnosticService.log('Received message from server', message);
     switch (message.type) {
       case 'nearby-peers': {
-        // message.peers: [{ peerId, distance: "LAN" | "X.XX km" }]
         const list = Array.isArray(message.peers) ? message.peers : [];
         const now = Date.now();
 
-        // Mémorise la "présence" et distance
+        // Mémorise la "présence" pour le nettoyage des connexions inactives
         this.lastSeen = new Map(list.map((p: any) => [p.peerId, now]));
 
-        const parsed: Array<{ peerId: string; distanceKm: number | undefined; distanceLabel: string | undefined }> = [];
+        const parsed: Array<{ peerId: string; distanceKm?: number; distanceLabel?: string }> = [];
 
         for (const p of list) {
           const peerId = String(p.peerId);
-          const raw = String(p.distance || '').trim();
-
-          let distanceKm: number | undefined;
-          let distanceLabel: string | undefined;
-
-          if (raw.toUpperCase() === 'LAN') {
-            distanceKm = 0;
-            distanceLabel = 'LAN';
-          } else if (/km$/i.test(raw)) {
-            const n = parseFloat(raw.replace(/km$/i, '').trim());
-            if (Number.isFinite(n)) {
-              distanceKm = n;
-              // normalise l’affichage: 0–1km -> 2 déc, sinon 1 déc
-              const prec = n < 1 ? 2 : 1;
-              distanceLabel = `${n.toFixed(prec)} km`;
-            }
-          }
+          
+          // Logique de compatibilité descendante : utilise le nouveau champ, sinon l'ancien.
+          const distanceLabel = p.distanceLabel ?? p.distance ?? undefined;
+          const distanceKm = p.distanceKm; // Sera undefined si non fourni par le serveur (cas LAN, Ville, Pays)
 
           if (distanceKm !== undefined) this.nearbyDistanceMeters.set(peerId, distanceKm * 1000);
           if (distanceLabel) this.nearbyDistanceLabel.set(peerId, distanceLabel);
@@ -422,7 +407,7 @@ class PeerService extends EventEmitter {
           parsed.push({
             peerId,
             distanceKm,
-            distanceLabel
+            distanceLabel,
           });
 
           // Prépare la connexion si nécessaire

@@ -16,6 +16,14 @@ function pravatarUrl(id, version = 1, size = 192) {
 }
 
 
+function normalizeCityName(name) {
+  if (!name) return null;
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
 // -------------------------------------------------------------
 // Utils IP & sécurité
 // -------------------------------------------------------------
@@ -188,11 +196,13 @@ app.get('/api/geoip', async (req, res) => {
     const resp = await geoipReader.city(ip);
     const { latitude, longitude, accuracy_radius } = resp.location || {};
     const countryIso = resp?.country?.isoCode || resp?.registeredCountry?.isoCode || null;
-    // On prend un nom lisible si dispo, sinon l’ISO
+    // Priorité à l'anglais pour la cohérence, fallback sur le français
     const countryName =
-    resp?.country?.names?.fr || resp?.country?.names?.en ||
-    resp?.registeredCountry?.names?.fr || resp?.registeredCountry?.names?.en ||
-    countryIso || null;
+      resp?.country?.names?.en || resp?.country?.names?.fr ||
+      resp?.registeredCountry?.names?.en || resp?.registeredCountry?.names?.fr ||
+      countryIso || null;
+    const cityName = resp?.city?.names?.en || resp?.city?.names?.fr || null;
+
     if (latitude == null || longitude == null) {
       return res.status(404).json({ error: 'No location' });
     }
@@ -202,6 +212,7 @@ app.get('/api/geoip', async (req, res) => {
       accuracyKm: accuracy_radius ?? 25,
       countryIso,
       countryName,
+      cityName,
     });
   } catch {
     return res.status(204).end();
@@ -304,7 +315,7 @@ function broadcastPeerUpdates() {
       if (clientId === otherClientId) return;
       if (client.ip && client.ip === otherClient.ip) {
         if (!nearbyPeerIds.has(otherClientId)) {
-          nearbyPeers.add({ peerId: otherClientId, distance: 'LAN' });
+          nearbyPeers.add({ peerId: otherClientId, distanceLabel: 'LAN' });
           nearbyPeerIds.add(otherClientId);
         }
       }
@@ -315,16 +326,25 @@ function broadcastPeerUpdates() {
       clients.forEach((otherClient, otherClientId) => {
         if (clientId === otherClientId || nearbyPeerIds.has(otherClientId)) return;
         if (client.countryCode === otherClient.countryCode) {
-          nearbyPeers.add({ peerId: otherClientId, distance: 'Pays' });
+          nearbyPeers.add({ peerId: otherClientId, distanceLabel: 'Pays' });
           nearbyPeerIds.add(otherClientId);
         }
       });
     }
-    // Découverte Géographique (Quadtree) si pas en mode pays
-    else if (client.discoveryMode === 'geo' && client.location) {
+    // Découverte par ville
+    else if (client.radius === 'city' && client.countryCode && client.normalizedCityName) {
+      clients.forEach((otherClient, otherClientId) => {
+        if (clientId === otherClientId || nearbyPeerIds.has(otherClientId)) return;
+        if (client.countryCode === otherClient.countryCode && client.normalizedCityName === otherClient.normalizedCityName) {
+          nearbyPeers.add({ peerId: otherClientId, distanceLabel: 'Ville' });
+          nearbyPeerIds.add(otherClientId);
+        }
+      });
+    }
+    // Découverte Géographique (Quadtree) si pas en mode pays/ville
+    else if (client.discoveryMode === 'geo' && client.location && typeof client.radius === 'number') {
       if (now - client.location.timestamp <= MAX_LOCATION_AGE_MS) {
-        const searchRadiusKm = (typeof client.radius === 'number' ? client.radius : 1.0)
-          + ((client.location.accuracyMeters || 0) / 1000);
+        const searchRadiusKm = client.radius + ((client.location.accuracyMeters || 0) / 1000);
 
         const latDeg = searchRadiusKm / 111.0;
         const cosLat = Math.max(Math.cos(client.location.latitude * Math.PI / 180), 0.01); // évite div/0
@@ -349,10 +369,12 @@ function broadcastPeerUpdates() {
           const distance = getDistance(client.location, otherClient.location);
           const accAkm = (client.location.accuracyMeters || 0) / 1000;
           const accBkm = (otherClient.location.accuracyMeters || 0) / 1000;
-          const threshold = Math.min(client.radius || 1.0, otherClient.radius || 1.0) + accAkm + accBkm;
+          const otherRadiusNum = typeof otherClient.radius === 'number' ? otherClient.radius : 2.0;
+          const threshold = Math.min(client.radius, otherRadiusNum) + accAkm + accBkm;
 
           if (distance <= threshold) {
-            nearbyPeers.add({ peerId: candidate.clientId, distance: `${distance.toFixed(2)} km` });
+            const distanceLabel = distance < 1 ? `${(distance * 1000).toFixed(0)} m` : `${distance.toFixed(2)} km`;
+            nearbyPeers.add({ peerId: candidate.clientId, distanceKm: distance, distanceLabel });
             nearbyPeerIds.add(candidate.clientId);
           }
         }
@@ -392,12 +414,19 @@ wss.on('connection', (ws, req) => {
         );
 
         let countryCode = null;
+        let cityName = null;
+        let countryName = null;
+        let normalizedCityName = null;
+
         if (geoipReader) {
           try {
             const geoData = await geoipReader.city(ip);
             countryCode = geoData?.country?.isoCode || geoData?.registeredCountry?.isoCode || null;
+            cityName = geoData?.city?.names?.en || geoData?.city?.names?.fr || null;
+            countryName = geoData?.country?.names?.en || geoData?.country?.names?.fr || countryCode;
+            normalizedCityName = normalizeCityName(cityName);
           } catch (e) {
-            // console.warn(`[GeoIP] Lookup failed for ${ip}:`, e.message);
+            // Silencieux: l'utilisateur peut être sur un réseau local ou une IP non reconnue
           }
         }
 
@@ -411,6 +440,9 @@ wss.on('connection', (ws, req) => {
           location: null,
           discoveryMode: 'geo',
           countryCode,
+          cityName,
+          countryName,
+          normalizedCityName,
           profile: {
             name: payload?.profile?.name || payload?.profile?.displayName || 'Utilisateur',
             avatarVersion,
@@ -418,7 +450,7 @@ wss.on('connection', (ws, req) => {
           }
         });
 
-        console.log(`[WS] Client ${clientId} registered from IP ${ip} (${countryCode || 'N/A'}). Total: ${clients.size}`);
+        console.log(`[WS] Client ${clientId} registered from IP ${ip} (${cityName || 'N/A'}, ${countryName || 'N/A'}). Total: ${clients.size}`);
         rebuildGeoTree();
         broadcastPeerUpdates();
         return;
@@ -443,8 +475,8 @@ wss.on('connection', (ws, req) => {
               method: loc.method || 'gps'
             };
           }
-          // Accepte le rayon numérique ou le mot-clé 'country'
-          if (typeof payload.radius === 'number' || payload.radius === 'country') {
+          // Accepte le rayon numérique ou les mots-clés
+          if (typeof payload.radius === 'number' || payload.radius === 'country' || payload.radius === 'city') {
             clientData.radius = payload.radius;
           }
           clientData.discoveryMode = 'geo'; // reste 'geo' pour la logique du quadtree si le rayon redevient numérique
@@ -570,8 +602,8 @@ wss.on('connection', (ws, req) => {
     if (clientId && clients.has(clientId)) {
       clients.get(clientId).isAlive = true;
     }
+    });
   });
-});
 
 // -------------------------------------------------------------
 // HTTP server
