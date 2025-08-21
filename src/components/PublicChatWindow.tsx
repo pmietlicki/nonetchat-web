@@ -12,6 +12,23 @@ interface PublicChatWindowProps {
   peers: Map<string, User>;
 }
 
+// Formatte "H/F/Autre · 34 ans · 1.2 km" (ou "350 m"/"LAN")
+const formatMeta = (u?: Partial<User>): string | null => {
+  if (!u) return null;
+  const parts: string[] = [];
+  if (u.gender) parts.push(u.gender === 'male' ? 'H' : u.gender === 'female' ? 'F' : 'Autre');
+  if (typeof u.age === 'number') parts.push(`${u.age} ans`);
+  let dist: string | null = null;
+  if ((u as any).distanceLabel) {
+    dist = (u as any).distanceLabel as string;
+  } else if (typeof (u as any).distanceKm === 'number') {
+    const km = (u as any).distanceKm as number;
+    dist = km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
+  }
+  if (dist) parts.push(dist);
+  return parts.length ? parts.join(' · ') : null;
+};
+
 const PublicChatWindow: React.FC<PublicChatWindowProps> = ({ roomId, roomName, myId, messages, onBack, peers }) => {
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -43,25 +60,44 @@ const PublicChatWindow: React.FC<PublicChatWindowProps> = ({ roomId, roomName, m
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+     <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
         {messages.map((msg, index) => {
           const sender = peers.get(msg.origin);
           const isMe = msg.origin === myId;
+          const displayName = sender?.name || 'Utilisateur';
+          const meta = formatMeta(sender);
+          const key = msg.id ?? index;
+          const avatar =
+            sender?.avatar ||
+            `https://i.pravatar.cc/80?u=${encodeURIComponent(msg.origin || 'public')}`;
+
           return (
-            <div key={index} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-              <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                {!isMe && <span className="text-xs text-gray-500 ml-2 mb-1">{sender?.name || msg.origin.slice(0, 6)}</span>}
-                <div
-                  className={`relative max-w-xs md:max-w-md px-4 py-2 rounded-lg ${
-                    isMe ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'
-                  }`}>
-                  <p>{msg.text}</p>
+            <div key={key} className={`flex items-start gap-3 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
+              <img
+                src={avatar}
+                alt=""
+                className="w-9 h-9 rounded-full object-cover mt-1 shrink-0"
+              />
+              <div className={`max-w-[80%] flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-sm font-semibold text-gray-900">{displayName}</span>
+                  {meta && <span className="text-[11px] text-gray-500">{meta}</span>}
                 </div>
+                <div
+                  className={`mt-1 rounded-2xl px-3 py-2 ${
+                    isMe ? 'bg-blue-600 text-white' : 'bg-white text-gray-900 border'
+                  }`}
+                >
+                  <p className="whitespace-pre-wrap break-words">{msg.text}</p>
+                </div>
+                <span className="mt-0.5 text-[11px] text-gray-400">
+                  {new Date(msg.ts ?? Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
               </div>
             </div>
           );
         })}
-        <div ref={messagesEndRef} />
+       <div ref={messagesEndRef} />
       </div>
 
       <div className="p-4 border-t border-gray-200 bg-white sticky bottom-0 z-10">
