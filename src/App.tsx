@@ -1067,8 +1067,9 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
             </button>
           </div>
 
-          {/* Action mobile : Navigation + Profil + bouton Installer si dispo */}
-          {installEvent && (
+          {/* Actions mobiles */}
+          <div className="sm:hidden flex items-center gap-2">
+            {installEvent && (
               <button
                 onClick={async () => {
                   await installEvent.prompt();
@@ -1082,7 +1083,6 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                 Installer
               </button>
             )}
-          <div className="sm:hidden flex items-center gap-2">
             {/* Bouton de navigation mobile - affiché quand on est dans une conversation ou l'onglet public */}
             {(selectedPeerId || activeTab === 'public') && (
               <button
@@ -1153,7 +1153,8 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
               myId={myId} 
               messages={publicMessages} 
               onBack={() => setActiveTab('peers')} 
-              peers={peers} 
+              peers={peers}
+              userProfile={userProfile}
             />
           ) : selectedPeerId ? (
             <div className="flex-1 flex items-center justify-center bg-gray-50">

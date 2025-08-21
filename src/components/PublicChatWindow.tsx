@@ -10,6 +10,7 @@ interface PublicChatWindowProps {
   messages: any[];
   onBack: () => void;
   peers: Map<string, User>;
+  userProfile: Partial<User>;
 }
 
 // Formatte "H/F/Autre · 34 ans · 1.2 km" (ou "350 m"/"LAN")
@@ -29,7 +30,7 @@ const formatMeta = (u?: Partial<User>): string | null => {
   return parts.length ? parts.join(' · ') : null;
 };
 
-const PublicChatWindow: React.FC<PublicChatWindowProps> = ({ roomId, roomName, myId, messages, onBack, peers }) => {
+const PublicChatWindow: React.FC<PublicChatWindowProps> = ({ roomId, roomName, myId, messages, onBack, peers, userProfile }) => {
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const peerService = PeerService.getInstance();
@@ -62,8 +63,8 @@ const PublicChatWindow: React.FC<PublicChatWindowProps> = ({ roomId, roomName, m
 
      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
         {messages.map((msg, index) => {
-          const sender = peers.get(msg.origin);
           const isMe = msg.origin === myId;
+          const sender = isMe ? userProfile : peers.get(msg.origin);
           const displayName = sender?.name || 'Utilisateur';
           const meta = formatMeta(sender);
           const key = msg.id ?? index;
