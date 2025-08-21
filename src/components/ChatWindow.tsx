@@ -285,6 +285,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
   // Subscriptions
   useEffect(() => {
+    if (selectedPeer.id) {
+      peerService.ensureChatChannel(selectedPeer.id);
+    }
     loadMessages();
     markAsRead();
 

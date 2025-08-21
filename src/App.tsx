@@ -1,9 +1,8 @@
-// src/App.tsx
-import { useState, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import PeerList from './components/PeerList';
 import ConversationList from './components/ConversationList';
 import ChatWindow from './components/ChatWindow';
+import PublicChatWindow from './components/PublicChatWindow'; // Ajout
 import StatusBar from './components/StatusBar';
 import ConnectionStatus from './components/ConnectionStatus';
 import ProfileModal from './components/ProfileModal';
@@ -14,8 +13,9 @@ import PeerService, { PeerMessage } from './services/PeerService';
 import IndexedDBService from './services/IndexedDBService';
 import ProfileService from './services/ProfileService';
 import NotificationService from './services/NotificationService';
-import { MessageSquare, Users, X, User as UserIcon, Bell, Cog } from 'lucide-react';
+import { MessageSquare, Users, X, User as UserIcon, Bell, Cog, Globe } from 'lucide-react'; // Ajout Globe
 import CryptoService from './services/CryptoService';
+import { useState, useRef, useEffect } from 'react';
 
 
 const DEFAULT_SIGNALING_URL = 'wss://chat.nonetchat.com';
@@ -36,13 +36,18 @@ function App() {
   const [myId, setMyId] = useState('');
   const [peers, setPeers] = useState<Map<string, User>>(new Map());
   const [selectedPeerId, setSelectedPeerId] = useState<string | undefined>();
-  const [activeTab, setActiveTab] = useState<'peers' | 'conversations'>('peers');
+  const [activeTab, setActiveTab] = useState<'peers' | 'conversations' | 'public'>('peers');
   const [isConnected, setIsConnected] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [geolocationError, setGeolocationError] = useState<string | null>(null);
   const [totalUnreadCount, setTotalUnreadCount] = useState(0);
   const [unreadConversationsCount, setUnreadConversationsCount] = useState(0);
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
+
+  // State pour la discussion publique
+  const [publicRoomId, setPublicRoomId] = useState<string | null>(null);
+  const [publicRoomName, setPublicRoomName] = useState('Discussion Publique');
+  const [publicMessages, setPublicMessages] = useState<any[]>([]);
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -247,6 +252,21 @@ useEffect(() => {
     peerService.on('peer-joined', onPeerJoined);
     peerService.on('peer-left', onPeerLeft);
     peerService.on('geolocation-error', onGeolocationError);
+
+    const onRoomUpdate = (payload: { roomId: string; roomName?: string; roomLabel?: string }) => {
+      if (payload.roomId !== publicRoomId) {
+        setPublicRoomId(payload.roomId);
+        setPublicRoomName(payload.roomLabel || payload.roomName || 'Discussion Publique');
+        setPublicMessages([]); // Vider les messages en changeant de room
+      }
+    };
+
+    const onPublicMessage = (message: any) => {
+      setPublicMessages(prev => [...prev.slice(-200), message]); // Garder les 200 derniers messages
+    };
+
+    peerService.on('room-update', onRoomUpdate);
+    peerService.on('public-message', onPublicMessage);
 
     const onUnreadCountChanged = (count: number) => setTotalUnreadCount(count);
     const onUnreadConversationsChanged = () =>
@@ -966,6 +986,15 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                 Pairs ({peerList.length})
               </button>
               <button
+                onClick={() => setActiveTab('public')}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+                  activeTab === 'public' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Globe size={16} />
+                Public
+              </button>
+              <button
                 onClick={() => setActiveTab('conversations')}
                 className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors relative ${
                   activeTab === 'conversations' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
@@ -1047,28 +1076,46 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
         {/* Colonne gauche */}
         <div
           className={`w-full sm:w-80 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col ${
-            (!!selectedPeer) ? 'hidden sm:flex' : 'flex'
+            (!!selectedPeerId || activeTab === 'public') ? 'hidden sm:flex' : 'flex'
           }`}
         >
-          {activeTab === 'peers' ? (
+          {activeTab === 'peers' && (
             <PeerList
               peers={peerList}
               onSelectPeer={handleSelectPeer}
               selectedPeerId={selectedPeerId}
               isConnected={isConnected}
             />
-          ) : (
+          )}
+          {activeTab === 'conversations' && (
             <ConversationList
               onSelectConversation={handleSelectConversation}
               selectedConversationId={selectedPeerId}
             />
           )}
+          {/* Placeholder for public tab in the list view, maybe show room name */}
+          {activeTab === 'public' && (
+             <div className="p-4 text-center text-gray-500">
+                <Globe size={48} className="mx-auto mb-2 text-gray-300" />
+                <p className="font-semibold">{publicRoomName}</p>
+                <p className="text-sm">Les messages ici sont éphémères et visibles par tous dans votre zone actuelle.</p>
+              </div>
+          )}
         </div>
 
         {/* Panneau droit – chat */}
-        <div className={`flex-1 flex flex-col ${!!selectedPeer ? 'flex' : 'hidden sm:flex'}`}>
+        <div className={`flex-1 flex flex-col ${(!!selectedPeerId || activeTab === 'public') ? 'flex' : 'hidden sm:flex'}`}>
           {selectedPeer ? (
             <ChatWindow selectedPeer={selectedPeer} myId={myId} onBack={() => setSelectedPeerId(undefined)} />
+          ) : activeTab === 'public' ? (
+            <PublicChatWindow 
+              roomId={publicRoomId}
+              roomName={publicRoomName}
+              myId={myId} 
+              messages={publicMessages} 
+              onBack={() => setActiveTab('peers')} 
+              peers={peers} 
+            />
           ) : selectedPeerId ? (
             <div className="flex-1 flex items-center justify-center bg-gray-50">
               <div className="text-center text-gray-500">
@@ -1101,7 +1148,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
 
       {/* Bottom Navigation – mobile */}
       <nav className="bottom-nav sm:hidden sticky bottom-0 z-40 bg-white border-t border-gray-200">
-        <div className="grid grid-cols-4">
+        <div className="grid grid-cols-5">
           <button
             onClick={() => {
               setActiveTab('peers');
@@ -1113,6 +1160,19 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
           >
             <Users size={22} />
             <span className="text-[11px] leading-3 mt-0.5">Pairs</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveTab('public');
+              setSelectedPeerId(undefined);
+            }}
+            className={`relative flex flex-col items-center justify-center py-2 ${activeTab === 'public' && !selectedPeer ? 'text-blue-600' : 'text-gray-600'}`}
+            aria-label="Discussion Publique"
+            title="Discussion Publique"
+          >
+            <Globe size={22} />
+            <span className="text-[11px] leading-3 mt-0.5">Public</span>
           </button>
 
           <button

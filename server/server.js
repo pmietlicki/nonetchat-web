@@ -6,6 +6,7 @@ import Quadtree from '@timohausmann/quadtree-js';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import webpush from 'web-push';
+import ngeohash from 'ngeohash';
 
 // --- Config ---
 dotenv.config();
@@ -303,12 +304,49 @@ function rebuildGeoTree() {
 // -------------------------------------------------------------
 // Diffusion des mises à jour de pairs
 // -------------------------------------------------------------
+function getPublicRoomInfo(client) {
+  if (!client) return { roomId: null, roomLabel: 'Public' };
+
+  if (client.radius === 'country' && client.countryCode) {
+    return {
+      roomId: `group:country:${client.countryCode}`,
+      roomLabel: client.countryName || client.countryCode,
+    };
+  }
+  if (client.radius === 'city' && client.countryCode && client.normalizedCityName) {
+    return {
+      roomId: `group:city:${client.countryCode}:${client.normalizedCityName}`,
+      roomLabel: client.cityName || client.normalizedCityName,
+    };
+  }
+  if (typeof client.radius === 'number' && client.location) {
+    const radius = client.radius;
+    let precision = 5;
+    if (radius <= 1) precision = 7;
+    else if (radius <= 3) precision = 6;
+    else if (radius <= 25) precision = 5;
+    else if (radius <= 100) precision = 4;
+    else precision = 3;
+    
+    const hash = ngeohash.encode(client.location.latitude, client.location.longitude, precision);
+    return {
+      roomId: `group:km:p${precision}:${hash}`,
+      roomLabel: `${client.radius} km`,
+    };
+  }
+  return { roomId: 'group:public:default', roomLabel: 'Public' };
+}
+
+// -------------------------------------------------------------
+// Diffusion des mises à jour de pairs
+// -------------------------------------------------------------
 function broadcastPeerUpdates() {
   const now = Date.now();
 
   clients.forEach((client, clientId) => {
     const nearbyPeers = new Set();
     const nearbyPeerIds = new Set();
+    const { roomId, roomLabel } = getPublicRoomInfo(client);
 
     // Découverte LAN (IP publique identique)
     clients.forEach((otherClient, otherClientId) => {
@@ -381,9 +419,41 @@ function broadcastPeerUpdates() {
       }
     }
 
-    sendTo(client.ws, { type: 'nearby-peers', peers: Array.from(nearbyPeers) });
+    sendTo(client.ws, { 
+      type: 'nearby-peers', 
+      peers: Array.from(nearbyPeers),
+      roomId,
+      roomLabel,
+      tServer: Date.now(),
+    });
   });
 }
+
+// -------------------------------------------------------------
+// Rooms publiques
+// -------------------------------------------------------------
+function getPublicRoomId(client) {
+  if (!client) return null;
+  if (client.radius === 'country') return `group:country:${client.countryCode}`;
+  if (client.radius === 'city') return `group:city:${client.countryCode}:${client.normalizedCityName}`;
+  // Pour le LAN et le rayon en km, la "room" est dynamique et n'a pas d'ID stable.
+  // On peut utiliser un ID générique ou null.
+  return 'group:geo:nearby';
+}
+
+function sendRoomUpdate(client, clientId) {
+  const roomId = getPublicRoomId(client);
+  let roomName = 'Discussion Publique';
+  if (client.radius === 'country' && client.countryName) {
+    roomName = `Discussion Publique (${client.countryName})`;
+  } else if (client.radius === 'city' && client.cityName) {
+    roomName = `Discussion Publique (${client.cityName})`;
+  } else if (typeof client.radius === 'number') {
+    roomName = `Discussion Publique (${client.radius} km)`;
+  }
+  sendTo(client.ws, { type: 'room-update', payload: { roomId, roomName } });
+}
+
 
 // -------------------------------------------------------------
 // WebSocket Server Logic
@@ -432,7 +502,7 @@ wss.on('connection', (ws, req) => {
 
         const avatarVersion = Number(payload?.profile?.avatarVersion) || 1;
 
-        clients.set(clientId, {
+        const clientData = {
           ws,
           ip,
           isAlive: true,
@@ -448,11 +518,13 @@ wss.on('connection', (ws, req) => {
             avatarVersion,
             avatar: payload?.profile?.avatar || pravatarUrl(clientId, avatarVersion, 192)
           }
-        });
+        };
+        clients.set(clientId, clientData);
 
         console.log(`[WS] Client ${clientId} registered from IP ${ip} (${cityName || 'N/A'}, ${countryName || 'N/A'}). Total: ${clients.size}`);
         rebuildGeoTree();
         broadcastPeerUpdates();
+        sendRoomUpdate(clientData, clientId); // Notifier le client de sa room initiale
         return;
       }
 
@@ -482,6 +554,7 @@ wss.on('connection', (ws, req) => {
           clientData.discoveryMode = 'geo'; // reste 'geo' pour la logique du quadtree si le rayon redevient numérique
           rebuildGeoTree();
           broadcastPeerUpdates();
+          sendRoomUpdate(clientData, clientId); // Notifier le client du changement de room
           break;
         }
 
@@ -494,6 +567,36 @@ wss.on('connection', (ws, req) => {
         case 'heartbeat':
           clientData.isAlive = true;
           break;
+
+        case 'public-message': {
+          const senderClient = clients.get(clientId);
+          if (!senderClient || !payload.content) break;
+
+          const senderRoomId = getPublicRoomId(senderClient);
+
+          clients.forEach((otherClient, otherClientId) => {
+            if (otherClientId === clientId) return; // Ne pas s'envoyer le message à soi-même
+
+            const otherRoomId = getPublicRoomId(otherClient);
+
+            // Si les rooms sont basées sur un ID stable (ville/pays), on compare les ID
+            if (senderRoomId && senderRoomId.startsWith('group:country:') || senderRoomId.startsWith('group:city:')) {
+              if (senderRoomId === otherRoomId) {
+                sendTo(otherClient.ws, { type: 'public-message', from: clientId, payload: { content: payload.content } });
+              }
+            } else {
+              // Sinon (LAN, rayon km), on vérifie la proximité directe
+              const distance = getDistance(senderClient.location, otherClient.location);
+              const senderRadius = typeof senderClient.radius === 'number' ? senderClient.radius : 0;
+              const otherRadius = typeof otherClient.radius === 'number' ? otherClient.radius : 0;
+
+              if (distance <= senderRadius && distance <= otherRadius) {
+                 sendTo(otherClient.ws, { type: 'public-message', from: clientId, payload: { content: payload.content } });
+              }
+            }
+          });
+          break;
+        }
 
         // ---- Messages applicatifs (optionnel, utile si store-and-forward) ----
         case 'chat-message': {

@@ -1,8 +1,9 @@
-import { User } from '../types';
+import { v4 as uuidv4 } from 'uuid';
 import CryptoService from './CryptoService';
 import IndexedDBService from './IndexedDBService';
 import { DiagnosticService } from './DiagnosticService';
 import ProfileService, { PublicProfile } from './ProfileService';
+import { User } from '../types';
 
 export type PeerMessage =
   | { type: 'profile' | 'profile-update' | 'chat-message' | 'key-exchange' | 'file-start' | 'file-chunk' | 'file-end' | 'message-delivered' | 'message-read' | 'avatar-request' | 'avatar-thumb' | 'reaction'; payload: any; messageId?: string };
@@ -34,14 +35,21 @@ class PeerService extends EventEmitter {
   private peerConnections: Map<string, RTCPeerConnection> = new Map();
   private dataChannels: Map<string, RTCDataChannel> = new Map();
   private messageQueue: Map<string, PeerMessage[]> = new Map();
-  private nearbyDistanceMeters = new Map<string, number>();
-  private nearbyDistanceLabel = new Map<string, string>();
 
   private myId: string = '';
   // Profil applicatif (hérité) – conservé pour compat, mais on n’envoie plus l’image dedans
   private myProfile: Partial<User> = {};
   // Profil public léger réellement diffusé
   private myPublicProfile?: PublicProfile;
+
+  // --- Public Room State ---
+  private publicRoomId: string | null = null;
+  private publicPeers: Set<string> = new Set();
+  private publicNeighbors: Set<string> = new Set(); // k-neighbors
+  private publicDataChannels: Map<string, RTCDataChannel> = new Map();
+  private publicCtrlChannels: Map<string, RTCDataChannel> = new Map();
+  private seenPublicMessages: Set<string> = new Set(); // LRU cache can be implemented later
+  private K_NEIGHBORS = 7;
 
   private cryptoService: CryptoService;
   private diagnosticService: DiagnosticService;
@@ -348,22 +356,25 @@ class PeerService extends EventEmitter {
   }
 
   private startPruningInterval() {
-    const PRUNE_INTERVAL = 30000;
-    const GRACE_PERIOD = 60000;
+  const PRUNE_INTERVAL = 30000;
+  const GRACE_PERIOD = 60000;
+  this.pruneInterval = window.setInterval(() => {
+    const now = Date.now();
+    this.peerConnections.forEach((pc, peerId) => {
+      const seen = this.lastSeen.get(peerId);
+      const isStale = !seen || (now - seen > GRACE_PERIOD);
+      if (!isStale) return;
 
-    this.pruneInterval = window.setInterval(() => {
-      const now = Date.now();
-      this.peerConnections.forEach((pc, peerId) => {
-        if (!this.lastSeen.has(peerId)) return;
-        if (now - this.lastSeen.get(peerId)! > GRACE_PERIOD) {
-          if (pc && (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'checking')) return;
-          this.diagnosticService.log(`Pruning ${peerId} (stale nearby-peers & no active ICE)`);
-          this.closePeerConnection(peerId);
-          this.lastSeen.delete(peerId);
-        }
-      });
-    }, PRUNE_INTERVAL);
-  }
+      // si pas connecté/checking, on coupe
+      if (!(pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'checking')) {
+        this.diagnosticService.log(`Pruning ${peerId} (stale)`);
+        this.closePeerConnection(peerId);
+        this.lastSeen.delete(peerId);
+      }
+    });
+  }, PRUNE_INTERVAL);
+}
+
 
   private startHeartbeat() {
     this.heartbeatInterval = window.setInterval(() => {
@@ -380,45 +391,85 @@ class PeerService extends EventEmitter {
     }
   }
 
+  private strHash(str: string): number {
+    let hash = 5381;
+    let i = str.length;
+    while (i) {
+      hash = (hash * 33) ^ str.charCodeAt(--i);
+    }
+    return hash >>> 0;
+  }
+
+  private updatePublicNeighbors() {
+  const peers = Array.from(this.publicPeers).sort((a,b) => this.strHash(a) - this.strHash(b));
+  const myIndex = peers.indexOf(this.myId);
+  if (myIndex === -1) { this.publicNeighbors = new Set(); return; }
+
+  const newNeighbors = new Set<string>();
+  const n = peers.length;
+  if (n <= this.K_NEIGHBORS) {
+    peers.forEach(p => { if (p !== this.myId) newNeighbors.add(p); });
+  } else {
+    const k = Math.floor(this.K_NEIGHBORS / 2);
+    for (let i=1; i<=k; i++) {
+      newNeighbors.add(peers[(myIndex + i) % n]);
+      newNeighbors.add(peers[(myIndex - i + n) % n]);
+    }
+  }
+
+  // Connecter les nouveaux voisins
+  newNeighbors.forEach(pid => {
+    if (pid !== this.myId && !this.peerConnections.has(pid)) {
+      this.createPeerConnection(pid, 'auto');
+    }
+  });
+
+  // Fermer les PC qui ne sont ni voisins publics, ni utilisés en DM (pas de canal “chat”)
+  for (const pid of this.peerConnections.keys()) {
+  const hasChat = this.dataChannels.has(pid); // DM actif
+  if (!newNeighbors.has(pid) && !hasChat) this.closePeerConnection(pid);
+}
+
+  this.publicNeighbors = newNeighbors;
+  this.diagnosticService.log(`Updated public neighbors: ${Array.from(newNeighbors).join(', ')}`);
+}
+
+
   private async handleSignalingMessage(message: any) {
     if (message.from && this.blockList.has(message.from)) return;
 
     this.diagnosticService.log('Received message from server', message);
     switch (message.type) {
       case 'nearby-peers': {
-        const list = Array.isArray(message.peers) ? message.peers : [];
-        const now = Date.now();
+  const { peers, roomId, roomLabel } = message;
+  this.emit('room-update', { roomId, roomLabel });
 
-        // Mémorise la "présence" pour le nettoyage des connexions inactives
-        this.lastSeen = new Map(list.map((p: any) => [p.peerId, now]));
+  const switched = roomId !== this.publicRoomId;
+  if (switched) {
+    this.diagnosticService.log(`Switching public room: ${this.publicRoomId} -> ${roomId}`);
+    this.publicRoomId = roomId;
+    this.publicPeers.clear();
+    this.seenPublicMessages.clear();
+    // Optionnel: fermer les canaux “public” existants pour forcer un overlay frais
+    this.publicDataChannels.forEach((dc) => dc.close());
+    this.publicCtrlChannels.forEach((dc) => dc.close());
+    this.publicDataChannels.clear();
+    this.publicCtrlChannels.clear();
+  }
 
-        const parsed: Array<{ peerId: string; distanceKm?: number; distanceLabel?: string }> = [];
+  const now = Date.now();
+  this.lastSeen = new Map(peers.map((p:any) => [p.peerId, now]));
 
-        for (const p of list) {
-          const peerId = String(p.peerId);
-          
-          // Logique de compatibilité descendante : utilise le nouveau champ, sinon l'ancien.
-          const distanceLabel = p.distanceLabel ?? p.distance ?? undefined;
-          const distanceKm = p.distanceKm; // Sera undefined si non fourni par le serveur (cas LAN, Ville, Pays)
+  const nextSet = new Set<string>((peers as Array<{ peerId: string }>).map(p => p.peerId));
+nextSet.add(this.myId);
+this.publicPeers = nextSet;
 
-          if (distanceKm !== undefined) this.nearbyDistanceMeters.set(peerId, distanceKm * 1000);
-          if (distanceLabel) this.nearbyDistanceLabel.set(peerId, distanceLabel);
+  this.updatePublicNeighbors();
+  this.emit('public-peers-change', this.publicPeers);
+  this.emit('nearby-peers', peers);
+  break;
+}
 
-          parsed.push({
-            peerId,
-            distanceKm,
-            distanceLabel,
-          });
-
-          // Prépare la connexion si nécessaire
-          if (!this.peerConnections.has(peerId)) this.createPeerConnection(peerId);
-        }
-
-        // Notifie l’UI (App.tsx écoutera "nearby-peers")
-        this.emit('nearby-peers', parsed);
-
-        break;
-      }
       case 'offer':
         await this.handleOffer(message.from, message.payload);
         break;
@@ -431,107 +482,195 @@ class PeerService extends EventEmitter {
     }
   }
 
-  // Dans PeerService class
-public updateLocation(loc: { latitude: number; longitude: number; accuracyMeters?: number | null; timestamp?: number; method?: string }) {
-  this.sendToServer({
-    type: 'update-location',
-    payload: {
-      location: {
-        latitude: loc.latitude,
-        longitude: loc.longitude,
-        accuracyMeters: loc.accuracyMeters ?? null,
-        timestamp: loc.timestamp ?? Date.now(),
-        method: loc.method || 'gps',
-      },
-      radius: this.searchRadius,
-    },
-  });
+  public broadcastToPublicRoom(content: string) {
+    const message = {
+      type: 'public',
+      id: uuidv4(),
+      roomId: this.publicRoomId,
+      origin: this.myId,
+      ts: Date.now(),
+      ttl: 6,
+      text: content,
+    };
+
+    this.seenPublicMessages.add(message.id);
+    this.emit('public-message', message);
+
+    this.publicNeighbors.forEach(peerId => {
+      const dc = this.publicDataChannels.get(peerId);
+      if (dc && dc.readyState === 'open') {
+        dc.send(JSON.stringify(message));
+      }
+    });
+  }
+
+  private async createPeerConnection(peerId: string, role: 'auto' | 'initiator' | 'responder' = 'auto') {
+  if (this.peerConnections.has(peerId)) return;
+
+  const isInitiator =
+    role === 'initiator' ? true :
+    role === 'responder' ? false :
+    (this.myId > peerId);
+
+  this.diagnosticService.log(`Creating peer connection to ${peerId}. Initiator: ${isInitiator}`);
+
+  const pc = new RTCPeerConnection(this.getIceConfig());
+  this.peerConnections.set(peerId, pc);
+
+  let relayFallbackTimer: number | null = window.setTimeout(() => {
+    if (pc.iceConnectionState === 'checking') {
+      const cfg = pc.getConfiguration();
+      pc.setConfiguration({ ...cfg, iceTransportPolicy: 'relay' });
+      try { pc.restartIce?.(); } catch {}
+      this.diagnosticService.log('ICE checking too long → relay-only + restartIce');
+    }
+  }, 7000);
+
+  pc.oniceconnectionstatechange = () => {
+    this.diagnosticService.log(`ICE state with ${peerId}: ${pc.iceConnectionState}`);
+    if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+      if (relayFallbackTimer) { clearTimeout(relayFallbackTimer); relayFallbackTimer = null; }
+      this.logSelectedPair(pc);
+    }
+    if (pc.iceConnectionState === 'failed') {
+      const policy = pc.getConfiguration().iceTransportPolicy;
+      if (policy !== 'relay') {
+        const cfg = pc.getConfiguration();
+        pc.setConfiguration({ ...cfg, iceTransportPolicy: 'relay' });
+        try { pc.restartIce?.(); } catch {}
+        this.diagnosticService.log('ICE failed → trying relay-only');
+      } else {
+        this.closePeerConnection(peerId);
+      }
+    }
+    if (pc.iceConnectionState === 'disconnected') {
+      setTimeout(() => {
+        if (pc.iceConnectionState === 'disconnected') {
+          try { pc.restartIce?.(); } catch {}
+        }
+      }, 1500);
+    }
+  };
+
+  (pc as any).onicecandidateerror = (e: any) => {
+    this.diagnosticService.log('ICE candidate error', { url: e.url, code: e.errorCode, text: e.errorText, hostCandidate: e.hostCandidate });
+  };
+  pc.onicegatheringstatechange = () => {
+    this.diagnosticService.log('ICE gathering', pc.iceGatheringState);
+  };
+  pc.onicecandidate = (event) => {
+    if (event.candidate) {
+      this.sendToServer({ type: 'candidate', payload: { to: peerId, from: this.myId, payload: event.candidate } });
+    }
+  };
+  pc.onconnectionstatechange = () => {
+    this.diagnosticService.log(`Connection state with ${peerId} changed to: ${pc.connectionState}`);
+    if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+      this.closePeerConnection(peerId);
+    }
+  };
+
+  // Toujours écouter l'arrivée de canaux, quel que soit le rôle
+  pc.ondatachannel = (event) => {
+    switch (event.channel.label) {
+      case 'public':      this.setupPublicDataChannel(peerId, event.channel); break;
+      case 'public-ctrl': this.setupPublicCtrlDataChannel(peerId, event.channel); break;
+      case 'chat':        this.setupDataChannel(peerId, event.channel); break;
+      default:            this.setupDataChannel(peerId, event.channel); break;
+    }
+  };
+
+  if (isInitiator) {
+    // Public (éphémère)
+    const publicDC   = pc.createDataChannel('public', { ordered: false, maxRetransmits: 1 });
+    const publicCtrl = pc.createDataChannel('public-ctrl', { ordered: true });
+    this.setupPublicDataChannel(peerId, publicDC);
+    this.setupPublicCtrlDataChannel(peerId, publicCtrl);
+
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    this.sendToServer({ type: 'offer', payload: { to: peerId, from: this.myId, payload: pc.localDescription } });
+  }
 }
 
 
-  private async createPeerConnection(peerId: string) {
-    if (this.peerConnections.has(peerId)) return;
+  public async ensureChatChannel(peerId: string) {
+    const pc = this.peerConnections.get(peerId);
+    if (!pc) {
+      this.diagnosticService.log(`No peer connection for ${peerId}, cannot create chat channel.`);
+      return;
+    }
 
-    const isInitiator = this.myId > peerId;
-    this.diagnosticService.log(`Creating peer connection to ${peerId}. Initiator: ${isInitiator}`);
+    // Ne rien faire si le canal existe déjà
+    if (this.dataChannels.has(peerId)) {
+      return;
+    }
 
-    const pc = new RTCPeerConnection(this.getIceConfig());
-    this.peerConnections.set(peerId, pc);
+    this.diagnosticService.log(`Creating on-demand chat channel with ${peerId}`);
+    const chatDC = pc.createDataChannel('chat', { ordered: true });
+    this.setupDataChannel(peerId, chatDC);
 
-    let relayFallbackTimer: number | null = window.setTimeout(() => {
-      if (pc.iceConnectionState === 'checking') {
-        const cfg = pc.getConfiguration();
-        pc.setConfiguration({ ...cfg, iceTransportPolicy: 'relay' });
-        try {
-          pc.restartIce?.();
-        } catch {}
-        this.diagnosticService.log('ICE checking too long → relay-only + restartIce');
-      }
-    }, 7000);
-
-    pc.oniceconnectionstatechange = () => {
-      this.diagnosticService.log(`ICE state with ${peerId}: ${pc.iceConnectionState}`);
-      if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
-        if (relayFallbackTimer) {
-          clearTimeout(relayFallbackTimer);
-          relayFallbackTimer = null;
-        }
-        this.logSelectedPair(pc);
-      }
-      if (pc.iceConnectionState === 'failed') {
-        const policy = pc.getConfiguration().iceTransportPolicy;
-        if (policy !== 'relay') {
-          const cfg = pc.getConfiguration();
-          pc.setConfiguration({ ...cfg, iceTransportPolicy: 'relay' });
-          try {
-            pc.restartIce?.();
-          } catch {}
-          this.diagnosticService.log('ICE failed → trying relay-only');
-        } else {
-          this.closePeerConnection(peerId);
-        }
-      }
-      if (pc.iceConnectionState === 'disconnected') {
-        setTimeout(() => {
-          if (pc.iceConnectionState === 'disconnected') {
-            try {
-              pc.restartIce?.();
-            } catch {}
-          }
-        }, 1500);
-      }
-    };
-
-    (pc as any).onicecandidateerror = (e: any) => {
-      this.diagnosticService.log('ICE candidate error', { url: e.url, code: e.errorCode, text: e.errorText, hostCandidate: e.hostCandidate });
-    };
-    pc.onicegatheringstatechange = () => {
-      this.diagnosticService.log('ICE gathering', pc.iceGatheringState);
-    };
-
-    pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        this.sendToServer({ type: 'candidate', payload: { to: peerId, from: this.myId, payload: event.candidate } });
-      }
-    };
-
-    pc.onconnectionstatechange = () => {
-      this.diagnosticService.log(`Connection state with ${peerId} changed to: ${pc.connectionState}`);
-      if (pc.connectionState === 'failed') this.closePeerConnection(peerId);
-    };
-
-    if (isInitiator) {
-      const dataChannel = pc.createDataChannel('chat');
-      this.setupDataChannel(peerId, dataChannel);
+    // Renégocier pour ajouter le nouveau canal
+    try {
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
       this.sendToServer({ type: 'offer', payload: { to: peerId, from: this.myId, payload: pc.localDescription } });
-    } else {
-      pc.ondatachannel = (event) => {
-        this.setupDataChannel(peerId, event.channel);
-      };
+    } catch (err) {
+      this.diagnosticService.log(`Error creating offer for new chat channel with ${peerId}`, err);
     }
   }
+
+
+  // util LRU simple
+private trimSeenPublic(limit = 2048) {
+  const excess = this.seenPublicMessages.size - limit;
+  if (excess <= 0) return;
+  let dropped = 0;
+  for (const id of this.seenPublicMessages) {
+    this.seenPublicMessages.delete(id);
+    if (++dropped >= excess) break;
+  }
+}
+
+private setupPublicDataChannel(peerId: string, channel: RTCDataChannel) {
+  this.publicDataChannels.set(peerId, channel);
+
+  channel.onmessage = (event) => {
+    const msg = JSON.parse(event.data);
+    if (msg.roomId !== this.publicRoomId) return;
+    if (this.blockList.has(msg.origin)) return;           // ✅ respecte blockList
+    if (this.seenPublicMessages.has(msg.id)) return;
+
+    this.seenPublicMessages.add(msg.id);
+    this.trimSeenPublic();                                 // ✅ borné
+    this.emit('public-message', msg);
+
+    if (msg.ttl > 0) {
+      const fwd = { ...msg, ttl: msg.ttl - 1 };
+      this.publicNeighbors.forEach(nid => {
+        if (nid !== peerId && nid !== msg.origin) {
+          const dc = this.publicDataChannels.get(nid);
+          if (dc?.readyState === 'open') dc.send(JSON.stringify(fwd));
+        }
+      });
+    }
+  };
+
+  channel.onclose = () => {                                // ✅ nettoyage
+    if (this.publicDataChannels.get(peerId) === channel) {
+      this.publicDataChannels.delete(peerId);
+    }
+  };
+}
+
+private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
+  this.publicCtrlChannels.set(peerId, channel);
+  channel.onclose = () => {
+    if (this.publicCtrlChannels.get(peerId) === channel) {
+      this.publicCtrlChannels.delete(peerId);
+    }
+  };
+}
 
   private async logSelectedPair(pc: RTCPeerConnection) {
     try {
@@ -614,7 +753,9 @@ public updateLocation(loc: { latitude: number; longitude: number; accuracyMeters
         }
 
         // Émettre vers l’UI un payload enrichi avec un champ avatar (miniature si dispo, sinon pravatar)
-        const avatarForUi = entry.avatarThumbDataUrl || this.fallbackAvatarUrl(p.id, p.avatarVersion);
+        const avatarForUi =
+  entry.avatarThumbDataUrl ||
+  this.fallbackAvatarUrl((p as any).id ?? peerId, p.avatarVersion);
         this.emit('data', peerId, { type: message.type, payload: { ...p, avatar: avatarForUi } });
 
         // Mettre à jour la conversation dans la base de données avec les infos du profil
@@ -628,7 +769,9 @@ public updateLocation(loc: { latitude: number; longitude: number; accuracyMeters
         if (mine.avatarHash !== hash) return;
 
         // Crée une petite miniature en dataURL (≈ 5–12KB)
-        const tiny = await this.profileService.getAvatarForTransmission(this.fallbackAvatarUrl(mine.id, mine.avatarVersion, 96));
+        const tiny = await this.profileService.getAvatarForTransmission(
+  this.fallbackAvatarUrl(mine.id ?? this.myId, mine.avatarVersion, 96)
+);
         if (!tiny) return;
 
         // Limite de sécurité: éviter d’envoyer > 16KB
@@ -900,15 +1043,17 @@ public updateLocation(loc: { latitude: number; longitude: number; accuracyMeters
   }
 
   private async handleOffer(from: string, offer: RTCSessionDescriptionInit) {
-    await this.createPeerConnection(from);
-    const pc = this.peerConnections.get(from);
-    if (pc) {
-      await pc.setRemoteDescription(new RTCSessionDescription(offer));
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      this.sendToServer({ type: 'answer', payload: { to: from, from: this.myId, payload: pc.localDescription } });
-    }
+  let pc = this.peerConnections.get(from);
+  if (!pc) {
+    await this.createPeerConnection(from, 'responder'); // ⚠️ force “responder”
+    pc = this.peerConnections.get(from)!;
   }
+  await pc.setRemoteDescription(new RTCSessionDescription(offer));
+  const answer = await pc.createAnswer();
+  await pc.setLocalDescription(answer);
+  this.sendToServer({ type: 'answer', payload: { to: from, from: this.myId, payload: pc.localDescription } });
+}
+
 
   private async handleAnswer(from: string, answer: RTCSessionDescriptionInit) {
     const pc = this.peerConnections.get(from);
@@ -938,22 +1083,21 @@ public updateLocation(loc: { latitude: number; longitude: number; accuracyMeters
   }
 
   public destroy() {
-    if (this.pruneInterval) clearInterval(this.pruneInterval);
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-      this.heartbeatInterval = null;
-    }
-    if (this.turnRefreshTimer) {
-      clearTimeout(this.turnRefreshTimer);
-      this.turnRefreshTimer = null;
-    }
-    this.ws?.close();
-    this.peerConnections.forEach((_) => _ && _.close());
-    this.peerConnections.clear();
-    this.dataChannels.clear();
-    this.messageQueue.clear();
-    this.peersMeta.clear();
-  }
+  if (this.pruneInterval) clearInterval(this.pruneInterval);
+  if (this.heartbeatInterval) { clearInterval(this.heartbeatInterval); this.heartbeatInterval = null; }
+  if (this.turnRefreshTimer) { clearTimeout(this.turnRefreshTimer); this.turnRefreshTimer = null; }
+  this.ws?.close();
+  this.peerConnections.forEach(pc => pc?.close());
+  this.peerConnections.clear();
+  this.dataChannels.clear();
+  this.publicDataChannels.forEach(dc => dc.close());
+  this.publicCtrlChannels.forEach(dc => dc.close());
+  this.publicDataChannels.clear();
+  this.publicCtrlChannels.clear();
+  this.messageQueue.clear();
+  this.peersMeta.clear();
+}
+
 }
 
 export default PeerService;
