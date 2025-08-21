@@ -429,31 +429,6 @@ function broadcastPeerUpdates() {
   });
 }
 
-// -------------------------------------------------------------
-// Rooms publiques
-// -------------------------------------------------------------
-function getPublicRoomId(client) {
-  if (!client) return null;
-  if (client.radius === 'country') return `group:country:${client.countryCode}`;
-  if (client.radius === 'city') return `group:city:${client.countryCode}:${client.normalizedCityName}`;
-  // Pour le LAN et le rayon en km, la "room" est dynamique et n'a pas d'ID stable.
-  // On peut utiliser un ID générique ou null.
-  return 'group:geo:nearby';
-}
-
-function sendRoomUpdate(client, clientId) {
-  const roomId = getPublicRoomId(client);
-  let roomName = 'Discussion Publique';
-  if (client.radius === 'country' && client.countryName) {
-    roomName = `Discussion Publique (${client.countryName})`;
-  } else if (client.radius === 'city' && client.cityName) {
-    roomName = `Discussion Publique (${client.cityName})`;
-  } else if (typeof client.radius === 'number') {
-    roomName = `Discussion Publique (${client.radius} km)`;
-  }
-  sendTo(client.ws, { type: 'room-update', payload: { roomId, roomName } });
-}
-
 
 // -------------------------------------------------------------
 // WebSocket Server Logic
@@ -524,7 +499,6 @@ wss.on('connection', (ws, req) => {
         console.log(`[WS] Client ${clientId} registered from IP ${ip} (${cityName || 'N/A'}, ${countryName || 'N/A'}). Total: ${clients.size}`);
         rebuildGeoTree();
         broadcastPeerUpdates();
-        sendRoomUpdate(clientData, clientId); // Notifier le client de sa room initiale
         return;
       }
 
@@ -554,7 +528,6 @@ wss.on('connection', (ws, req) => {
           clientData.discoveryMode = 'geo'; // reste 'geo' pour la logique du quadtree si le rayon redevient numérique
           rebuildGeoTree();
           broadcastPeerUpdates();
-          sendRoomUpdate(clientData, clientId); // Notifier le client du changement de room
           break;
         }
 
