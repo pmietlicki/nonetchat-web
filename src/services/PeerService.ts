@@ -921,6 +921,23 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
     }
   });
 
+  // 🔔 NEW: prévenir immédiatement les voisins "public" via public-ctrl (p-lite)
+  try {
+    const mine: any = await this.profileService.getProfile?.();
+    const lite = {
+      t: 'p-lite',
+      id: this.myId,
+      displayName: mine?.displayName ?? mine?.name ?? '',
+      age: (mine?.age ?? null),
+      gender: (mine?.gender ?? null),
+      avatarVersion: (mine?.avatarVersion ?? this.myPublicProfile.avatarVersion ?? 1),
+    };
+    const buf = JSON.stringify(lite);
+    this.publicCtrlChannels.forEach((ch) => {
+      if (ch.readyState === 'open') ch.send(buf);
+    });
+  } catch {}
+
   // Diffuser aux pairs (métadonnées légères, sans image)
   const msg: PeerMessage = { type: 'profile-update', payload: this.myPublicProfile };
   const json = JSON.stringify(msg);

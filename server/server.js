@@ -650,6 +650,7 @@ wss.on('connection', (ws, req) => {
               // si on n'avait que le pravatar, on le recalcule à la nouvelle version
               rec.profile.avatar = pravatarUrl(clientId, rec.profile.avatarVersion || 1, 192);
             }
+            broadcastPeerUpdates();
           }
           break;
         }
