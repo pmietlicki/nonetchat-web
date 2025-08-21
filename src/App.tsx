@@ -13,7 +13,7 @@ import PeerService, { PeerMessage } from './services/PeerService';
 import IndexedDBService from './services/IndexedDBService';
 import ProfileService from './services/ProfileService';
 import NotificationService from './services/NotificationService';
-import { MessageSquare, Users, X, User as UserIcon, Bell, Cog, Globe } from 'lucide-react'; // Ajout Globe
+import { MessageSquare, Users, X, User as UserIcon, Bell, Cog, Globe, ArrowLeft, Home } from 'lucide-react'; // Ajout Globe, ArrowLeft, Home
 import CryptoService from './services/CryptoService';
 import { useState, useRef, useEffect } from 'react';
 
@@ -992,7 +992,10 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
 
             <div className="flex bg-gray-100 rounded-lg p-1 app-tabbar">
               <button
-                onClick={() => setActiveTab('peers')}
+                onClick={() => {
+                  setActiveTab('peers');
+                  setSelectedPeerId(undefined);
+                }}
                 className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
                   activeTab === 'peers' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
                 }`}
@@ -1001,7 +1004,10 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                 Pairs ({peerList.length})
               </button>
               <button
-                onClick={() => setActiveTab('public')}
+                onClick={() => {
+                  setActiveTab('public');
+                  setSelectedPeerId(undefined);
+                }}
                 className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
                   activeTab === 'public' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
                 }`}
@@ -1010,7 +1016,10 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                 Public
               </button>
               <button
-                onClick={() => setActiveTab('conversations')}
+                onClick={() => {
+                  setActiveTab('conversations');
+                  setSelectedPeerId(undefined);
+                }}
                 className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors relative ${
                   activeTab === 'conversations' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
                 }`}
@@ -1058,9 +1067,8 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
             </button>
           </div>
 
-          {/* Action mobile : Profil + bouton Installer si dispo */}
-          <div className="sm:hidden flex items-center gap-2">
-            {installEvent && (
+          {/* Action mobile : Navigation + Profil + bouton Installer si dispo */}
+          {installEvent && (
               <button
                 onClick={async () => {
                   await installEvent.prompt();
@@ -1068,12 +1076,28 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                   setInstallEvent(null);
                 }}
                 className="px-2 py-1 bg-emerald-600 text-white text-xs rounded-md"
-                aria-label="Installer l’application"
-                title="Installer l’application"
+                aria-label="Installer l'application"
+                title="Installer l'application"
               >
                 Installer
               </button>
             )}
+          <div className="sm:hidden flex items-center gap-2">
+            {/* Bouton de navigation mobile - affiché quand on est dans une conversation ou l'onglet public */}
+            {(selectedPeerId || activeTab === 'public') && (
+              <button
+                onClick={() => {
+                  setSelectedPeerId(undefined);
+                  setActiveTab('peers');
+                }}
+                className="p-2 rounded-full hover:bg-gray-100"
+                aria-label="Retour à l'accueil"
+                title="Retour à l'accueil"
+              >
+                <Home size={20} />
+              </button>
+            )}
+            
             <button
               onClick={() => setIsProfileOpen(true)}
               className="p-2 rounded-full hover:bg-gray-100"
@@ -1162,7 +1186,9 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
       </div>
 
       {/* Bottom Navigation – mobile */}
-      <nav className="bottom-nav sm:hidden sticky bottom-0 z-40 bg-white border-t border-gray-200">
+      <nav className={`bottom-nav sm:hidden sticky bottom-0 z-40 bg-white border-t border-gray-200 ${
+        (selectedPeerId || activeTab === 'public') ? 'hidden' : ''
+      }`}>
         <div className="grid grid-cols-5">
           <button
             onClick={() => {
