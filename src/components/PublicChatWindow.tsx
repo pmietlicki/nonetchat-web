@@ -11,6 +11,7 @@ interface PublicChatWindowProps {
   onBack: () => void;
   peers: Map<string, User>;
   userProfile: Partial<User>;
+  myAvatarUrl?: string | null;
 }
 
 // Formatte "H/F/Autre · 34 ans · 1.2 km" (ou "350 m"/"LAN")
@@ -30,7 +31,7 @@ const formatMeta = (u?: Partial<User>): string | null => {
   return parts.length ? parts.join(' · ') : null;
 };
 
-const PublicChatWindow: React.FC<PublicChatWindowProps> = ({ roomId, roomName, myId, messages, onBack, peers, userProfile }) => {
+const PublicChatWindow: React.FC<PublicChatWindowProps> = ({ roomId, roomName, myId, messages, onBack, peers, userProfile, myAvatarUrl }) => {
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const peerService = PeerService.getInstance();
@@ -68,8 +69,9 @@ const PublicChatWindow: React.FC<PublicChatWindowProps> = ({ roomId, roomName, m
           const displayName = sender?.name || 'Utilisateur';
           const meta = formatMeta(sender);
           const key = msg.id ?? index;
-          const avatar =
-            sender?.avatar ||
+          const avatar = isMe && myAvatarUrl
+            ? myAvatarUrl
+            : sender?.avatar ||
             `https://i.pravatar.cc/80?u=${encodeURIComponent(msg.origin || 'public')}`;
 
           return (

@@ -1155,6 +1155,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
               onBack={() => setActiveTab('peers')} 
               peers={peers}
               userProfile={userProfile}
+              myAvatarUrl={myAvatarUrl}
             />
           ) : selectedPeerId ? (
             <div className="flex-1 flex items-center justify-center bg-gray-50">

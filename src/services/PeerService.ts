@@ -403,35 +403,59 @@ class PeerService extends EventEmitter {
   private updatePublicNeighbors() {
   const peers = Array.from(this.publicPeers).sort((a,b) => this.strHash(a) - this.strHash(b));
   const myIndex = peers.indexOf(this.myId);
-  if (myIndex === -1) { this.publicNeighbors = new Set(); return; }
+  
+  this.diagnosticService.log(`Updating public neighbors. Total peers: ${peers.length}, My index: ${myIndex}`);
+  this.diagnosticService.log(`All peers: ${peers.join(', ')}`);
+  
+  if (myIndex === -1) { 
+    this.diagnosticService.log('My ID not found in peers list, clearing neighbors');
+    this.publicNeighbors = new Set(); 
+    return; 
+  }
 
   const newNeighbors = new Set<string>();
   const n = peers.length;
   if (n <= this.K_NEIGHBORS) {
+    this.diagnosticService.log(`Small network (${n} <= ${this.K_NEIGHBORS}), connecting to all peers`);
     peers.forEach(p => { if (p !== this.myId) newNeighbors.add(p); });
   } else {
     const k = Math.floor(this.K_NEIGHBORS / 2);
+    this.diagnosticService.log(`Large network, selecting ${k} neighbors on each side`);
     for (let i=1; i<=k; i++) {
-      newNeighbors.add(peers[(myIndex + i) % n]);
-      newNeighbors.add(peers[(myIndex - i + n) % n]);
+      const rightNeighbor = peers[(myIndex + i) % n];
+      const leftNeighbor = peers[(myIndex - i + n) % n];
+      newNeighbors.add(rightNeighbor);
+      newNeighbors.add(leftNeighbor);
+      this.diagnosticService.log(`Added neighbors: ${rightNeighbor}, ${leftNeighbor}`);
     }
   }
 
   // Connecter les nouveaux voisins
+  let newConnectionsCount = 0;
   newNeighbors.forEach(pid => {
     if (pid !== this.myId && !this.peerConnections.has(pid)) {
+      this.diagnosticService.log(`Creating new connection to ${pid}`);
       this.createPeerConnection(pid, 'auto');
+      newConnectionsCount++;
     }
   });
+  this.diagnosticService.log(`Created ${newConnectionsCount} new connections`);
 
-  // Fermer les PC qui ne sont ni voisins publics, ni utilisés en DM (pas de canal “chat”)
+  // Fermer les PC qui ne sont ni voisins publics, ni utilisés en DM (pas de canal "chat")
+  let closedConnectionsCount = 0;
   for (const pid of this.peerConnections.keys()) {
-  const hasChat = this.dataChannels.has(pid); // DM actif
-  if (!newNeighbors.has(pid) && !hasChat) this.closePeerConnection(pid);
-}
+    const hasChat = this.dataChannels.has(pid); // DM actif
+    if (!newNeighbors.has(pid) && !hasChat) {
+      this.diagnosticService.log(`Closing connection to ${pid} (not neighbor, no chat)`);
+      this.closePeerConnection(pid);
+      closedConnectionsCount++;
+    }
+  }
+  this.diagnosticService.log(`Closed ${closedConnectionsCount} connections`);
 
   this.publicNeighbors = newNeighbors;
   this.diagnosticService.log(`Updated public neighbors: ${Array.from(newNeighbors).join(', ')}`);
+  this.diagnosticService.log(`Active connections: ${this.peerConnections.size}, Data channels: ${this.publicDataChannels.size}`);
 }
 
 
@@ -450,11 +474,11 @@ class PeerService extends EventEmitter {
     this.publicRoomId = roomId;
     this.publicPeers.clear();
     this.seenPublicMessages.clear();
-    // Optionnel: fermer les canaux “public” existants pour forcer un overlay frais
-    this.publicDataChannels.forEach((dc) => dc.close());
-    this.publicCtrlChannels.forEach((dc) => dc.close());
-    this.publicDataChannels.clear();
-    this.publicCtrlChannels.clear();
+    // Ne pas fermer les canaux existants - ils seront réutilisés si les pairs restent les mêmes
+    // this.publicDataChannels.forEach((dc) => dc.close());
+    // this.publicCtrlChannels.forEach((dc) => dc.close());
+    // this.publicDataChannels.clear();
+    // this.publicCtrlChannels.clear();
   }
 
   const now = Date.now();
@@ -483,6 +507,11 @@ this.publicPeers = nextSet;
   }
 
   public broadcastToPublicRoom(content: string) {
+    if (!this.publicRoomId) {
+      this.diagnosticService.log('No public room to broadcast to');
+      return;
+    }
+
     const message = {
       type: 'public',
       id: uuidv4(),
@@ -493,15 +522,42 @@ this.publicPeers = nextSet;
       text: content,
     };
 
+    this.diagnosticService.log(`Creating public message:`, message);
     this.seenPublicMessages.add(message.id);
     this.emit('public-message', message);
 
+    // Debug: Log connection states
+    this.diagnosticService.log(`Broadcasting to public room. Neighbors: ${this.publicNeighbors.size}, DataChannels: ${this.publicDataChannels.size}`);
+    this.diagnosticService.log(`Public neighbors: ${Array.from(this.publicNeighbors).join(', ')}`);
+    this.diagnosticService.log(`Public data channels: ${Array.from(this.publicDataChannels.keys()).join(', ')}`);
+    
+    let sentCount = 0;
+    const messageStr = JSON.stringify(message);
+    this.diagnosticService.log(`Message JSON length: ${messageStr.length} bytes`);
+    
     this.publicNeighbors.forEach(peerId => {
       const dc = this.publicDataChannels.get(peerId);
+      this.diagnosticService.log(`Channel to ${peerId}: state=${dc?.readyState || 'none'}, exists=${!!dc}`);
       if (dc && dc.readyState === 'open') {
-        dc.send(JSON.stringify(message));
+        try {
+          dc.send(messageStr);
+          sentCount++;
+          this.diagnosticService.log(`Successfully sent message to ${peerId}`);
+        } catch (error) {
+          this.diagnosticService.log(`Failed to send message to ${peerId}:`, error);
+        }
+      } else {
+        this.diagnosticService.log(`Cannot send to ${peerId}: channel ${dc ? 'not open (' + dc.readyState + ')' : 'does not exist'}`);
       }
     });
+    
+    this.diagnosticService.log(`Message sent to ${sentCount}/${this.publicNeighbors.size} neighbors`);
+    
+    if (sentCount === 0) {
+      this.diagnosticService.log('WARNING: Message was not sent to any neighbor!');
+      this.diagnosticService.log('Peer connections:', Array.from(this.peerConnections.keys()));
+      this.diagnosticService.log('Public data channels:', Array.from(this.publicDataChannels.keys()));
+    }
   }
 
   private async createPeerConnection(peerId: string, role: 'auto' | 'initiator' | 'responder' = 'auto') {
@@ -572,11 +628,24 @@ this.publicPeers = nextSet;
 
   // Toujours écouter l'arrivée de canaux, quel que soit le rôle
   pc.ondatachannel = (event) => {
+    this.diagnosticService.log(`Received data channel '${event.channel.label}' from ${peerId}`);
     switch (event.channel.label) {
-      case 'public':      this.setupPublicDataChannel(peerId, event.channel); break;
-      case 'public-ctrl': this.setupPublicCtrlDataChannel(peerId, event.channel); break;
-      case 'chat':        this.setupDataChannel(peerId, event.channel); break;
-      default:            this.setupDataChannel(peerId, event.channel); break;
+      case 'public':      
+        this.diagnosticService.log(`Setting up public data channel with ${peerId}`);
+        this.setupPublicDataChannel(peerId, event.channel); 
+        break;
+      case 'public-ctrl': 
+        this.diagnosticService.log(`Setting up public ctrl channel with ${peerId}`);
+        this.setupPublicCtrlDataChannel(peerId, event.channel); 
+        break;
+      case 'chat':        
+        this.diagnosticService.log(`Setting up chat channel with ${peerId}`);
+        this.setupDataChannel(peerId, event.channel); 
+        break;
+      default:            
+        this.diagnosticService.log(`Setting up default channel '${event.channel.label}' with ${peerId}`);
+        this.setupDataChannel(peerId, event.channel); 
+        break;
     }
   };
 
@@ -634,25 +703,52 @@ private trimSeenPublic(limit = 2048) {
 
 private setupPublicDataChannel(peerId: string, channel: RTCDataChannel) {
   this.publicDataChannels.set(peerId, channel);
+  this.diagnosticService.log(`Setting up public data channel with ${peerId}`);
+  
+  channel.onopen = () => {
+    this.diagnosticService.log(`Public data channel opened with ${peerId}`);
+  };
 
   channel.onmessage = (event) => {
-    const msg = JSON.parse(event.data);
-    if (msg.roomId !== this.publicRoomId) return;
-    if (this.blockList.has(msg.origin)) return;           // ✅ respecte blockList
-    if (this.seenPublicMessages.has(msg.id)) return;
+    this.diagnosticService.log(`Received public message from ${peerId}: ${event.data.substring(0, 100)}...`);
+    try {
+      const msg = JSON.parse(event.data);
+      this.diagnosticService.log(`Parsed message: origin=${msg.origin}, roomId=${msg.roomId}, ttl=${msg.ttl}`);
+      
+      if (msg.roomId !== this.publicRoomId) {
+        this.diagnosticService.log(`Message room mismatch: ${msg.roomId} vs ${this.publicRoomId}`);
+        return;
+      }
+      if (this.blockList.has(msg.origin)) {
+        this.diagnosticService.log(`Message from blocked origin: ${msg.origin}`);
+        return;
+      }
+      if (this.seenPublicMessages.has(msg.id)) {
+        this.diagnosticService.log(`Duplicate message: ${msg.id}`);
+        return;
+      }
 
-    this.seenPublicMessages.add(msg.id);
-    this.trimSeenPublic();                                 // ✅ borné
-    this.emit('public-message', msg);
+      this.seenPublicMessages.add(msg.id);
+      this.trimSeenPublic();                                 // ✅ borné
+      this.diagnosticService.log(`Emitting public message: ${msg.text}`);
+      this.emit('public-message', msg);
 
-    if (msg.ttl > 0) {
-      const fwd = { ...msg, ttl: msg.ttl - 1 };
-      this.publicNeighbors.forEach(nid => {
-        if (nid !== peerId && nid !== msg.origin) {
-          const dc = this.publicDataChannels.get(nid);
-          if (dc?.readyState === 'open') dc.send(JSON.stringify(fwd));
-        }
-      });
+      if (msg.ttl > 0) {
+        const fwd = { ...msg, ttl: msg.ttl - 1 };
+        let retransmitCount = 0;
+        this.publicNeighbors.forEach(nid => {
+          if (nid !== peerId && nid !== msg.origin) {
+            const dc = this.publicDataChannels.get(nid);
+            if (dc?.readyState === 'open') {
+              dc.send(JSON.stringify(fwd));
+              retransmitCount++;
+            }
+          }
+        });
+        this.diagnosticService.log(`Retransmitted to ${retransmitCount} neighbors`);
+      }
+    } catch (e) {
+      this.diagnosticService.log('Error parsing public message', e);
     }
   };
 
@@ -660,6 +756,11 @@ private setupPublicDataChannel(peerId: string, channel: RTCDataChannel) {
     if (this.publicDataChannels.get(peerId) === channel) {
       this.publicDataChannels.delete(peerId);
     }
+    this.diagnosticService.log(`Public data channel closed with ${peerId}`);
+  };
+  
+  channel.onerror = (error) => {
+    this.diagnosticService.log(`Public data channel error with ${peerId}:`, error);
   };
 }
 
