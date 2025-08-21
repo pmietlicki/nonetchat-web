@@ -284,6 +284,8 @@ useEffect(() => {
     setUnreadConversationsCount(notificationService.getUnreadConversationsCount());
 
     return () => {
+      peerService.removeListener('room-update', onRoomUpdate);
+      peerService.removeListener('public-message', onPublicMessage);
       peerService.removeListener('open', onOpen);
       peerService.removeListener('peer-joined', onPeerJoined);
       peerService.removeListener('peer-left', onPeerLeft);

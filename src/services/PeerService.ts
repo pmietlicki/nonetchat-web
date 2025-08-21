@@ -595,11 +595,11 @@ this.publicPeers = nextSet;
 
 
   public async ensureChatChannel(peerId: string) {
-    const pc = this.peerConnections.get(peerId);
-    if (!pc) {
-      this.diagnosticService.log(`No peer connection for ${peerId}, cannot create chat channel.`);
-      return;
-    }
+  let pc = this.peerConnections.get(peerId);
+   if (!pc) {
+     await this.createPeerConnection(peerId, 'initiator'); // crée la PC
+     pc = this.peerConnections.get(peerId)!;
+   }
 
     // Ne rien faire si le canal existe déjà
     if (this.dataChannels.has(peerId)) {

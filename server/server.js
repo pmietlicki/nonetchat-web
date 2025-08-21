@@ -568,36 +568,6 @@ wss.on('connection', (ws, req) => {
           clientData.isAlive = true;
           break;
 
-        case 'public-message': {
-          const senderClient = clients.get(clientId);
-          if (!senderClient || !payload.content) break;
-
-          const senderRoomId = getPublicRoomId(senderClient);
-
-          clients.forEach((otherClient, otherClientId) => {
-            if (otherClientId === clientId) return; // Ne pas s'envoyer le message à soi-même
-
-            const otherRoomId = getPublicRoomId(otherClient);
-
-            // Si les rooms sont basées sur un ID stable (ville/pays), on compare les ID
-            if (senderRoomId && senderRoomId.startsWith('group:country:') || senderRoomId.startsWith('group:city:')) {
-              if (senderRoomId === otherRoomId) {
-                sendTo(otherClient.ws, { type: 'public-message', from: clientId, payload: { content: payload.content } });
-              }
-            } else {
-              // Sinon (LAN, rayon km), on vérifie la proximité directe
-              const distance = getDistance(senderClient.location, otherClient.location);
-              const senderRadius = typeof senderClient.radius === 'number' ? senderClient.radius : 0;
-              const otherRadius = typeof otherClient.radius === 'number' ? otherClient.radius : 0;
-
-              if (distance <= senderRadius && distance <= otherRadius) {
-                 sendTo(otherClient.ws, { type: 'public-message', from: clientId, payload: { content: payload.content } });
-              }
-            }
-          });
-          break;
-        }
-
         // ---- Messages applicatifs (optionnel, utile si store-and-forward) ----
         case 'chat-message': {
           const { to, from, text, convId, senderName, senderAvatar } = payload || {};

@@ -10,6 +10,7 @@ const mockPeerService = {
   sendFile: vi.fn(),
   on: vi.fn(),
   removeListener: vi.fn(),
+  ensureChatChannel: vi.fn(),
   // Optionnel: si plus tard tu veux tester les ACK de lecture, tu peux mocker:
   // sendMessageReadAck: vi.fn(),
 };
