@@ -665,6 +665,38 @@ private setupPublicDataChannel(peerId: string, channel: RTCDataChannel) {
 
 private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
   this.publicCtrlChannels.set(peerId, channel);
+  
+  channel.onopen = async () => {
+    try {
+      const mine: any = await this.profileService.getProfile?.();
+      const lite = {
+        t: 'p-lite',
+        id: this.myId,
+        displayName: mine?.displayName ?? mine?.name ?? '',
+        age: (mine?.age ?? null),
+        gender: (mine?.gender ?? null),
+        avatarVersion: (mine?.avatarVersion ?? 1),
+      };
+      channel.send(JSON.stringify(lite));
+    } catch {}
+  };
+
+  channel.onmessage = (ev) => {
+    try {
+      const msg = JSON.parse(ev.data);
+      if (msg?.t === 'p-lite') {
+        const payload = {
+          displayName: msg.displayName || '',
+          age: msg.age,
+          gender: msg.gender,
+          avatarVersion: msg.avatarVersion,
+        };
+        // Réutilise la voie existante côté App.tsx (handler 'data' pour type 'profile')
+        this.emit('data', peerId, { type: 'profile', payload });
+      }
+    } catch {}
+  };
+
   channel.onclose = () => {
     if (this.publicCtrlChannels.get(peerId) === channel) {
       this.publicCtrlChannels.delete(peerId);

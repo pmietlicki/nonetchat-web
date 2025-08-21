@@ -741,10 +741,13 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
 
 
 
-  // Ne garder que les profils renseignés
-  const peerList = Array.from(peers.values()).filter(
-    p => p.name && p.name.trim() !== '' && (p.age !== undefined || p.gender !== undefined)
-  );
+  // Afficher tous les pairs en ligne, même si leur profil n'est pas encore arrivé
+  const peerList = Array.from(peers.values())
+    .filter(p => p.status === 'online')
+    .map(p => ({
+      ...p,
+      name: (p.name && p.name.trim()) ? p.name : 'Utilisateur',
+    }));
   const selectedPeer = peers.get(selectedPeerId || '');
 
   // --- Helpers UI responsives ---
