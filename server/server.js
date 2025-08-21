@@ -353,7 +353,15 @@ function broadcastPeerUpdates() {
       if (clientId === otherClientId) return;
       if (client.ip && client.ip === otherClient.ip) {
         if (!nearbyPeerIds.has(otherClientId)) {
-          nearbyPeers.add({ peerId: otherClientId, distanceLabel: 'LAN' });
+          nearbyPeers.add({ 
+            peerId: otherClientId, 
+            distanceLabel: 'LAN',
+            profile: otherClient?.profile ? {
+              name: otherClient.profile.name,
+              avatar: otherClient.profile.avatar,
+              avatarVersion: otherClient.profile.avatarVersion
+            } : undefined
+          });
           nearbyPeerIds.add(otherClientId);
         }
       }
@@ -364,7 +372,15 @@ function broadcastPeerUpdates() {
       clients.forEach((otherClient, otherClientId) => {
         if (clientId === otherClientId || nearbyPeerIds.has(otherClientId)) return;
         if (client.countryCode === otherClient.countryCode) {
-          nearbyPeers.add({ peerId: otherClientId, distanceLabel: 'Pays' });
+          nearbyPeers.add({ 
+            peerId: otherClientId, 
+            distanceLabel: 'Pays',
+            profile: otherClient?.profile ? {
+              name: otherClient.profile.name,
+              avatar: otherClient.profile.avatar,
+              avatarVersion: otherClient.profile.avatarVersion
+            } : undefined
+          });
           nearbyPeerIds.add(otherClientId);
         }
       });
@@ -374,7 +390,15 @@ function broadcastPeerUpdates() {
       clients.forEach((otherClient, otherClientId) => {
         if (clientId === otherClientId || nearbyPeerIds.has(otherClientId)) return;
         if (client.countryCode === otherClient.countryCode && client.normalizedCityName === otherClient.normalizedCityName) {
-          nearbyPeers.add({ peerId: otherClientId, distanceLabel: 'Ville' });
+          nearbyPeers.add({ 
+            peerId: otherClientId, 
+            distanceLabel: 'Ville',
+            profile: otherClient?.profile ? {
+              name: otherClient.profile.name,
+              avatar: otherClient.profile.avatar,
+              avatarVersion: otherClient.profile.avatarVersion
+            } : undefined
+          });
           nearbyPeerIds.add(otherClientId);
         }
       });
@@ -412,7 +436,16 @@ function broadcastPeerUpdates() {
 
           if (distance <= threshold) {
             const distanceLabel = distance < 1 ? `${(distance * 1000).toFixed(0)} m` : `${distance.toFixed(2)} km`;
-            nearbyPeers.add({ peerId: candidate.clientId, distanceKm: distance, distanceLabel });
+             nearbyPeers.add({ 
+  peerId: candidate.clientId, 
+  distanceKm: distance, 
+  distanceLabel,
+  profile: otherClient?.profile ? {
+    name: otherClient.profile.name,
+    avatar: otherClient.profile.avatar,
+    avatarVersion: otherClient.profile.avatarVersion
+  } : undefined
+});
             nearbyPeerIds.add(candidate.clientId);
           }
         }

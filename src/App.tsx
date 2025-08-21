@@ -639,18 +639,28 @@ const avatar = payload.avatar
 
   // Distance / proximité -> maj des peers avec distanceKm + distanceLabel
 useEffect(() => {
-  const onNearby = (entries: Array<{ peerId: string; distanceKm?: number; distanceLabel?: string }>) => {
+  const onNearby = (entries: Array<{ peerId: string; distanceKm?: number; distanceLabel?: string; profile?: any }>) => {
     setPeers(prev => {
       const m = new Map(prev);
-      for (const { peerId, distanceKm, distanceLabel } of entries) {
+      const seen = new Set<string>();
+      for (const { peerId, distanceKm, distanceLabel, profile } of entries) {
         const existing = m.get(peerId) || createBaseUser(peerId);
         m.set(peerId, {
           ...existing,
           status: 'online',
           distanceKm: (typeof distanceKm === 'number') ? distanceKm : existing.distanceKm,
           distanceLabel: distanceLabel || existing.distanceLabel,
+          name: profile?.name ?? existing.name,
+          avatar: profile?.avatar ?? existing.avatar,
         });
+        seen.add(peerId);
       }
+         // Marquer offline ceux qui n'ont pas été vus sur cette frame
+   for (const [id, u] of m) {
+     if (u.status === 'online' && !seen.has(id)) {
+       m.set(id, { ...u, status: 'offline' });
+     }
+   }
       return m;
     });
   };
