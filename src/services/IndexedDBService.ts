@@ -72,6 +72,16 @@ export type UserProfileRecord = {
 // Paires de clés JWK pour CryptoService
 type CryptoKeyPairRecord = { publicKey: JsonWebKey; privateKey: JsonWebKey };
 
+// Messages publics éphémères
+export type PublicMessage = {
+  id?: number;           // PK auto
+  roomId: string;        // group:country:..., group:city:..., group:km:...
+  msgId: string;         // uuid du message public
+  origin: string;        // peerId émetteur
+  text: string;
+  ts: number;            // epoch ms
+};
+
 class IndexedDBService {
   private static instance: IndexedDBService;
   private db: IDBDatabase | null = null;
@@ -81,7 +91,8 @@ class IndexedDBService {
   // v6 : nouvelles stores 'user' et 'kv'
   // v7 : avatars: nouveaux index (hash), width/height/type, compat pipeline par hash
   // v8 : ajout du store fileBlobs pour le stockage des fichiers reçus
-  private readonly version = 8;
+  // v9 : ajout du store public_messages pour le cache éphémère des messages publics
+  private readonly version = 9;
 
   public static getInstance(): IndexedDBService {
     if (!IndexedDBService.instance) {
@@ -178,6 +189,20 @@ class IndexedDBService {
         // kv (clé/valeur divers)
         if (!db.objectStoreNames.contains('kv')) {
           db.createObjectStore('kv', { keyPath: 'key' });
+        }
+
+        // public_messages (cache éphémère des messages publics)
+        if (!db.objectStoreNames.contains('public_messages')) {
+          const publicStore = db.createObjectStore('public_messages', {
+            keyPath: 'id',
+            autoIncrement: true,
+          });
+          // requêtes rapides: par room et ordre récent
+          publicStore.createIndex('room_ts', ['roomId', 'ts'], { unique: false });
+          // purge globale par ancienneté
+          publicStore.createIndex('ts', 'ts', { unique: false });
+          // dédup éventuelle (optionnelle)
+          publicStore.createIndex('room_msgId', ['roomId', 'msgId'], { unique: true });
         }
 
         // Migration legacy < 5 : ajouter status aux messages
@@ -810,6 +835,162 @@ async deleteMessage(messageId: string): Promise<void> {
         }
       };
       getReq.onerror = () => reject(getReq.error);
+    });
+  }
+
+  // -------------------- MESSAGES PUBLICS ÉPHÉMÈRES --------------------
+
+  async appendPublicMessageCapped(
+    rec: PublicMessage,
+    perRoomCap = 200,
+    totalCap = 3000,
+    ttlMs?: number,                    // optionnel: purge par âge (ex: 6h)
+  ): Promise<void> {
+    const db = this.ensureDb();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(['public_messages'], 'readwrite');
+      const store = tx.objectStore('public_messages');
+
+      // 1) Insert (avec dédup douce)
+      const roomMsgIdx = store.index('room_msgId');
+      const dedupReq = roomMsgIdx.get([rec.roomId, rec.msgId]);
+      dedupReq.onsuccess = () => {
+        if (dedupReq.result) {
+          // déjà présent → rien à faire
+          return proceed();
+        }
+        store.add(rec).onsuccess = () => proceed();
+      };
+      dedupReq.onerror = () => reject(dedupReq.error);
+
+      function proceed() {
+        // 2) Purge par TTL (optionnel)
+        if (ttlMs) {
+          const limitTs = Date.now() - ttlMs;
+          const tsIdx = store.index('ts');
+          const cursorReq = tsIdx.openCursor();
+          cursorReq.onsuccess = () => {
+            const c = cursorReq.result;
+            if (!c) return afterTTL();
+            if ((c.value as PublicMessage).ts < limitTs) {
+              c.delete(); c.continue();
+            } else {
+              afterTTL(); // les autres seront plus récents
+            }
+          };
+          cursorReq.onerror = () => afterTTL();
+        } else {
+          afterTTL();
+        }
+      }
+
+      function afterTTL() {
+        // 3) Purge per-room (garde les 'perRoomCap' plus récents)
+        const idx = store.index('room_ts');
+        const keyRange = IDBKeyRange.bound([rec.roomId, -Infinity], [rec.roomId, Infinity]);
+        const curReq = idx.openCursor(keyRange, 'prev'); // du plus récent → plus ancien
+
+        let count = 0;
+        const toDelete: IDBValidKey[] = [];
+        curReq.onsuccess = () => {
+          const c = curReq.result;
+          if (!c) return afterPerRoom();
+          count++;
+          if (count > perRoomCap) toDelete.push(c.primaryKey);
+          c.continue();
+        };
+        curReq.onerror = () => afterPerRoom();
+
+        function afterPerRoom() {
+          if (toDelete.length === 0) return purgeGlobal();
+          let i = 0;
+          const delNext = () => {
+            const k = toDelete[i++];
+            if (k == null) return purgeGlobal();
+            store.delete(k).onsuccess = delNext;
+          };
+          delNext();
+        }
+
+        // 4) Purge globale (garde totalCap plus récents toutes rooms)
+        function purgeGlobal() {
+          const idx = store.index('ts');
+          // Compter vite fait: on parcourt à l'envers et on supprime ce qui dépasse
+          const cur = idx.openCursor(null, 'prev');
+          let total = 0;
+          const dels: IDBValidKey[] = [];
+          cur.onsuccess = () => {
+            const c = cur.result;
+            if (!c) return flushGlobal();
+            total++;
+            if (total > totalCap) dels.push(c.primaryKey);
+            c.continue();
+          };
+          function flushGlobal() {
+            if (dels.length === 0) return;
+            let j = 0;
+            const delNext = () => {
+              const k = dels[j++];
+              if (k == null) return;
+              store.delete(k).onsuccess = delNext;
+            };
+            delNext();
+          }
+        }
+      }
+
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+      tx.onabort  = () => reject(tx.error);
+    });
+  }
+
+  async getRecentPublicMessages(roomId: string, limit = 200): Promise<PublicMessage[]> {
+    const db = this.ensureDb();
+    return await new Promise<PublicMessage[]>((resolve, reject) => {
+      const tx = db.transaction(['public_messages'], 'readonly');
+      const store = tx.objectStore('public_messages');
+      const idx = store.index('room_ts');
+      const range = IDBKeyRange.bound([roomId, -Infinity], [roomId, Infinity]);
+
+      const out: PublicMessage[] = [];
+      const cur = idx.openCursor(range, 'prev');
+      cur.onsuccess = () => {
+        const c = cur.result;
+        if (!c || out.length >= limit) return;
+        out.push(c.value as PublicMessage);
+        c.continue();
+      };
+      tx.oncomplete = () => resolve(out.reverse()); // ordre chronologique croissant pour l'affichage
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  async purgePublicMessagesForRoom(roomId: string): Promise<void> {
+    const db = this.ensureDb();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(['public_messages'], 'readwrite');
+      const store = tx.objectStore('public_messages');
+      const idx = store.index('room_ts');
+      const range = IDBKeyRange.bound([roomId, -Infinity], [roomId, Infinity]);
+      const cur = idx.openCursor(range);
+      cur.onsuccess = () => {
+        const c = cur.result;
+        if (!c) return;
+        c.delete(); c.continue();
+      };
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  async purgeAllPublicMessages(): Promise<void> {
+    const db = this.ensureDb();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(['public_messages'], 'readwrite');
+      tx.objectStore('public_messages').clear();
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
     });
   }
 }

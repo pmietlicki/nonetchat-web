@@ -13,7 +13,7 @@ import PeerService, { PeerMessage } from './services/PeerService';
 import IndexedDBService from './services/IndexedDBService';
 import ProfileService from './services/ProfileService';
 import NotificationService from './services/NotificationService';
-import { MessageSquare, Users, X, User as UserIcon, Bell, Cog, Globe, ArrowLeft, Home } from 'lucide-react'; // Ajout Globe, ArrowLeft, Home
+import { MessageSquare, Users, X, User as UserIcon, Bell, Cog, Globe, Home } from 'lucide-react'; // Ajout Globe, ArrowLeft, Home
 import CryptoService from './services/CryptoService';
 import { useState, useRef, useEffect } from 'react';
 
@@ -21,6 +21,12 @@ import { useState, useRef, useEffect } from 'react';
 const DEFAULT_SIGNALING_URL = 'wss://chat.nonetchat.com';
 // Clé publique VAPID (base64url)
 const VAPID_PUBLIC_KEY = 'BMc-eDAKQrPghLx7eLZJvoAK6ZtfS5EvLWun9MbOvIw8_nuBpGlkDTm8NnvR_dfjFf2QuhZEcUCBzCtQaYh6NPU';
+
+// Configuration du cache éphémère des messages publics
+const PUBLIC_PER_ROOM_CAP = 200;
+const PUBLIC_TOTAL_CAP = 3000;
+// TTL 6h (optionnel). Mets undefined pour désactiver le TTL.
+const PUBLIC_TTL_MS = 6 * 60 * 60 * 1000;
 
 const GeolocationError = ({ message, onDismiss, onRetry }:{ message:string; onDismiss:()=>void; onRetry:()=>void }) => (
   <div className="fixed top-16 left-1/2 -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 max-w-[90vw]">
@@ -253,16 +259,50 @@ useEffect(() => {
     peerService.on('peer-left', onPeerLeft);
     peerService.on('geolocation-error', onGeolocationError);
 
-    const onRoomUpdate = (payload: { roomId: string; roomName?: string; roomLabel?: string }) => {
+    const onRoomUpdate = async (payload: { roomId: string; roomName?: string; roomLabel?: string }) => {
       if (payload.roomId !== publicRoomId) {
         setPublicRoomId(payload.roomId);
         setPublicRoomName(payload.roomLabel || payload.roomName || 'Discussion Publique');
-        setPublicMessages([]); // Vider les messages en changeant de room
+        
+        // Précharger depuis IndexedDB (éphémère)
+        try {
+          const hist = await dbService.getRecentPublicMessages(payload.roomId, PUBLIC_PER_ROOM_CAP);
+          setPublicMessages(hist.map(h => ({
+            type: 'public',
+            id: h.msgId,
+            roomId: h.roomId,
+            origin: h.origin,
+            text: h.text,
+            ts: h.ts,
+            ttl: 0
+          })));
+        } catch (error) {
+          console.error('Erreur lors du chargement des messages publics depuis le cache:', error);
+          setPublicMessages([]);
+        }
       }
     };
 
-    const onPublicMessage = (message: any) => {
-      setPublicMessages(prev => [...prev.slice(-200), message]); // Garder les 200 derniers messages
+    const onPublicMessage = async (message: any) => {
+      setPublicMessages(prev => [...prev, message]);
+      
+      // Ajouter au cache éphémère (capped)
+      try {
+        await dbService.appendPublicMessageCapped(
+          {
+            roomId: message.roomId,
+            msgId: message.id,
+            origin: message.origin,
+            text: message.text,
+            ts: message.ts,
+          },
+          PUBLIC_PER_ROOM_CAP,
+          PUBLIC_TOTAL_CAP,
+          PUBLIC_TTL_MS
+        );
+      } catch (error) {
+        console.error('Erreur lors de la sauvegarde du message public dans le cache:', error);
+      }
     };
 
     peerService.on('room-update', onRoomUpdate);
