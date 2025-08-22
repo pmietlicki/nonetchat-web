@@ -1,0 +1,343 @@
+{
+  "app": {
+    "initializing": "Hizmetler başlatılıyor...",
+    "tagline": "Doğrudan mesajlaşma",
+    "status": {
+      "connected": "Bağlandı",
+      "disconnected": "Bağlantı kesildi"
+    },
+    "install": "Yükle",
+    "install_aria": "Uygulamayı yükle"
+  },
+  "geolocationError": {
+    "activate": "Konumu etkinleştir",
+    "close_alert": "Uyarıyı kapat",
+    "unavailable_location": "Ülkeniz/şehriniz belirlenemedi. Genişletilmiş arama devre dışı bırakıldı.",
+    "gps_failed": "GPS başarısız oldu. IP üzerinden yaklaşık konum kullanılıyor.",
+    "permission_denied": "Coğrafi konuma erişim reddedildi. Uygulama yakındaki eşleri bulamıyor.",
+    "position_unavailable": "Mevcut konumunuz alınamadı. Ağ bağlantısını veya konum ayarlarını kontrol edin.",
+    "timeout": "Konum arama zaman aşımına uğradı. Lütfen tekrar deneyin.",
+    "unknown": "Konumunuz alınırken bilinmeyen bir hata oluştu."
+  },
+  "user": {
+    "default_name": "Kullanıcı"
+  },
+  "file": {
+    "receiving": "(Alınıyor...)"
+  },
+  "tabs": {
+    "peers": "Eşler",
+    "public_chat": "Genel",
+    "conversations": "Mesajlar"
+  },
+  "publicChat": {
+    "title": "Genel Sohbet",
+    "description": "Buradaki mesajlar geçicidir ve mevcut bölgenizdeki herkes tarafından görülebilir."
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "close_aria": "Ayarları kapat",
+    "profile_shortcut_title": "Profil tamamlanmadı",
+    "profile_shortcut_description": "Adınızı / avatarınızı düzenleyin",
+    "edit": "Düzenle",
+    "signaling_url_label": "Sinyal sunucusu URL'si",
+    "signaling_url_placeholder": "wss://your-server.com",
+    "discovery_mode_label": "Arama modu",
+    "radius_km": "Yarıçap (km)",
+    "city": "Şehir",
+    "country": "Tüm ülke",
+    "unavailable": "(kullanılamıyor)",
+    "cancel": "İptal",
+    "save": "Kaydet"
+  },
+  "header": {
+    "logo_alt": "NoNetChat Logosu",
+    "notifications_aria": "Bildirim ayarları",
+    "settings_aria": "Ayarlar",
+    "profile_aria": "Profilinizi düzenleyin",
+    "home_aria": "Ana sayfaya dön"
+  },
+  "main": {
+    "connecting_to_peer": "Bağlanılıyor...",
+    "establishing_connection": "Seçilen eşle bağlantı kuruluyor.",
+    "connecting_to_server": "Sinyal sunucusuna bağlanılıyor...",
+    "select_peer_prompt": "Doğrudan ve güvenli bir görüşme başlatmak için bir eş seçin."
+  },
+  "bottomNav": {
+    "peers": "Eşler",
+    "public_chat": "Genel Sohbet",
+    "public_chat_short": "Genel",
+    "messages": "Mesajlar",
+    "settings": "Ayarlar",
+    "notifications": "Bildirimler",
+    "notifications_short": "Bildirimler"
+  },
+  "chat": {
+    "voice_note": "Sesli not",
+    "sending_in_progress": "(Gönderiliyor...)",
+    "sending_progress": "(Gönderiliyor: {{progress}}%)",
+    "sending_error": "(Gönderme hatası)",
+    "receiving_in_progress": "(Alınıyor...)",
+    "file_size_error": "Yanlış dosya boyutu: {{totalSize}} bayt alındı, {{expectedSize}} bayt bekleniyordu (fark: {{sizeDifference}})",
+    "decryption_empty_error": "Şifresi çözülmüş dosya boş",
+    "decryption_error": "Hata: {{fileName}} şifresi çözülemedi",
+    "delete_message_confirm": "Bu mesajı silmek istediğinizden emin misiniz?",
+    "delete_conversation_confirm": "Bu sohbetin tamamını silmek istediğinizden emin misiniz?",
+    "message_info_title": "Bilgi",
+    "message_info_content": "ID: {{id}}\nTür: {{type}}\nGönderildi: {{timestamp}}\nDurum: {{status}}",
+    "message_status_sent": "Gönderildi",
+    "send_aria_label_offline": "Kullanıcı çevrimdışı - gönderme devre dışı",
+    "send_aria_label_file": "Dosya gönder",
+    "send_aria_label_message": "Mesaj gönder",
+    "download_link": {
+      "not_found": "Dosya yerel veritabanında bulunamadı.",
+      "error": "İndirme sırasında bir hata oluştu.",
+      "loading": "Yükleniyor...",
+      "download": "📥 İndir",
+      "title": "Dosyayı indir"
+    },
+    "header": {
+      "back": "Geri",
+      "online": "Çevrimiçi",
+      "offline": "Çevrimdışı",
+      "delete_conversation_title": "Sohbeti sil",
+      "cancel_transfers_title": "Devam eden aktarımları iptal et"
+    },
+    "cancel_transfers": {
+      "title": "Devam eden aktarımlar",
+      "receiving_progress": "Alınıyor: {{progress}}%",
+      "sending_progress": "Gönderiliyor: {{progress}}%",
+      "cancel": "İptal",
+      "warning_title": "Uyarı:",
+      "warning_body": "İptal, aktarımı kalıcı olarak keser.",
+      "cancelled_by_user": "(Kullanıcı tarafından iptal edildi)"
+    },
+    "message_menu": {
+      "title": "Mesaj seçenekleri",
+      "info": "Bilgi",
+      "delete": "Sil"
+    },
+    "reactions": {
+      "title": "{{emoji}} ile tepki ver"
+    },
+    "file_message": {
+      "size": "Boyut:",
+      "unknown_size": "Bilinmiyor",
+      "status_sending": "Gönderiliyor...",
+      "status_sent": "Gönderildi",
+      "status_receiving": "Alınıyor...",
+      "status_pending": "Beklemede",
+      "sending": "Gönderiliyor",
+      "receiving": "Alınıyor"
+    },
+    "new_messages_button": {
+      "aria_label": "Yeni mesajlara git",
+      "text_one": "{{count}} yeni mesaj",
+      "text_other": "{{count}} yeni mesaj"
+    },
+    "input": {
+      "remove_file": "Dosyayı kaldır",
+      "file_disabled_offline": "Eş çevrimdışı - dosya gönderme kullanılamıyor",
+      "attach_file": "Dosya ekle",
+      "file_too_large": "Dosya çok büyük. İzin verilen maksimum boyut: {{maxSize}} MB\n\nNot: Dosyalar, aktarımı optimize etmek için gönderilmeden önce otomatik olarak sıkıştırılır.",
+      "selected_file": "Seçilen dosya: {{fileName}}",
+      "placeholder": "Mesajınızı yazın...",
+      "placeholder_offline": "Kullanıcı çevrimdışı - mesaj gönderme devre dışı",
+      "aria_label": "Mesaj girişi",
+      "add_emoji": "Emoji ekle",
+      "record_voice": "Sesli mesaj kaydet",
+      "peer_offline_warning": "{{peerName}} çevrimdışı. Mesaj gönderme devre dışı."
+    }
+  },
+  "connectionStatus": {
+    "reconnecting": "Yeniden bağlanılıyor...",
+    "disconnected": "Bağlantı kesildi",
+    "reconnect": "Yeniden bağlan"
+  },
+  "conversationList": {
+    "title": "Sohbetler ({{count}})",
+    "search_placeholder": "Ada veya mesaja göre ara...",
+    "clear_search_aria": "Aramayı temizle",
+    "clear_search_title": "Temizle",
+    "no_conversations_title": "Sohbet yok",
+    "no_conversations_prompt": "Başlamak için bir eş seçin",
+    "loading": "Yükleniyor...",
+    "delete_confirm": "Bu sohbeti silmek istediğinizden emin misiniz?",
+    "last_message_none": "Mesaj yok",
+    "last_message_file": "📎 Paylaşılan dosya",
+    "user_default_name": "Kullanıcı",
+    "gender": {
+      "male": "Erkek",
+      "female": "Kadın",
+      "other": "Diğer"
+    },
+    "age_suffix": "yaşında",
+    "delete_button_title": "Bu sohbeti sil",
+    "delete_button_aria": "Sil"
+  },
+  "diagnosticPanel": {
+    "title": "NoNetChat Tanılama",
+    "close": "Kapat",
+    "resize": "Yeniden boyutlandır",
+    "connectivity_tests": "Bağlantı Testleri",
+    "testing_in_progress": "Test ediliyor...",
+    "test_connectivity": "Bağlantıyı Test Et",
+    "signaling": "Sinyalizasyon",
+    "ok": "Tamam",
+    "fail": "BAŞARISIZ",
+    "stun_servers": "STUN Sunucuları:",
+    "network_info": "Ağ Bilgisi:",
+    "logs_title": "Gerçek Zamanlı Günlükler",
+    "auto_scroll": "Otomatik kaydırma",
+    "clear": "Temizle",
+    "export": "Dışa aktar",
+    "no_logs": "Kullanılabilir günlük yok. Günlükler burada gerçek zamanlı olarak görünecektir.",
+    "instructions_title": "Talimatlar:",
+    "instructions_body": "1) \"Bağlantıyı Test Et\". 2) Günlükleri izleyin. 3) Paylaşmak için dışa aktarın."
+  },
+  "filePreview": {
+    "unknown_size": "bilinmeyen boyut",
+    "file_not_found": "Dosya yerel veritabanında bulunamadı.",
+    "clipboard_error": "Metin panoya kopyalanamadı.",
+    "audio_error": "Bu ses dosyası oynatılamadı.",
+    "default_filename": "dosya",
+    "unplayable_audio": "Bu ses formatı bu tarayıcıda oynatılamayabilir. Yukarıdan indirebilirsiniz.",
+    "hide_preview": "Önizlemeyi gizle",
+    "show_preview": "Önizlemeyi göster",
+    "loading": "Yükleniyor…",
+    "unknown_type": "bilinmeyen tür",
+    "download": "İndir",
+    "open_in_new_tab": "Yeni sekmede aç",
+    "copy_text": "Metni kopyala",
+    "preview_unavailable": "Bu dosya türü için önizleme mevcut değil.",
+    "change_speed": "Hızı değiştir",
+    "media_album": "Ekler"
+  },
+  "messageStatus": {
+    "sending": "Gönderiliyor...",
+    "sent": "Gönderildi",
+    "delivered": "Teslim edildi",
+    "read": "Okundu",
+    "error": "Hata"
+  },
+  "notificationSettings": {
+    "title": "Bildirim Ayarları",
+    "general": "Genel Bildirimler",
+    "enable_notifications": "Bildirimleri etkinleştir",
+    "enable_notifications_description": "Yeni mesajlar için bildirim al",
+    "sound": "Bildirim sesleri",
+    "sound_description": "Mesaj alırken bir ses çal",
+    "system": "Sistem bildirimleri",
+    "system_description": "Tarayıcıda bildirimleri göster",
+    "authorize": "Yetkilendir",
+    "dnd": "Rahatsız Etmeyin modu",
+    "dnd_description": "Tüm bildirimleri geçici olarak devre dışı bırak",
+    "tips_title": "💡 İpuçları:",
+    "tip1": "• Sistem bildirimleri yalnızca sekme açıkken çalışır",
+    "tip2": "• \"Rahatsız Etmeyin\" modu tüm bildirimleri devre dışı bırakır",
+    "tip3": "• Ayarlar otomatik olarak kaydedilir",
+    "close": "Kapat"
+  },
+  "peerList": {
+    "title": "Bağlı Eşler ({{count}})",
+    "filter_by_gender": "Cinsiyete göre filtrele",
+    "all_genders": "Tüm cinsiyetler",
+    "male": "Erkekler",
+    "female": "Kadınlar",
+    "other_gender": "Diğer / Belirtilmemiş",
+    "sort_by": "Sırala",
+    "distance_asc": "Mesafe (↑)",
+    "distance_desc": "Mesafe (↓)",
+    "age_asc": "Yaş (↑)",
+    "age_desc": "Yaş (↓)",
+    "connection_required_title": "Bağlantı gerekli",
+    "connection_required_body": "Sinyal sunucusuna bağlanın",
+    "no_peers_title": "Çevrimiçi eş yok",
+    "no_peers_body": "Yukarıdaki filtreleri ayarlayın",
+    "user_default_name": "Kullanıcı",
+    "estimated_distance": "Tahmini mesafe",
+    "gender_title": "Cinsiyet: {{gender}}",
+    "age_suffix": "yaşında",
+    "view_profile": "Profili görüntüle",
+    "start_conversation": "Sohbet başlat",
+    "join_time": {
+      "unknown": "Bilinmiyor",
+      "now": "Şimdi",
+      "minutes_ago": "{{count}} dakika önce",
+      "hours_ago": "{{count}} saat önce"
+    },
+    "tooltip": {
+      "status": "Durum:",
+      "age": "Yaş:",
+      "gender": "Cinsiyet:",
+      "distance": "Mesafe:",
+      "connected": "Bağlı:"
+    },
+    "modal": {
+      "title": "{{name}} Profili",
+      "close": "Kapat",
+      "connected_since": "Bağlandığından beri:"
+    }
+  },
+  "profileModal": {
+    "title": "Profiliniz",
+    "close_aria": "Kapat",
+    "username_cannot_be_empty": "Kullanıcı adı boş olamaz.",
+    "select_valid_image": "Lütfen geçerli bir resim seçin.",
+    "avatar_alt": "Avatar",
+    "change_avatar_title": "Avatarı değiştir",
+    "refresh_avatar_title": "Yeni bir varsayılan avatar oluştur",
+    "optimizing_image": "Görüntü optimize ediliyor…",
+    "username_label": "Kullanıcı adı",
+    "age_label": "Yaş",
+    "gender_label": "Cinsiyet",
+    "gender_unspecified": "Belirtilmemiş",
+    "gender_male": "Erkek",
+    "gender_female": "Kadın",
+    "gender_other": "Diğer",
+    "cancel": "İptal",
+    "save": "Kaydet"
+  },
+  "publicChatWindow": {
+    "back": "Geri",
+    "default_user_name": "Kullanıcı",
+    "placeholder": "Genel mesaj...",
+    "gender_male_short": "E",
+    "gender_female_short": "K",
+    "gender_other": "Diğer",
+    "age_suffix": "yaşında"
+  },
+  "statusBar": {
+    "peers_connected_aria_one": "{{count}} eş bağlandı",
+    "peers_connected_aria_other": "{{count}} eş bağlandı",
+    "peers_connected_text": "eş(ler)",
+    "id": "ID:",
+    "full_id_title": "Tam ID: {{clientId}}",
+    "connected": "Bağlandı",
+    "disconnected": "Bağlantı kesildi",
+    "open_diagnostic_panel": "Tanılama panelini aç",
+    "change_signaling_server": "Sinyal sunucusunu değiştir"
+  },
+  "voiceRecorder": {
+    "voice_note": "Sesli not",
+    "mic_error": "Mikrofona erişilemedi. Tarayıcı izinlerini kontrol edin.",
+    "idle_title_click": "Tıkla: kaydet (kilitli) • Enter: gönder • Esc: iptal",
+    "idle_title_hold": "Kaydetmek için uzun basın • İptal etmek için ← kaydırın • Kilitlemek için ↑ kaydırın",
+    "record_aria": "Sesli mesaj kaydet",
+    "hint_slide_cancel": "İptal etmek için sola kaydırın",
+    "hint_slide_lock": "Kilitlemek için yukarı kaydırın",
+    "cancel_aria": "Kaydı iptal et",
+    "cancel_title": "İptal",
+    "lock_aria": "Kaydı kilitle",
+    "lock_title": "Kilitle",
+    "send_aria": "Sesli notu gönder",
+    "send_title": "Gönder",
+    "locked": "kilitli",
+    "mobile_hint_lock": "Kilitle",
+    "mobile_hint_cancel": "İptal etmek için ← kaydırın"
+  },
+  "languageSelector": {
+    "label": "Dil",
+    "description": "Dil otomatik olarak kaydedilecek ve bir sonraki ziyaretinizde algılanacaktır."
+  }
+}

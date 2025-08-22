@@ -1,0 +1,343 @@
+{
+  "app": {
+    "initializing": "Inicializando servicios...",
+    "tagline": "Mensajería directa",
+    "status": {
+      "connected": "Conectado",
+      "disconnected": "Desconectado"
+    },
+    "install": "Instalar",
+    "install_aria": "Instalar aplicación"
+  },
+  "geolocationError": {
+    "activate": "Habilitar ubicación",
+    "close_alert": "Cerrar alerta",
+    "unavailable_location": "No se pudo determinar su país/ciudad. La búsqueda extendida está deshabilitada.",
+    "gps_failed": "Falló el GPS. Usando ubicación aproximada a través de IP.",
+    "permission_denied": "Se denegó el acceso a la geolocalización. La aplicación no puede encontrar pares cercanos.",
+    "position_unavailable": "No se pudo obtener su posición actual. Verifique la conexión de red o la configuración de ubicación.",
+    "timeout": "Se agotó el tiempo de búsqueda de posición. Vuelva a intentarlo.",
+    "unknown": "Error desconocido al recuperar su posición."
+  },
+  "user": {
+    "default_name": "Usuario"
+  },
+  "file": {
+    "receiving": "(Recibiendo...)"
+  },
+  "tabs": {
+    "peers": "Pares",
+    "public_chat": "Público",
+    "conversations": "Mensajes"
+  },
+  "publicChat": {
+    "title": "Chat público",
+    "description": "Los mensajes aquí son efímeros y visibles para todos en su área actual."
+  },
+  "settings": {
+    "title": "Configuración",
+    "close_aria": "Cerrar configuración",
+    "profile_shortcut_title": "Perfil no completado",
+    "profile_shortcut_description": "Edita tu nombre / avatar",
+    "edit": "Editar",
+    "signaling_url_label": "URL del servidor de señalización",
+    "signaling_url_placeholder": "wss://your-server.com",
+    "discovery_mode_label": "Modo de búsqueda",
+    "radius_km": "Radio (km)",
+    "city": "Ciudad",
+    "country": "País entero",
+    "unavailable": "(no disponible)",
+    "cancel": "Cancelar",
+    "save": "Guardar"
+  },
+  "header": {
+    "logo_alt": "Logotipo de NoNetChat",
+    "notifications_aria": "Configuración de notificaciones",
+    "settings_aria": "Configuración",
+    "profile_aria": "Edita tu perfil",
+    "home_aria": "Volver a inicio"
+  },
+  "main": {
+    "connecting_to_peer": "Conectando...",
+    "establishing_connection": "Estableciendo conexión con el par seleccionado.",
+    "connecting_to_server": "Conectando al servidor de señalización...",
+    "select_peer_prompt": "Seleccione un par para iniciar una conversación directa y segura."
+  },
+  "bottomNav": {
+    "peers": "Pares",
+    "public_chat": "Chat público",
+    "public_chat_short": "Público",
+    "messages": "Mensajes",
+    "settings": "Ajustes",
+    "notifications": "Notificaciones",
+    "notifications_short": "Notif."
+  },
+  "chat": {
+    "voice_note": "Nota de voz",
+    "sending_in_progress": "(Enviando...)",
+    "sending_progress": "(Enviando: {{progress}}%)",
+    "sending_error": "(Error de envío)",
+    "receiving_in_progress": "(Recibiendo...)",
+    "file_size_error": "Tamaño de archivo incorrecto: se recibieron {{totalSize}} bytes, se esperaban {{expectedSize}} bytes (diferencia: {{sizeDifference}})",
+    "decryption_empty_error": "El archivo descifrado está vacío",
+    "decryption_error": "Error: No se pudo descifrar {{fileName}}",
+    "delete_message_confirm": "¿Estás seguro de que quieres eliminar este mensaje?",
+    "delete_conversation_confirm": "¿Estás seguro de que quieres eliminar toda esta conversación?",
+    "message_info_title": "Información",
+    "message_info_content": "ID: {{id}}\nTipo: {{type}}\nEnviado: {{timestamp}}\nEstado: {{status}}",
+    "message_status_sent": "Enviado",
+    "send_aria_label_offline": "Usuario desconectado: envío deshabilitado",
+    "send_aria_label_file": "Enviar archivo",
+    "send_aria_label_message": "Enviar mensaje",
+    "download_link": {
+      "not_found": "Archivo no encontrado en la base de datos local.",
+      "error": "Ocurrió un error durante la descarga.",
+      "loading": "Cargando...",
+      "download": "📥 Descargar",
+      "title": "Descargar archivo"
+    },
+    "header": {
+      "back": "Atrás",
+      "online": "En línea",
+      "offline": "Desconectado",
+      "delete_conversation_title": "Eliminar conversación",
+      "cancel_transfers_title": "Cancelar transferencias en curso"
+    },
+    "cancel_transfers": {
+      "title": "Transferencias en curso",
+      "receiving_progress": "Recibiendo: {{progress}}%",
+      "sending_progress": "Enviando: {{progress}}%",
+      "cancel": "Cancelar",
+      "warning_title": "Advertencia:",
+      "warning_body": "La cancelación interrumpe permanentemente la transferencia.",
+      "cancelled_by_user": "(Cancelado por el usuario)"
+    },
+    "message_menu": {
+      "title": "Opciones de mensaje",
+      "info": "Información",
+      "delete": "Eliminar"
+    },
+    "reactions": {
+      "title": "Reaccionar con {{emoji}}"
+    },
+    "file_message": {
+      "size": "Tamaño:",
+      "unknown_size": "Desconocido",
+      "status_sending": "Enviando...",
+      "status_sent": "Enviado",
+      "status_receiving": "Recibiendo...",
+      "status_pending": "Pendiente",
+      "sending": "Enviando",
+      "receiving": "Recibiendo"
+    },
+    "new_messages_button": {
+      "aria_label": "Ir a mensajes nuevos",
+      "text_one": "{{count}} mensaje nuevo",
+      "text_other": "{{count}} mensajes nuevos"
+    },
+    "input": {
+      "remove_file": "Eliminar archivo",
+      "file_disabled_offline": "Par desconectado: envío de archivos no disponible",
+      "attach_file": "Adjuntar archivo",
+      "file_too_large": "El archivo es demasiado grande. Tamaño máximo permitido: {{maxSize}} MB\n\nNota: Los archivos se comprimen automáticamente antes de enviarlos para optimizar la transferencia.",
+      "selected_file": "Archivo seleccionado: {{fileName}}",
+      "placeholder": "Escribe tu mensaje...",
+      "placeholder_offline": "Usuario desconectado: envío de mensajes deshabilitado",
+      "aria_label": "Entrada de mensaje",
+      "add_emoji": "Añadir emoji",
+      "record_voice": "Grabar un mensaje de voz",
+      "peer_offline_warning": "{{peerName}} está desconectado. El envío de mensajes está deshabilitado."
+    }
+  },
+  "connectionStatus": {
+    "reconnecting": "Reconectando...",
+    "disconnected": "Desconectado",
+    "reconnect": "Reconectar"
+  },
+  "conversationList": {
+    "title": "Conversaciones ({{count}})",
+    "search_placeholder": "Buscar por nombre o mensaje...",
+    "clear_search_aria": "Borrar búsqueda",
+    "clear_search_title": "Borrar",
+    "no_conversations_title": "No hay conversaciones",
+    "no_conversations_prompt": "Selecciona un par para empezar",
+    "loading": "Cargando...",
+    "delete_confirm": "¿Estás seguro de que quieres eliminar esta conversación?",
+    "last_message_none": "No hay mensajes",
+    "last_message_file": "📎 Archivo compartido",
+    "user_default_name": "Usuario",
+    "gender": {
+      "male": "Hombre",
+      "female": "Mujer",
+      "other": "Otro"
+    },
+    "age_suffix": "años",
+    "delete_button_title": "Eliminar esta conversación",
+    "delete_button_aria": "Eliminar"
+  },
+  "diagnosticPanel": {
+    "title": "Diagnóstico de NoNetChat",
+    "close": "Cerrar",
+    "resize": "Redimensionar",
+    "connectivity_tests": "Pruebas de conectividad",
+    "testing_in_progress": "Probando...",
+    "test_connectivity": "Probar conectividad",
+    "signaling": "Señalización",
+    "ok": "OK",
+    "fail": "FALLO",
+    "stun_servers": "Servidores STUN:",
+    "network_info": "Información de red:",
+    "logs_title": "Registros en tiempo real",
+    "auto_scroll": "Desplazamiento automático",
+    "clear": "Limpiar",
+    "export": "Exportar",
+    "no_logs": "No hay registros disponibles. Los registros aparecerán aquí en tiempo real.",
+    "instructions_title": "Instrucciones:",
+    "instructions_body": "1) Ejecute \"Probar conectividad\". 2) Supervise los registros. 3) Exporte para compartir."
+  },
+  "messageStatus": {
+    "sending": "Enviando...",
+    "sent": "Enviado",
+    "delivered": "Entregado",
+    "read": "Leído",
+    "error": "Error"
+  },
+  "notificationSettings": {
+    "title": "Configuración de notificaciones",
+    "general": "Notificaciones generales",
+    "enable_notifications": "Habilitar notificaciones",
+    "enable_notifications_description": "Recibir notificaciones de nuevos mensajes",
+    "sound": "Sonidos de notificación",
+    "sound_description": "Reproducir un sonido al recibir mensajes",
+    "system": "Notificaciones del sistema",
+    "system_description": "Mostrar notificaciones en el navegador",
+    "authorize": "Autorizar",
+    "dnd": "Modo No molestar",
+    "dnd_description": "Desactivar temporalmente todas las notificaciones",
+    "tips_title": "💡 Consejos:",
+    "tip1": "• Las notificaciones del sistema solo funcionan si la pestaña está abierta",
+    "tip2": "• El modo \"No molestar\" desactiva todas las notificaciones",
+    "tip3": "• La configuración se guarda automáticamente",
+    "close": "Cerrar"
+  },
+  "peerList": {
+    "title": "Pares conectados ({{count}})",
+    "filter_by_gender": "Filtrar por género",
+    "all_genders": "Todos los géneros",
+    "male": "Hombres",
+    "female": "Mujeres",
+    "other_gender": "Otro / No especificado",
+    "sort_by": "Ordenar por",
+    "distance_asc": "Distancia (↑)",
+    "distance_desc": "Distancia (↓)",
+    "age_asc": "Edad (↑)",
+    "age_desc": "Edad (↓)",
+    "connection_required_title": "Se requiere conexión",
+    "connection_required_body": "Conéctese al servidor de señalización",
+    "no_peers_title": "No hay pares en línea",
+    "no_peers_body": "Ajuste los filtros de arriba",
+    "user_default_name": "Usuario",
+    "estimated_distance": "Distancia estimada",
+    "gender_title": "Género: {{gender}}",
+    "age_suffix": "años",
+    "view_profile": "Ver perfil",
+    "start_conversation": "Iniciar una conversación",
+    "join_time": {
+      "unknown": "Desconocido",
+      "now": "Ahora mismo",
+      "minutes_ago": "hace {{count}} min",
+      "hours_ago": "hace {{count}}h"
+    },
+    "tooltip": {
+      "status": "Estado:",
+      "age": "Edad:",
+      "gender": "Género:",
+      "distance": "Distancia:",
+      "connected": "Conectado:"
+    },
+    "modal": {
+      "title": "Perfil de {{name}}",
+      "close": "Cerrar",
+      "connected_since": "Conectado desde:"
+    }
+  },
+  "profileModal": {
+    "title": "Tu perfil",
+    "close_aria": "Cerrar",
+    "username_cannot_be_empty": "El nombre de usuario no puede estar vacío.",
+    "select_valid_image": "Por favor, seleccione una imagen válida.",
+    "avatar_alt": "Avatar",
+    "change_avatar_title": "Cambiar avatar",
+    "refresh_avatar_title": "Generar un nuevo avatar predeterminado",
+    "optimizing_image": "Optimizando imagen…",
+    "username_label": "Nombre de usuario",
+    "age_label": "Edad",
+    "gender_label": "Género",
+    "gender_unspecified": "No especificado",
+    "gender_male": "Hombre",
+    "gender_female": "Mujer",
+    "gender_other": "Otro",
+    "cancel": "Cancelar",
+    "save": "Guardar"
+  },
+  "publicChatWindow": {
+    "back": "Atrás",
+    "default_user_name": "Usuario",
+    "placeholder": "Mensaje público...",
+    "gender_male_short": "H",
+    "gender_female_short": "M",
+    "gender_other": "Otro",
+    "age_suffix": "años"
+  },
+  "statusBar": {
+    "peers_connected_aria_one": "{{count}} par conectado",
+    "peers_connected_aria_other": "{{count}} pares conectados",
+    "peers_connected_text": "par(es)",
+    "id": "ID:",
+    "full_id_title": "ID completo: {{clientId}}",
+    "connected": "Conectado",
+    "disconnected": "Desconectado",
+    "open_diagnostic_panel": "Abrir panel de diagnóstico",
+    "change_signaling_server": "Cambiar servidor de señalización"
+  },
+  "voiceRecorder": {
+    "voice_note": "Nota de voz",
+    "mic_error": "No se pudo acceder al micrófono. Compruebe los permisos del navegador.",
+    "idle_title_click": "Clic: grabar (bloqueado) • Intro: enviar • Esc: cancelar",
+    "idle_title_hold": "Pulsación larga para grabar • Deslizar ← para cancelar • Deslizar ↑ para bloquear",
+    "record_aria": "Grabar un mensaje de voz",
+    "hint_slide_cancel": "Deslizar a la izquierda para cancelar",
+    "hint_slide_lock": "Deslizar hacia arriba para bloquear",
+    "cancel_aria": "Cancelar grabación",
+    "cancel_title": "Cancelar",
+    "lock_aria": "Bloquear grabación",
+    "lock_title": "Bloquear",
+    "send_aria": "Enviar nota de voz",
+    "send_title": "Enviar",
+    "locked": "bloqueado",
+    "mobile_hint_lock": "Bloquear",
+    "mobile_hint_cancel": "Deslizar ← para cancelar"
+  },
+  "filePreview": {
+    "audio_error": "No se pudo reproducir este archivo de audio.",
+    "change_speed": "Cambiar velocidad",
+    "clipboard_error": "No se pudo copiar el texto al portapapeles.",
+    "copy_text": "Copiar texto",
+    "default_filename": "archivo",
+    "download": "Descargar",
+    "file_not_found": "Archivo no encontrado en la base de datos local.",
+    "hide_preview": "Ocultar vista previa",
+    "loading": "Cargando…",
+    "media_album": "Archivos adjuntos",
+    "open_in_new_tab": "Abrir en nueva pestaña",
+    "preview_unavailable": "Vista previa no disponible para este tipo de archivo.",
+    "show_preview": "Mostrar vista previa",
+    "unknown_size": "tamaño desconocido",
+    "unknown_type": "tipo desconocido",
+    "unplayable_audio": "Este formato de audio puede no ser reproducible en este navegador. Puedes descargarlo arriba."
+  },
+  "languageSelector": {
+    "label": "Idioma",
+    "description": "El idioma se guardará automáticamente y se detectará en su próxima visita."
+  }
+}

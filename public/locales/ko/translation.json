@@ -1,0 +1,343 @@
+{
+  "app": {
+    "initializing": "서비스 초기화 중...",
+    "tagline": "직접 메시징",
+    "status": {
+      "connected": "연결됨",
+      "disconnected": "연결 끊김"
+    },
+    "install": "설치",
+    "install_aria": "애플리케이션 설치"
+  },
+  "geolocationError": {
+    "activate": "위치 활성화",
+    "close_alert": "알림 닫기",
+    "unavailable_location": "국가/도시를 확인할 수 없습니다. 확장 검색이 비활성화되었습니다.",
+    "gps_failed": "GPS 실패. IP를 통한 대략적인 위치를 사용합니다.",
+    "permission_denied": "지리적 위치에 대한 액세스가 거부되었습니다. 애플리케이션이 근처 피어를 찾을 수 없습니다.",
+    "position_unavailable": "현재 위치를 가져올 수 없습니다. 네트워크 연결 또는 위치 설정을 확인하십시오.",
+    "timeout": "위치 검색 시간이 초과되었습니다. 다시 시도하십시오.",
+    "unknown": "위치를 검색하는 동안 알 수 없는 오류가 발생했습니다."
+  },
+  "user": {
+    "default_name": "사용자"
+  },
+  "file": {
+    "receiving": "(수신 중...)"
+  },
+  "tabs": {
+    "peers": "피어",
+    "public_chat": "공개",
+    "conversations": "메시지"
+  },
+  "publicChat": {
+    "title": "공개 채팅",
+    "description": "여기 메시지는 일시적이며 현재 지역의 모든 사람에게 표시됩니다."
+  },
+  "settings": {
+    "title": "설정",
+    "close_aria": "설정 닫기",
+    "profile_shortcut_title": "프로필이 완료되지 않았습니다.",
+    "profile_shortcut_description": "이름/아바타 편집",
+    "edit": "편집",
+    "signaling_url_label": "신호 서버 URL",
+    "signaling_url_placeholder": "wss://your-server.com",
+    "discovery_mode_label": "검색 모드",
+    "radius_km": "반경(km)",
+    "city": "도시",
+    "country": "전체 국가",
+    "unavailable": "(사용 불가)",
+    "cancel": "취소",
+    "save": "저장"
+  },
+  "header": {
+    "logo_alt": "NoNetChat 로고",
+    "notifications_aria": "알림 설정",
+    "settings_aria": "설정",
+    "profile_aria": "프로필 편집",
+    "home_aria": "홈으로 돌아가기"
+  },
+  "main": {
+    "connecting_to_peer": "연결 중...",
+    "establishing_connection": "선택한 피어와 연결을 설정하는 중입니다.",
+    "connecting_to_server": "신호 서버에 연결 중...",
+    "select_peer_prompt": "직접적이고 안전한 대화를 시작하려면 피어를 선택하십시오."
+  },
+  "bottomNav": {
+    "peers": "피어",
+    "public_chat": "공개 채팅",
+    "public_chat_short": "공개",
+    "messages": "메시지",
+    "settings": "설정",
+    "notifications": "알림",
+    "notifications_short": "알림"
+  },
+  "chat": {
+    "voice_note": "음성 메모",
+    "sending_in_progress": "(전송 중...)",
+    "sending_progress": "(전송 중: {{progress}}%)",
+    "sending_error": "(전송 오류)",
+    "receiving_in_progress": "(수신 중...)",
+    "file_size_error": "잘못된 파일 크기: {{totalSize}}바이트 수신, {{expectedSize}}바이트 예상 (차이: {{sizeDifference}})",
+    "decryption_empty_error": "해독된 파일이 비어 있습니다.",
+    "decryption_error": "오류: {{fileName}}을(를) 해독할 수 없습니다.",
+    "delete_message_confirm": "이 메시지를 삭제하시겠습니까?",
+    "delete_conversation_confirm": "이 전체 대화를 삭제하시겠습니까?",
+    "message_info_title": "정보",
+    "message_info_content": "ID: {{id}}\n유형: {{type}}\n보낸 시간: {{timestamp}}\n상태: {{status}}",
+    "message_status_sent": "전송됨",
+    "send_aria_label_offline": "사용자 오프라인 - 전송 비활성화됨",
+    "send_aria_label_file": "파일 보내기",
+    "send_aria_label_message": "메시지 보내기",
+    "download_link": {
+      "not_found": "로컬 데이터베이스에서 파일을 찾을 수 없습니다.",
+      "error": "다운로드 중 오류가 발생했습니다.",
+      "loading": "로드 중...",
+      "download": "📥 다운로드",
+      "title": "파일 다운로드"
+    },
+    "header": {
+      "back": "뒤로",
+      "online": "온라인",
+      "offline": "오프라인",
+      "delete_conversation_title": "대화 삭제",
+      "cancel_transfers_title": "진행 중인 전송 취소"
+    },
+    "cancel_transfers": {
+      "title": "진행 중인 전송",
+      "receiving_progress": "수신 중: {{progress}}%",
+      "sending_progress": "전송 중: {{progress}}%",
+      "cancel": "취소",
+      "warning_title": "경고:",
+      "warning_body": "취소하면 전송이 영구적으로 중단됩니다.",
+      "cancelled_by_user": "(사용자가 취소함)"
+    },
+    "message_menu": {
+      "title": "메시지 옵션",
+      "info": "정보",
+      "delete": "삭제"
+    },
+    "reactions": {
+      "title": "{{emoji}}(으)로 반응하기"
+    },
+    "file_message": {
+      "size": "크기:",
+      "unknown_size": "알 수 없음",
+      "status_sending": "전송 중...",
+      "status_sent": "전송됨",
+      "status_receiving": "수신 중...",
+      "status_pending": "대기 중",
+      "sending": "전송 중",
+      "receiving": "수신 중"
+    },
+    "new_messages_button": {
+      "aria_label": "새 메시지로 이동",
+      "text_one": "{{count}}개의 새 메시지",
+      "text_other": "{{count}}개의 새 메시지"
+    },
+    "input": {
+      "remove_file": "파일 제거",
+      "file_disabled_offline": "피어 오프라인 - 파일 전송 불가",
+      "attach_file": "파일 첨부",
+      "file_too_large": "파일이 너무 큽니다. 허용되는 최대 크기: {{maxSize}}MB\n\n참고: 전송을 최적화하기 위해 보내기 전에 파일이 자동으로 압축됩니다.",
+      "selected_file": "선택한 파일: {{fileName}}",
+      "placeholder": "메시지를 입력하세요...",
+      "placeholder_offline": "사용자 오프라인 - 메시지 전송 비활성화됨",
+      "aria_label": "메시지 입력",
+      "add_emoji": "이모티콘 추가",
+      "record_voice": "음성 메시지 녹음",
+      "peer_offline_warning": "{{peerName}}이(가) 오프라인입니다. 메시지 전송이 비활성화되었습니다."
+    }
+  },
+  "connectionStatus": {
+    "reconnecting": "다시 연결 중...",
+    "disconnected": "연결 끊김",
+    "reconnect": "다시 연결"
+  },
+  "conversationList": {
+    "title": "대화 ({{count}})",
+    "search_placeholder": "이름 또는 메시지로 검색...",
+    "clear_search_aria": "검색 지우기",
+    "clear_search_title": "지우기",
+    "no_conversations_title": "대화 없음",
+    "no_conversations_prompt": "시작하려면 피어를 선택하세요.",
+    "loading": "로드 중...",
+    "delete_confirm": "이 대화를 삭제하시겠습니까?",
+    "last_message_none": "메시지 없음",
+    "last_message_file": "📎 공유 파일",
+    "user_default_name": "사용자",
+    "gender": {
+      "male": "남성",
+      "female": "여성",
+      "other": "기타"
+    },
+    "age_suffix": "세",
+    "delete_button_title": "이 대화 삭제",
+    "delete_button_aria": "삭제"
+  },
+  "diagnosticPanel": {
+    "title": "NoNetChat 진단",
+    "close": "닫기",
+    "resize": "크기 조정",
+    "connectivity_tests": "연결 테스트",
+    "testing_in_progress": "테스트 중...",
+    "test_connectivity": "연결 테스트",
+    "signaling": "신호",
+    "ok": "확인",
+    "fail": "실패",
+    "stun_servers": "STUN 서버:",
+    "network_info": "네트워크 정보:",
+    "logs_title": "실시간 로그",
+    "auto_scroll": "자동 스크롤",
+    "clear": "지우기",
+    "export": "내보내기",
+    "no_logs": "사용 가능한 로그가 없습니다. 로그는 여기에 실시간으로 표시됩니다.",
+    "instructions_title": "지침:",
+    "instructions_body": "1) \"연결 테스트\"를 실행합니다. 2) 로그를 모니터링합니다. 3) 공유하려면 내보냅니다."
+  },
+  "filePreview": {
+    "unknown_size": "알 수 없는 크기",
+    "file_not_found": "로컬 데이터베이스에서 파일을 찾을 수 없습니다.",
+    "clipboard_error": "클립보드에 텍스트를 복사할 수 없습니다.",
+    "audio_error": "이 오디오 파일을 재생할 수 없습니다.",
+    "default_filename": "파일",
+    "unplayable_audio": "이 오디오 형식은 이 브라우저에서 재생할 수 없을 수 있습니다. 위에서 다운로드할 수 있습니다.",
+    "hide_preview": "미리보기 숨기기",
+    "show_preview": "미리보기 표시",
+    "loading": "로드 중…",
+    "unknown_type": "알 수 없는 유형",
+    "download": "다운로드",
+    "open_in_new_tab": "새 탭에서 열기",
+    "copy_text": "텍스트 복사",
+    "preview_unavailable": "이 파일 형식에 대해 미리보기를 사용할 수 없습니다.",
+    "change_speed": "속도 변경",
+    "media_album": "첨부 파일"
+  },
+  "messageStatus": {
+    "sending": "전송 중...",
+    "sent": "전송됨",
+    "delivered": "전달됨",
+    "read": "읽음",
+    "error": "오류"
+  },
+  "notificationSettings": {
+    "title": "알림 설정",
+    "general": "일반 알림",
+    "enable_notifications": "알림 활성화",
+    "enable_notifications_description": "새 메시지에 대한 알림 받기",
+    "sound": "알림 소리",
+    "sound_description": "메시지 수신 시 소리 재생",
+    "system": "시스템 알림",
+    "system_description": "브라우저에 알림 표시",
+    "authorize": "승인",
+    "dnd": "방해 금지 모드",
+    "dnd_description": "일시적으로 모든 알림 비활성화",
+    "tips_title": "💡 팁:",
+    "tip1": "• 시스템 알림은 탭이 열려 있는 경우에만 작동합니다.",
+    "tip2": "• \"방해 금지\" 모드는 모든 알림을 비활성화합니다.",
+    "tip3": "• 설정은 자동으로 저장됩니다.",
+    "close": "닫기"
+  },
+  "peerList": {
+    "title": "연결된 피어 ({{count}})",
+    "filter_by_gender": "성별로 필터링",
+    "all_genders": "모든 성별",
+    "male": "남성",
+    "female": "여성",
+    "other_gender": "기타 / 지정되지 않음",
+    "sort_by": "정렬 기준",
+    "distance_asc": "거리 (↑)",
+    "distance_desc": "거리 (↓)",
+    "age_asc": "나이 (↑)",
+    "age_desc": "나이 (↓)",
+    "connection_required_title": "연결 필요",
+    "connection_required_body": "신호 서버에 연결",
+    "no_peers_title": "온라인 피어 없음",
+    "no_peers_body": "위의 필터를 조정하십시오.",
+    "user_default_name": "사용자",
+    "estimated_distance": "예상 거리",
+    "gender_title": "성별: {{gender}}",
+    "age_suffix": "세",
+    "view_profile": "프로필 보기",
+    "start_conversation": "대화 시작",
+    "join_time": {
+      "unknown": "알 수 없음",
+      "now": "방금",
+      "minutes_ago": "{{count}}분 전",
+      "hours_ago": "{{count}}시간 전"
+    },
+    "tooltip": {
+      "status": "상태:",
+      "age": "나이:",
+      "gender": "성별:",
+      "distance": "거리:",
+      "connected": "연결됨:"
+    },
+    "modal": {
+      "title": "{{name}}의 프로필",
+      "close": "닫기",
+      "connected_since": "연결 시간:"
+    }
+  },
+  "profileModal": {
+    "title": "내 프로필",
+    "close_aria": "닫기",
+    "username_cannot_be_empty": "사용자 이름은 비워 둘 수 없습니다.",
+    "select_valid_image": "유효한 이미지를 선택하십시오.",
+    "avatar_alt": "아바타",
+    "change_avatar_title": "아바타 변경",
+    "refresh_avatar_title": "새 기본 아바타 생성",
+    "optimizing_image": "이미지 최적화 중…",
+    "username_label": "사용자 이름",
+    "age_label": "나이",
+    "gender_label": "성별",
+    "gender_unspecified": "지정되지 않음",
+    "gender_male": "남성",
+    "gender_female": "여성",
+    "gender_other": "기타",
+    "cancel": "취소",
+    "save": "저장"
+  },
+  "publicChatWindow": {
+    "back": "뒤로",
+    "default_user_name": "사용자",
+    "placeholder": "공개 메시지...",
+    "gender_male_short": "남",
+    "gender_female_short": "여",
+    "gender_other": "기타",
+    "age_suffix": "세"
+  },
+  "statusBar": {
+    "peers_connected_aria_one": "{{count}}개의 피어가 연결되었습니다.",
+    "peers_connected_aria_other": "{{count}}개의 피어가 연결되었습니다.",
+    "peers_connected_text": "피어",
+    "id": "ID:",
+    "full_id_title": "전체 ID: {{clientId}}",
+    "connected": "연결됨",
+    "disconnected": "연결 끊김",
+    "open_diagnostic_panel": "진단 패널 열기",
+    "change_signaling_server": "신호 서버 변경"
+  },
+  "voiceRecorder": {
+    "voice_note": "음성 메모",
+    "mic_error": "마이크에 액세스할 수 없습니다. 브라우저 권한을 확인하십시오.",
+    "idle_title_click": "클릭: 녹음(잠김) • Enter: 보내기 • Esc: 취소",
+    "idle_title_hold": "길게 눌러 녹음 • ←로 슬라이드하여 취소 • ↑로 슬라이드하여 잠금",
+    "record_aria": "음성 메시지 녹음",
+    "hint_slide_cancel": "취소하려면 왼쪽으로 슬라이드",
+    "hint_slide_lock": "잠그려면 위로 슬라이드",
+    "cancel_aria": "녹음 취소",
+    "cancel_title": "취소",
+    "lock_aria": "녹음 잠금",
+    "lock_title": "잠금",
+    "send_aria": "음성 메모 보내기",
+    "send_title": "보내기",
+    "locked": "잠김",
+    "mobile_hint_lock": "잠금",
+    "mobile_hint_cancel": "취소하려면 ←로 슬라이드"
+  },
+  "languageSelector": {
+    "label": "언어",
+    "description": "언어는 자동으로 저장되며 다음 방문 시 감지됩니다."
+  }
+}

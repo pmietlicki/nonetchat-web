@@ -1,0 +1,343 @@
+{
+  "app": {
+    "initializing": "Services initialiseren...",
+    "tagline": "Directe berichten",
+    "status": {
+      "connected": "Verbonden",
+      "disconnected": "Verbinding verbroken"
+    },
+    "install": "Installeren",
+    "install_aria": "Applicatie installeren"
+  },
+  "geolocationError": {
+    "activate": "Locatie inschakelen",
+    "close_alert": "Melding sluiten",
+    "unavailable_location": "Kon uw land/stad niet bepalen. Uitgebreid zoeken is uitgeschakeld.",
+    "gps_failed": "GPS mislukt. Geschatte locatie via IP wordt gebruikt.",
+    "permission_denied": "Toegang tot geolocatie is geweigerd. De applicatie kan geen peers in de buurt vinden.",
+    "position_unavailable": "Kon uw huidige positie niet ophalen. Controleer de netwerkverbinding of locatie-instellingen.",
+    "timeout": "Time-out bij het zoeken naar positie. Probeer het opnieuw.",
+    "unknown": "Onbekende fout bij het ophalen van uw positie."
+  },
+  "user": {
+    "default_name": "Gebruiker"
+  },
+  "file": {
+    "receiving": "(Ontvangen...)"
+  },
+  "tabs": {
+    "peers": "Peers",
+    "public_chat": "Openbaar",
+    "conversations": "Berichten"
+  },
+  "publicChat": {
+    "title": "Openbare chat",
+    "description": "Berichten hier zijn kortstondig en zichtbaar voor iedereen in uw huidige gebied."
+  },
+  "settings": {
+    "title": "Instellingen",
+    "close_aria": "Instellingen sluiten",
+    "profile_shortcut_title": "Profiel niet voltooid",
+    "profile_shortcut_description": "Bewerk uw naam / avatar",
+    "edit": "Bewerken",
+    "signaling_url_label": "Signaleringsserver-URL",
+    "signaling_url_placeholder": "wss://your-server.com",
+    "discovery_mode_label": "Zoekmodus",
+    "radius_km": "Radius (km)",
+    "city": "Stad",
+    "country": "Heel land",
+    "unavailable": "(niet beschikbaar)",
+    "cancel": "Annuleren",
+    "save": "Opslaan"
+  },
+  "header": {
+    "logo_alt": "NoNetChat-logo",
+    "notifications_aria": "Meldingsinstellingen",
+    "settings_aria": "Instellingen",
+    "profile_aria": "Bewerk uw profiel",
+    "home_aria": "Terug naar startpagina"
+  },
+  "main": {
+    "connecting_to_peer": "Bezig met verbinden...",
+    "establishing_connection": "Verbinding maken met de geselecteerde peer.",
+    "connecting_to_server": "Verbinding maken met signaleringsserver...",
+    "select_peer_prompt": "Selecteer een peer om een directe en veilige conversatie te starten."
+  },
+  "bottomNav": {
+    "peers": "Peers",
+    "public_chat": "Openbare chat",
+    "public_chat_short": "Openbaar",
+    "messages": "Berichten",
+    "settings": "Instellingen",
+    "notifications": "Meldingen",
+    "notifications_short": "Meld."
+  },
+  "chat": {
+    "voice_note": "Spraakbericht",
+    "sending_in_progress": "(Verzenden...)",
+    "sending_progress": "(Verzenden: {{progress}}%)",
+    "sending_error": "(Verzendfout)",
+    "receiving_in_progress": "(Ontvangen...)",
+    "file_size_error": "Onjuiste bestandsgrootte: {{totalSize}} bytes ontvangen, {{expectedSize}} bytes verwacht (verschil: {{sizeDifference}})",
+    "decryption_empty_error": "Gedecrypteerd bestand is leeg",
+    "decryption_error": "Fout: Kan {{fileName}} niet décrypteren",
+    "delete_message_confirm": "Weet u zeker dat u dit bericht wilt verwijderen?",
+    "delete_conversation_confirm": "Weet u zeker dat u dit hele gesprek wilt verwijderen?",
+    "message_info_title": "Informatie",
+    "message_info_content": "ID: {{id}}\nType: {{type}}\nVerzonden: {{timestamp}}\nStatus: {{status}}",
+    "message_status_sent": "Verzonden",
+    "send_aria_label_offline": "Gebruiker offline - verzenden uitgeschakeld",
+    "send_aria_label_file": "Bestand verzenden",
+    "send_aria_label_message": "Bericht verzenden",
+    "download_link": {
+      "not_found": "Bestand niet gevonden in lokale database.",
+      "error": "Er is een fout opgetreden tijdens het downloaden.",
+      "loading": "Laden...",
+      "download": "📥 Downloaden",
+      "title": "Bestand downloaden"
+    },
+    "header": {
+      "back": "Terug",
+      "online": "Online",
+      "offline": "Offline",
+      "delete_conversation_title": "Gesprek verwijderen",
+      "cancel_transfers_title": "Lopende overdrachten annuleren"
+    },
+    "cancel_transfers": {
+      "title": "Lopende overdrachten",
+      "receiving_progress": "Ontvangen: {{progress}}%",
+      "sending_progress": "Verzenden: {{progress}}%",
+      "cancel": "Annuleren",
+      "warning_title": "Waarschuwing:",
+      "warning_body": "Annulering onderbreekt de overdracht permanent.",
+      "cancelled_by_user": "(Geannuleerd door gebruiker)"
+    },
+    "message_menu": {
+      "title": "Berichtopties",
+      "info": "Informatie",
+      "delete": "Verwijderen"
+    },
+    "reactions": {
+      "title": "Reageer met {{emoji}}"
+    },
+    "file_message": {
+      "size": "Grootte:",
+      "unknown_size": "Onbekend",
+      "status_sending": "Verzenden...",
+      "status_sent": "Verzonden",
+      "status_receiving": "Ontvangen...",
+      "status_pending": "In behandeling",
+      "sending": "Verzenden",
+      "receiving": "Ontvangen"
+    },
+    "new_messages_button": {
+      "aria_label": "Ga naar nieuwe berichten",
+      "text_one": "{{count}} nieuw bericht",
+      "text_other": "{{count}} nieuwe berichten"
+    },
+    "input": {
+      "remove_file": "Bestand verwijderen",
+      "file_disabled_offline": "Peer offline - verzenden van bestanden niet beschikbaar",
+      "attach_file": "Bestand bijvoegen",
+      "file_too_large": "Het bestand is te groot. Maximaal toegestane grootte: {{maxSize}} MB\n\nOpmerking: Bestanden worden automatisch gecomprimeerd voordat ze worden verzonden om de overdracht te optimaliseren.",
+      "selected_file": "Geselecteerd bestand: {{fileName}}",
+      "placeholder": "Typ uw bericht...",
+      "placeholder_offline": "Gebruiker offline - verzenden van berichten uitgeschakeld",
+      "aria_label": "Berichtinvoer",
+      "add_emoji": "Emoji toevoegen",
+      "record_voice": "Spraakbericht opnemen",
+      "peer_offline_warning": "{{peerName}} is offline. Het verzenden van berichten is uitgeschakeld."
+    }
+  },
+  "connectionStatus": {
+    "reconnecting": "Opnieuw verbinden...",
+    "disconnected": "Verbinding verbroken",
+    "reconnect": "Opnieuw verbinden"
+  },
+  "conversationList": {
+    "title": "Gesprekken ({{count}})",
+    "search_placeholder": "Zoeken op naam of bericht...",
+    "clear_search_aria": "Zoekopdracht wissen",
+    "clear_search_title": "Wissen",
+    "no_conversations_title": "Geen gesprekken",
+    "no_conversations_prompt": "Selecteer een peer om te beginnen",
+    "loading": "Laden...",
+    "delete_confirm": "Weet u zeker dat u dit gesprek wilt verwijderen?",
+    "last_message_none": "Geen berichten",
+    "last_message_file": "📎 Gedeeld bestand",
+    "user_default_name": "Gebruiker",
+    "gender": {
+      "male": "Man",
+      "female": "Vrouw",
+      "other": "Anders"
+    },
+    "age_suffix": "jaar",
+    "delete_button_title": "Dit gesprek verwijderen",
+    "delete_button_aria": "Verwijderen"
+  },
+  "diagnosticPanel": {
+    "title": "NoNetChat Diagnostiek",
+    "close": "Sluiten",
+    "resize": "Grootte wijzigen",
+    "connectivity_tests": "Connectiviteitstests",
+    "testing_in_progress": "Testen...",
+    "test_connectivity": "Test connectiviteit",
+    "signaling": "Signalering",
+    "ok": "OK",
+    "fail": "MISLUKT",
+    "stun_servers": "STUN-servers:",
+    "network_info": "Netwerkinfo:",
+    "logs_title": "Real-time logboeken",
+    "auto_scroll": "Automatisch scrollen",
+    "clear": "Wissen",
+    "export": "Exporteren",
+    "no_logs": "Geen logboeken beschikbaar. Logboeken verschijnen hier in real-time.",
+    "instructions_title": "Instructies:",
+    "instructions_body": "1) Voer \"Test Connectiviteit\" uit. 2) Monitor de logboeken. 3) Exporteer om te delen."
+  },
+  "filePreview": {
+    "unknown_size": "onbekende grootte",
+    "file_not_found": "Bestand niet gevonden in lokale database.",
+    "clipboard_error": "Kon tekst niet naar klembord kopiëren.",
+    "audio_error": "Kon dit audiobestand niet afspelen.",
+    "default_filename": "bestand",
+    "unplayable_audio": "Dit audioformaat is mogelijk niet afspeelbaar in deze browser. U kunt het hierboven downloaden.",
+    "hide_preview": "Voorbeeld verbergen",
+    "show_preview": "Voorbeeld weergeven",
+    "loading": "Laden…",
+    "unknown_type": "onbekend type",
+    "download": "Downloaden",
+    "open_in_new_tab": "Openen in nieuw tabblad",
+    "copy_text": "Tekst kopiëren",
+    "preview_unavailable": "Voorbeeld niet beschikbaar voor dit bestandstype.",
+    "change_speed": "Snelheid wijzigen",
+    "media_album": "Bijlagen"
+  },
+  "messageStatus": {
+    "sending": "Verzenden...",
+    "sent": "Verzonden",
+    "delivered": "Afgeleverd",
+    "read": "Gelezen",
+    "error": "Fout"
+  },
+  "notificationSettings": {
+    "title": "Meldingsinstellingen",
+    "general": "Algemene meldingen",
+    "enable_notifications": "Meldingen inschakelen",
+    "enable_notifications_description": "Meldingen ontvangen voor nieuwe berichten",
+    "sound": "Meldingsgeluiden",
+    "sound_description": "Een geluid afspelen bij het ontvangen van berichten",
+    "system": "Systeemmeldingen",
+    "system_description": "Meldingen in de browser weergeven",
+    "authorize": "Autoriseren",
+    "dnd": "Niet storen-modus",
+    "dnd_description": "Alle meldingen tijdelijk uitschakelen",
+    "tips_title": "💡 Tips:",
+    "tip1": "• Systeemmeldingen werken alleen als het tabblad geopend is",
+    "tip2": "• De modus \"Niet storen\" schakelt alle meldingen uit",
+    "tip3": "• Instellingen worden automatisch opgeslagen",
+    "close": "Sluiten"
+  },
+  "peerList": {
+    "title": "Verbonden peers ({{count}})",
+    "filter_by_gender": "Filteren op geslacht",
+    "all_genders": "Alle geslachten",
+    "male": "Mannen",
+    "female": "Vrouwen",
+    "other_gender": "Anders / Niet gespecificeerd",
+    "sort_by": "Sorteren op",
+    "distance_asc": "Afstand (↑)",
+    "distance_desc": "Afstand (↓)",
+    "age_asc": "Leeftijd (↑)",
+    "age_desc": "Leeftijd (↓)",
+    "connection_required_title": "Verbinding vereist",
+    "connection_required_body": "Maak verbinding met de signaleringsserver",
+    "no_peers_title": "Geen peers online",
+    "no_peers_body": "Pas de filters hierboven aan",
+    "user_default_name": "Gebruiker",
+    "estimated_distance": "Geschatte afstand",
+    "gender_title": "Geslacht: {{gender}}",
+    "age_suffix": "jaar",
+    "view_profile": "Profiel bekijken",
+    "start_conversation": "Gesprek starten",
+    "join_time": {
+      "unknown": "Onbekend",
+      "now": "Zojuist",
+      "minutes_ago": "{{count}} min geleden",
+      "hours_ago": "{{count}}u geleden"
+    },
+    "tooltip": {
+      "status": "Status:",
+      "age": "Leeftijd:",
+      "gender": "Geslacht:",
+      "distance": "Afstand:",
+      "connected": "Verbonden:"
+    },
+    "modal": {
+      "title": "Profiel van {{name}}",
+      "close": "Sluiten",
+      "connected_since": "Verbonden sinds:"
+    }
+  },
+  "profileModal": {
+    "title": "Uw profiel",
+    "close_aria": "Sluiten",
+    "username_cannot_be_empty": "Gebruikersnaam mag niet leeg zijn.",
+    "select_valid_image": "Selecteer een geldige afbeelding.",
+    "avatar_alt": "Avatar",
+    "change_avatar_title": "Avatar wijzigen",
+    "refresh_avatar_title": "Genereer een nieuwe standaardavatar",
+    "optimizing_image": "Afbeelding optimaliseren…",
+    "username_label": "Gebruikersnaam",
+    "age_label": "Leeftijd",
+    "gender_label": "Geslacht",
+    "gender_unspecified": "Niet gespecificeerd",
+    "gender_male": "Man",
+    "gender_female": "Vrouw",
+    "gender_other": "Anders",
+    "cancel": "Annuleren",
+    "save": "Opslaan"
+  },
+  "publicChatWindow": {
+    "back": "Terug",
+    "default_user_name": "Gebruiker",
+    "placeholder": "Openbaar bericht...",
+    "gender_male_short": "M",
+    "gender_female_short": "V",
+    "gender_other": "Anders",
+    "age_suffix": "jaar"
+  },
+  "statusBar": {
+    "peers_connected_aria_one": "{{count}} peer verbonden",
+    "peers_connected_aria_other": "{{count}} peers verbonden",
+    "peers_connected_text": "peer(s)",
+    "id": "ID:",
+    "full_id_title": "Volledige ID: {{clientId}}",
+    "connected": "Verbonden",
+    "disconnected": "Verbinding verbroken",
+    "open_diagnostic_panel": "Diagnostisch paneel openen",
+    "change_signaling_server": "Signaleringsserver wijzigen"
+  },
+  "voiceRecorder": {
+    "voice_note": "Spraakbericht",
+    "mic_error": "Kon geen toegang krijgen tot de microfoon. Controleer de browsermachtigingen.",
+    "idle_title_click": "Klik: opnemen (vergrendeld) • Enter: verzenden • Esc: annuleren",
+    "idle_title_hold": "Lang indrukken om op te nemen • Schuif ← om te annuleren • Schuif ↑ om te vergrendelen",
+    "record_aria": "Spraakbericht opnemen",
+    "hint_slide_cancel": "Schuif naar links om te annuleren",
+    "hint_slide_lock": "Schuif omhoog om te vergrendelen",
+    "cancel_aria": "Opname annuleren",
+    "cancel_title": "Annuleren",
+    "lock_aria": "Opname vergrendelen",
+    "lock_title": "Vergrendelen",
+    "send_aria": "Spraakbericht verzenden",
+    "send_title": "Verzenden",
+    "locked": "vergrendeld",
+    "mobile_hint_lock": "Vergrendelen",
+    "mobile_hint_cancel": "Schuif ← om te annuleren"
+  },
+  "languageSelector": {
+    "label": "Taal",
+    "description": "De taal wordt automatisch opgeslagen en gedetecteerd bij uw volgende bezoek."
+  }
+}

@@ -1,0 +1,343 @@
+{
+  "app": {
+    "initializing": "正在初始化服務...",
+    "tagline": "即時訊息",
+    "status": {
+      "connected": "已連線",
+      "disconnected": "已斷線"
+    },
+    "install": "安裝",
+    "install_aria": "安裝應用程式"
+  },
+  "geolocationError": {
+    "activate": "啟用位置",
+    "close_alert": "關閉警示",
+    "unavailable_location": "無法確定您所在的國家/地區。擴充搜尋已停用。",
+    "gps_failed": "GPS失敗。透過IP使用近似位置。",
+    "permission_denied": "對地理位置的存取被拒絕。該應用程式找不到附近的對等點。",
+    "position_unavailable": "無法取得您目前的位置。請檢查網路連線或位置設定。",
+    "timeout": "位置搜尋逾時。請再試一次。",
+    "unknown": "擷取您的位置時發生未知錯誤。"
+  },
+  "user": {
+    "default_name": "使用者"
+  },
+  "file": {
+    "receiving": "(接收中...)"
+  },
+  "tabs": {
+    "peers": "對等點",
+    "public_chat": "公開",
+    "conversations": "訊息"
+  },
+  "publicChat": {
+    "title": "公開聊天",
+    "description": "此處的留言是短暫的，並且對您目前區域中的每個人都可見。"
+  },
+  "settings": {
+    "title": "設定",
+    "close_aria": "關閉設定",
+    "profile_shortcut_title": "個人資料未完成",
+    "profile_shortcut_description": "編輯您的姓名/頭像",
+    "edit": "編輯",
+    "signaling_url_label": "信令伺服器URL",
+    "signaling_url_placeholder": "wss://your-server.com",
+    "discovery_mode_label": "搜尋模式",
+    "radius_km": "半徑(公里)",
+    "city": "城市",
+    "country": "整個國家",
+    "unavailable": "(不可用)",
+    "cancel": "取消",
+    "save": "儲存"
+  },
+  "header": {
+    "logo_alt": "NoNetChat徽標",
+    "notifications_aria": "通知設定",
+    "settings_aria": "設定",
+    "profile_aria": "編輯您的個人資料",
+    "home_aria": "返回首頁"
+  },
+  "main": {
+    "connecting_to_peer": "正在連線...",
+    "establishing_connection": "正在與選定的對等點建立連線。",
+    "connecting_to_server": "正在連線到信令伺服器...",
+    "select_peer_prompt": "選擇一個對等點以開始直接和安全的對話。"
+  },
+  "bottomNav": {
+    "peers": "對等點",
+    "public_chat": "公開聊天",
+    "public_chat_short": "公開",
+    "messages": "訊息",
+    "settings": "設定",
+    "notifications": "通知",
+    "notifications_short": "通知"
+  },
+  "chat": {
+    "voice_note": "語音留言",
+    "sending_in_progress": "(傳送中...)",
+    "sending_progress": "(傳送中: {{progress}}%)",
+    "sending_error": "(傳送錯誤)",
+    "receiving_in_progress": "(接收中...)",
+    "file_size_error": "檔案大小不正確: 收到{{totalSize}}位元組，應為{{expectedSize}}位元組 (相差: {{sizeDifference}})",
+    "decryption_empty_error": "解密後的檔案為空",
+    "decryption_error": "錯誤: 無法解密{{fileName}}",
+    "delete_message_confirm": "您確定要刪除此訊息嗎？",
+    "delete_conversation_confirm": "您確定要刪除此整個對話嗎？",
+    "message_info_title": "資訊",
+    "message_info_content": "ID: {{id}}\n類型: {{type}}\n傳送時間: {{timestamp}}\n狀態: {{status}}",
+    "message_status_sent": "已傳送",
+    "send_aria_label_offline": "使用者離線 - 傳送已停用",
+    "send_aria_label_file": "傳送檔案",
+    "send_aria_label_message": "傳送訊息",
+    "download_link": {
+      "not_found": "在本地資料庫中找不到檔案。",
+      "error": "下載過程中發生錯誤。",
+      "loading": "載入中...",
+      "download": "📥 下載",
+      "title": "下載檔案"
+    },
+    "header": {
+      "back": "返回",
+      "online": "在線",
+      "offline": "離線",
+      "delete_conversation_title": "刪除對話",
+      "cancel_transfers_title": "取消正在進行的傳輸"
+    },
+    "cancel_transfers": {
+      "title": "正在進行的傳輸",
+      "receiving_progress": "接收中: {{progress}}%",
+      "sending_progress": "傳送中: {{progress}}%",
+      "cancel": "取消",
+      "warning_title": "警告:",
+      "warning_body": "取消會永久中斷傳輸。",
+      "cancelled_by_user": "(使用者已取消)"
+    },
+    "message_menu": {
+      "title": "訊息選項",
+      "info": "資訊",
+      "delete": "刪除"
+    },
+    "reactions": {
+      "title": "使用{{emoji}}作出反應"
+    },
+    "file_message": {
+      "size": "大小:",
+      "unknown_size": "未知",
+      "status_sending": "傳送中...",
+      "status_sent": "已傳送",
+      "status_receiving": "接收中...",
+      "status_pending": "待定",
+      "sending": "傳送中",
+      "receiving": "接收中"
+    },
+    "new_messages_button": {
+      "aria_label": "轉到新訊息",
+      "text_one": "{{count}}則新訊息",
+      "text_other": "{{count}}則新訊息"
+    },
+    "input": {
+      "remove_file": "刪除檔案",
+      "file_disabled_offline": "對等點離線 - 檔案傳送不可用",
+      "attach_file": "附加檔案",
+      "file_too_large": "檔案太大。允許的最大大小: {{maxSize}} MB\n\n注意: 檔案在傳送前會自動壓縮以優化傳輸。",
+      "selected_file": "選定的檔案: {{fileName}}",
+      "placeholder": "輸入您的訊息...",
+      "placeholder_offline": "使用者離線 - 訊息傳送已停用",
+      "aria_label": "訊息輸入",
+      "add_emoji": "新增表情符號",
+      "record_voice": "錄製語音訊息",
+      "peer_offline_warning": "{{peerName}}已離線。訊息傳送已停用。"
+    }
+  },
+  "connectionStatus": {
+    "reconnecting": "重新連線中...",
+    "disconnected": "已斷線",
+    "reconnect": "重新連線"
+  },
+  "conversationList": {
+    "title": "對話 ({{count}})",
+    "search_placeholder": "按姓名或訊息搜尋...",
+    "clear_search_aria": "清除搜尋",
+    "clear_search_title": "清除",
+    "no_conversations_title": "無對話",
+    "no_conversations_prompt": "選擇一個對等點開始",
+    "loading": "載入中...",
+    "delete_confirm": "您確定要刪除此對話嗎？",
+    "last_message_none": "無訊息",
+    "last_message_file": "📎 共享檔案",
+    "user_default_name": "使用者",
+    "gender": {
+      "male": "男性",
+      "female": "女性",
+      "other": "其他"
+    },
+    "age_suffix": "歲",
+    "delete_button_title": "刪除此對話",
+    "delete_button_aria": "刪除"
+  },
+  "diagnosticPanel": {
+    "title": "NoNetChat診斷",
+    "close": "關閉",
+    "resize": "調整大小",
+    "connectivity_tests": "連線測試",
+    "testing_in_progress": "測試中...",
+    "test_connectivity": "測試連線",
+    "signaling": "信令",
+    "ok": "確定",
+    "fail": "失敗",
+    "stun_servers": "STUN伺服器:",
+    "network_info": "網路資訊:",
+    "logs_title": "即時日誌",
+    "auto_scroll": "自動捲動",
+    "clear": "清除",
+    "export": "匯出",
+    "no_logs": "無可用日誌。日誌將在此處即時顯示。",
+    "instructions_title": "說明:",
+    "instructions_body": "1) 執行\"測試連線\". 2) 監視日誌。 3) 匯出以共用。"
+  },
+  "messageStatus": {
+    "sending": "傳送中...",
+    "sent": "已傳送",
+    "delivered": "已送達",
+    "read": "已讀",
+    "error": "錯誤"
+  },
+  "notificationSettings": {
+    "title": "通知設定",
+    "general": "常規通知",
+    "enable_notifications": "啟用通知",
+    "enable_notifications_description": "接收新訊息的通知",
+    "sound": "通知聲音",
+    "sound_description": "接收訊息時播放聲音",
+    "system": "系統通知",
+    "system_description": "在瀏覽器中顯示通知",
+    "authorize": "授權",
+    "dnd": "請勿打擾模式",
+    "dnd_description": "暫時停用所有通知",
+    "tips_title": "💡 提示:",
+    "tip1": "• 系統通知僅在分頁開啟時有效",
+    "tip2": "• \"請勿打擾\"模式會停用所有通知",
+    "tip3": "• 設定會自動儲存",
+    "close": "關閉"
+  },
+  "peerList": {
+    "title": "已連線的對等點 ({{count}})",
+    "filter_by_gender": "按性別篩選",
+    "all_genders": "所有性別",
+    "male": "男性",
+    "female": "女性",
+    "other_gender": "其他/未指定",
+    "sort_by": "排序方式",
+    "distance_asc": "距離 (↑)",
+    "distance_desc": "距離 (↓)",
+    "age_asc": "年齡 (↑)",
+    "age_desc": "年齡 (↓)",
+    "connection_required_title": "需要連線",
+    "connection_required_body": "連線到信令伺服器",
+    "no_peers_title": "沒有在線的對等點",
+    "no_peers_body": "調整上面的篩選器",
+    "user_default_name": "使用者",
+    "estimated_distance": "估計距離",
+    "gender_title": "性別: {{gender}}",
+    "age_suffix": "歲",
+    "view_profile": "查看個人資料",
+    "start_conversation": "開始對話",
+    "join_time": {
+      "unknown": "未知",
+      "now": "剛才",
+      "minutes_ago": "{{count}}分鐘前",
+      "hours_ago": "{{count}}小時前"
+    },
+    "tooltip": {
+      "status": "狀態:",
+      "age": "年齡:",
+      "gender": "性別:",
+      "distance": "距離:",
+      "connected": "已連線:"
+    },
+    "modal": {
+      "title": "{{name}}的個人資料",
+      "close": "關閉",
+      "connected_since": "連線時間:"
+    }
+  },
+  "profileModal": {
+    "title": "您的個人資料",
+    "close_aria": "關閉",
+    "username_cannot_be_empty": "使用者名稱不能為空。",
+    "select_valid_image": "請選擇有效的圖片。",
+    "avatar_alt": "頭像",
+    "change_avatar_title": "更換頭像",
+    "refresh_avatar_title": "產生新的預設頭像",
+    "optimizing_image": "正在優化圖片…",
+    "username_label": "使用者名稱",
+    "age_label": "年齡",
+    "gender_label": "性別",
+    "gender_unspecified": "未指定",
+    "gender_male": "男性",
+    "gender_female": "女性",
+    "gender_other": "其他",
+    "cancel": "取消",
+    "save": "儲存"
+  },
+  "publicChatWindow": {
+    "back": "返回",
+    "default_user_name": "使用者",
+    "placeholder": "公開訊息...",
+    "gender_male_short": "男",
+    "gender_female_short": "女",
+    "gender_other": "其他",
+    "age_suffix": "歲"
+  },
+  "statusBar": {
+    "peers_connected_aria_one": "{{count}}個對等點已連線",
+    "peers_connected_aria_other": "{{count}}個對等點已連線",
+    "peers_connected_text": "對等點",
+    "id": "ID:",
+    "full_id_title": "完整ID: {{clientId}}",
+    "connected": "已連線",
+    "disconnected": "已斷線",
+    "open_diagnostic_panel": "開啟診斷面板",
+    "change_signaling_server": "變更信令伺服器"
+  },
+  "voiceRecorder": {
+    "voice_note": "語音留言",
+    "mic_error": "無法存取麥克風。請檢查瀏覽器權限。",
+    "idle_title_click": "單擊: 錄製(鎖定) • Enter: 傳送 • Esc: 取消",
+    "idle_title_hold": "長按錄製 • ←滑動取消 • ↑滑動鎖定",
+    "record_aria": "錄製語音訊息",
+    "hint_slide_cancel": "向左滑動取消",
+    "hint_slide_lock": "向上滑動鎖定",
+    "cancel_aria": "取消錄製",
+    "cancel_title": "取消",
+    "lock_aria": "鎖定錄製",
+    "lock_title": "鎖定",
+    "send_aria": "傳送語音留言",
+    "send_title": "傳送",
+    "locked": "已鎖定",
+    "mobile_hint_lock": "鎖定",
+    "mobile_hint_cancel": "←滑動取消"
+  },
+  "filePreview": {
+    "audio_error": "無法播放此音訊檔案。",
+    "change_speed": "變更速度",
+    "clipboard_error": "無法將文字複製到剪貼簿。",
+    "copy_text": "複製文字",
+    "default_filename": "檔案",
+    "download": "下載",
+    "file_not_found": "在本地資料庫中找不到檔案。",
+    "hide_preview": "隱藏預覽",
+    "loading": "載入中…",
+    "media_album": "附件",
+    "open_in_new_tab": "在新分頁中開啟",
+    "preview_unavailable": "此檔案類型無可用預覽。",
+    "show_preview": "顯示預覽",
+    "unknown_size": "未知大小",
+    "unknown_type": "未知類型",
+    "unplayable_audio": "此音訊格式可能無法在此瀏覽器中播放。您可以從上方下載。"
+  },
+  "languageSelector": {
+    "label": "語言",
+    "description": "語言將自動儲存並在您下次造訪時偵測。"
+  }
+}

@@ -1,0 +1,343 @@
+{
+  "app": {
+    "initializing": "Initializing services...",
+    "tagline": "Direct messaging",
+    "status": {
+      "connected": "Connected",
+      "disconnected": "Disconnected"
+    },
+    "install": "Install",
+    "install_aria": "Install application"
+  },
+  "geolocationError": {
+    "activate": "Enable location",
+    "close_alert": "Close alert",
+    "unavailable_location": "Could not determine your country/city. Extended search is disabled.",
+    "gps_failed": "GPS failed. Using approximate location via IP.",
+    "permission_denied": "Access to geolocation was denied. The application cannot find nearby peers.",
+    "position_unavailable": "Could not get your current position. Check network connection or location settings.",
+    "timeout": "Position search timed out. Please try again.",
+    "unknown": "Unknown error while retrieving your position."
+  },
+  "user": {
+    "default_name": "User"
+  },
+  "file": {
+    "receiving": "(Receiving...)"
+  },
+  "tabs": {
+    "peers": "Peers",
+    "public_chat": "Public",
+    "conversations": "Messages"
+  },
+  "publicChat": {
+    "title": "Public Chat",
+    "description": "Messages here are ephemeral and visible to everyone in your current area."
+  },
+  "settings": {
+    "title": "Settings",
+    "close_aria": "Close settings",
+    "profile_shortcut_title": "Profile not completed",
+    "profile_shortcut_description": "Edit your name / avatar",
+    "edit": "Edit",
+    "signaling_url_label": "Signaling server URL",
+    "signaling_url_placeholder": "wss://your-server.com",
+    "discovery_mode_label": "Search mode",
+    "radius_km": "Radius (km)",
+    "city": "City",
+    "country": "Entire country",
+    "unavailable": "(unavailable)",
+    "cancel": "Cancel",
+    "save": "Save"
+  },
+  "header": {
+    "logo_alt": "NoNetChat Logo",
+    "notifications_aria": "Notification settings",
+    "settings_aria": "Settings",
+    "profile_aria": "Edit your profile",
+    "home_aria": "Back to home"
+  },
+  "main": {
+    "connecting_to_peer": "Connecting...",
+    "establishing_connection": "Establishing connection with the selected peer.",
+    "connecting_to_server": "Connecting to signaling server...",
+    "select_peer_prompt": "Select a peer to start a direct and secure conversation."
+  },
+  "bottomNav": {
+    "peers": "Peers",
+    "public_chat": "Public Chat",
+    "public_chat_short": "Public",
+    "messages": "Messages",
+    "settings": "Settings",
+    "notifications": "Notifications",
+    "notifications_short": "Notif."
+  },
+  "chat": {
+    "voice_note": "Voice note",
+    "sending_in_progress": "(Sending...)",
+    "sending_progress": "(Sending: {{progress}}%)",
+    "sending_error": "(Sending error)",
+    "receiving_in_progress": "(Receiving...)",
+    "file_size_error": "Incorrect file size: received {{totalSize}} bytes, expected {{expectedSize}} bytes (diff: {{sizeDifference}})",
+    "decryption_empty_error": "Decrypted file is empty",
+    "decryption_error": "Error: Could not decrypt {{fileName}}",
+    "delete_message_confirm": "Are you sure you want to delete this message?",
+    "delete_conversation_confirm": "Are you sure you want to delete this entire conversation?",
+    "message_info_title": "Information",
+    "message_info_content": "ID: {{id}}\nType: {{type}}\nSent: {{timestamp}}\nStatus: {{status}}",
+    "message_status_sent": "Sent",
+    "send_aria_label_offline": "User offline - sending disabled",
+    "send_aria_label_file": "Send file",
+    "send_aria_label_message": "Send message",
+    "download_link": {
+      "not_found": "File not found in local database.",
+      "error": "An error occurred during download.",
+      "loading": "Loading...",
+      "download": "📥 Download",
+      "title": "Download file"
+    },
+    "header": {
+      "back": "Back",
+      "online": "Online",
+      "offline": "Offline",
+      "delete_conversation_title": "Delete conversation",
+      "cancel_transfers_title": "Cancel ongoing transfers"
+    },
+    "cancel_transfers": {
+      "title": "Ongoing transfers",
+      "receiving_progress": "Receiving: {{progress}}%",
+      "sending_progress": "Sending: {{progress}}%",
+      "cancel": "Cancel",
+      "warning_title": "Warning:",
+      "warning_body": "Cancellation permanently interrupts the transfer.",
+      "cancelled_by_user": "(Cancelled by user)"
+    },
+    "message_menu": {
+      "title": "Message options",
+      "info": "Information",
+      "delete": "Delete"
+    },
+    "reactions": {
+      "title": "React with {{emoji}}"
+    },
+    "file_message": {
+      "size": "Size:",
+      "unknown_size": "Unknown",
+      "status_sending": "Sending...",
+      "status_sent": "Sent",
+      "status_receiving": "Receiving...",
+      "status_pending": "Pending",
+      "sending": "Sending",
+      "receiving": "Receiving"
+    },
+    "new_messages_button": {
+      "aria_label": "Go to new messages",
+      "text_one": "{{count}} new message",
+      "text_other": "{{count}} new messages"
+    },
+    "input": {
+      "remove_file": "Remove file",
+      "file_disabled_offline": "Peer offline - file sending unavailable",
+      "attach_file": "Attach file",
+      "file_too_large": "The file is too large. Maximum allowed size: {{maxSize}} MB\n\nNote: Files are automatically compressed before sending to optimize the transfer.",
+      "selected_file": "Selected file: {{fileName}}",
+      "placeholder": "Type your message...",
+      "placeholder_offline": "User offline - message sending disabled",
+      "aria_label": "Message input",
+      "add_emoji": "Add emoji",
+      "record_voice": "Record a voice message",
+      "peer_offline_warning": "{{peerName}} is offline. Sending messages is disabled."
+    }
+  },
+  "connectionStatus": {
+    "reconnecting": "Reconnecting...",
+    "disconnected": "Disconnected",
+    "reconnect": "Reconnect"
+  },
+  "conversationList": {
+    "title": "Conversations ({{count}})",
+    "search_placeholder": "Search by name or message...",
+    "clear_search_aria": "Clear search",
+    "clear_search_title": "Clear",
+    "no_conversations_title": "No conversations",
+    "no_conversations_prompt": "Select a peer to start",
+    "loading": "Loading...",
+    "delete_confirm": "Are you sure you want to delete this conversation?",
+    "last_message_none": "No messages",
+    "last_message_file": "📎 Shared file",
+    "user_default_name": "User",
+    "gender": {
+      "male": "Male",
+      "female": "Female",
+      "other": "Other"
+    },
+    "age_suffix": "yo",
+    "delete_button_title": "Delete this conversation",
+    "delete_button_aria": "Delete"
+  },
+  "diagnosticPanel": {
+    "title": "NoNetChat Diagnostics",
+    "close": "Close",
+    "resize": "Resize",
+    "connectivity_tests": "Connectivity Tests",
+    "testing_in_progress": "Testing...",
+    "test_connectivity": "Test Connectivity",
+    "signaling": "Signaling",
+    "ok": "OK",
+    "fail": "FAIL",
+    "stun_servers": "STUN Servers:",
+    "network_info": "Network Info:",
+    "logs_title": "Real-time Logs",
+    "auto_scroll": "Auto-scroll",
+    "clear": "Clear",
+    "export": "Export",
+    "no_logs": "No logs available. Logs will appear here in real-time.",
+    "instructions_title": "Instructions:",
+    "instructions_body": "1) Run \"Test Connectivity\". 2) Monitor the logs. 3) Export to share."
+  },
+  "filePreview": {
+    "unknown_size": "unknown size",
+    "file_not_found": "File not found in local database.",
+    "clipboard_error": "Could not copy text to clipboard.",
+    "audio_error": "Could not play this audio file.",
+    "default_filename": "file",
+    "unplayable_audio": "This audio format may not be playable in this browser. You can download it above.",
+    "hide_preview": "Hide preview",
+    "show_preview": "Show preview",
+    "loading": "Loading…",
+    "unknown_type": "unknown type",
+    "download": "Download",
+    "open_in_new_tab": "Open in new tab",
+    "copy_text": "Copy text",
+    "preview_unavailable": "Preview unavailable for this file type.",
+    "change_speed": "Change speed",
+    "media_album": "Attachments"
+  },
+  "messageStatus": {
+    "sending": "Sending...",
+    "sent": "Sent",
+    "delivered": "Delivered",
+    "read": "Read",
+    "error": "Error"
+  },
+  "notificationSettings": {
+    "title": "Notification Settings",
+    "general": "General Notifications",
+    "enable_notifications": "Enable notifications",
+    "enable_notifications_description": "Receive notifications for new messages",
+    "sound": "Notification sounds",
+    "sound_description": "Play a sound when receiving messages",
+    "system": "System notifications",
+    "system_description": "Show notifications in the browser",
+    "authorize": "Authorize",
+    "dnd": "Do Not Disturb mode",
+    "dnd_description": "Temporarily disable all notifications",
+    "tips_title": "💡 Tips:",
+    "tip1": "• System notifications only work if the tab is open",
+    "tip2": "• \"Do Not Disturb\" mode disables all notifications",
+    "tip3": "• Settings are saved automatically",
+    "close": "Close"
+  },
+  "peerList": {
+    "title": "Connected Peers ({{count}})",
+    "filter_by_gender": "Filter by gender",
+    "all_genders": "All genders",
+    "male": "Men",
+    "female": "Women",
+    "other_gender": "Other / Not specified",
+    "sort_by": "Sort by",
+    "distance_asc": "Distance (↑)",
+    "distance_desc": "Distance (↓)",
+    "age_asc": "Age (↑)",
+    "age_desc": "Age (↓)",
+    "connection_required_title": "Connection required",
+    "connection_required_body": "Connect to the signaling server",
+    "no_peers_title": "No peers online",
+    "no_peers_body": "Adjust the filters above",
+    "user_default_name": "User",
+    "estimated_distance": "Estimated distance",
+    "gender_title": "Gender: {{gender}}",
+    "age_suffix": "yo",
+    "view_profile": "View profile",
+    "start_conversation": "Start a conversation",
+    "join_time": {
+      "unknown": "Unknown",
+      "now": "Just now",
+      "minutes_ago": "{{count}} min ago",
+      "hours_ago": "{{count}}h ago"
+    },
+    "tooltip": {
+      "status": "Status:",
+      "age": "Age:",
+      "gender": "Gender:",
+      "distance": "Distance:",
+      "connected": "Connected:"
+    },
+    "modal": {
+      "title": "{{name}}'s Profile",
+      "close": "Close",
+      "connected_since": "Connected since:"
+    }
+  },
+  "profileModal": {
+    "title": "Your Profile",
+    "close_aria": "Close",
+    "username_cannot_be_empty": "Username cannot be empty.",
+    "select_valid_image": "Please select a valid image.",
+    "avatar_alt": "Avatar",
+    "change_avatar_title": "Change avatar",
+    "refresh_avatar_title": "Generate a new default avatar",
+    "optimizing_image": "Optimizing image…",
+    "username_label": "Username",
+    "age_label": "Age",
+    "gender_label": "Gender",
+    "gender_unspecified": "Not specified",
+    "gender_male": "Male",
+    "gender_female": "Female",
+    "gender_other": "Other",
+    "cancel": "Cancel",
+    "save": "Save"
+  },
+  "publicChatWindow": {
+    "back": "Back",
+    "default_user_name": "User",
+    "placeholder": "Public message...",
+    "gender_male_short": "M",
+    "gender_female_short": "F",
+    "gender_other": "Other",
+    "age_suffix": "yo"
+  },
+  "statusBar": {
+    "peers_connected_aria_one": "{{count}} peer connected",
+    "peers_connected_aria_other": "{{count}} peers connected",
+    "peers_connected_text": "peer(s)",
+    "id": "ID:",
+    "full_id_title": "Full ID: {{clientId}}",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "open_diagnostic_panel": "Open diagnostic panel",
+    "change_signaling_server": "Change signaling server"
+  },
+  "voiceRecorder": {
+    "voice_note": "Voice note",
+    "mic_error": "Could not access the microphone. Check browser permissions.",
+    "idle_title_click": "Click: record (locked) • Enter: send • Esc: cancel",
+    "idle_title_hold": "Long press to record • Slide ← to cancel • Slide ↑ to lock",
+    "record_aria": "Record a voice message",
+    "hint_slide_cancel": "Slide left to cancel",
+    "hint_slide_lock": "Slide up to lock",
+    "cancel_aria": "Cancel recording",
+    "cancel_title": "Cancel",
+    "lock_aria": "Lock recording",
+    "lock_title": "Lock",
+    "send_aria": "Send voice note",
+    "send_title": "Send",
+    "locked": "locked",
+    "mobile_hint_lock": "Lock",
+    "mobile_hint_cancel": "Slide ← to cancel"
+  },
+  "languageSelector": {
+    "label": "Language",
+    "description": "Language will be automatically saved and detected on your next visit."
+  }
+}

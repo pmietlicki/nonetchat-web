@@ -1,0 +1,343 @@
+{
+  "app": {
+    "initializing": "Inaanzisha huduma...",
+    "tagline": "Ujumbe wa moja kwa moja",
+    "status": {
+      "connected": "Imeunganishwa",
+      "disconnected": "Imekatika"
+    },
+    "install": "Sakinisha",
+    "install_aria": "Sakinisha programu"
+  },
+  "geolocationError": {
+    "activate": "Washa eneo",
+    "close_alert": "Funga arifa",
+    "unavailable_location": "Imeshindwa kubaini nchi/jiji lako. Utafutaji uliopanuliwa umezimwa.",
+    "gps_failed": "GPS imeshindwa. Inatumia eneo la takriban kupitia IP.",
+    "permission_denied": "Ufikiaji wa eneo la kijiografia umekataliwa. Programu haiwezi kupata wenzao walio karibu.",
+    "position_unavailable": "Imeshindwa kupata nafasi yako ya sasa. Angalia muunganisho wa mtandao au mipangilio ya eneo.",
+    "timeout": "Muda wa kutafuta nafasi umeisha. Tafadhali jaribu tena.",
+    "unknown": "Hitilafu isiyojulikana wakati wa kupata nafasi yako."
+  },
+  "user": {
+    "default_name": "Mtumiaji"
+  },
+  "file": {
+    "receiving": "(Inapokea...)"
+  },
+  "tabs": {
+    "peers": "Wenza",
+    "public_chat": "Umma",
+    "conversations": "Ujumbe"
+  },
+  "publicChat": {
+    "title": "Soga ya Umma",
+    "description": "Ujumbe hapa ni wa muda mfupi na unaonekana kwa kila mtu katika eneo lako la sasa."
+  },
+  "settings": {
+    "title": "Mipangilio",
+    "close_aria": "Funga mipangilio",
+    "profile_shortcut_title": "Wasifu haujakamilika",
+    "profile_shortcut_description": "Hariri jina / avatar yako",
+    "edit": "Hariri",
+    "signaling_url_label": "URL ya seva ya kuashiria",
+    "signaling_url_placeholder": "wss://your-server.com",
+    "discovery_mode_label": "Hali ya utafutaji",
+    "radius_km": "Eneo (km)",
+    "city": "Jiji",
+    "country": "Nchi nzima",
+    "unavailable": "(haipatikani)",
+    "cancel": "Ghairi",
+    "save": "Hifadhi"
+  },
+  "header": {
+    "logo_alt": "Nembo ya NoNetChat",
+    "notifications_aria": "Mipangilio ya arifa",
+    "settings_aria": "Mipangilio",
+    "profile_aria": "Hariri wasifu wako",
+    "home_aria": "Rudi nyumbani"
+  },
+  "main": {
+    "connecting_to_peer": "Inaunganisha...",
+    "establishing_connection": "Inaanzisha muunganisho na mwenza aliyechaguliwa.",
+    "connecting_to_server": "Inaunganisha kwenye seva ya kuashiria...",
+    "select_peer_prompt": "Chagua mwenza ili kuanzisha mazungumzo ya moja kwa moja na salama."
+  },
+  "bottomNav": {
+    "peers": "Wenza",
+    "public_chat": "Soga ya Umma",
+    "public_chat_short": "Umma",
+    "messages": "Ujumbe",
+    "settings": "Mipangilio",
+    "notifications": "Arifa",
+    "notifications_short": "Arifa"
+  },
+  "chat": {
+    "voice_note": "Ujumbe wa sauti",
+    "sending_in_progress": "(Inatuma...)",
+    "sending_progress": "(Inatuma: {{progress}}%)",
+    "sending_error": "(Hitilafu ya kutuma)",
+    "receiving_in_progress": "(Inapokea...)",
+    "file_size_error": "Ukubwa wa faili si sahihi: p字节okelewa, {{expectedSize}} baiti zinatarajiwa (tofauti: {{sizeDifference}})",
+    "decryption_empty_error": "Faili iliyofunguliwa haina kitu",
+    "decryption_error": "Hitilafu: Imeshindwa kufungua {{fileName}}",
+    "delete_message_confirm": "Una uhakika unataka kufuta ujumbe huu?",
+    "delete_conversation_confirm": "Una uhakika unataka kufuta mazungumzo haya yote?",
+    "message_info_title": "Taarifa",
+    "message_info_content": "Kitambulisho: {{id}}\nAIina: {{type}}\nImetumwa: {{timestamp}}\nHali: {{status}}",
+    "message_status_sent": "Imetumwa",
+    "send_aria_label_offline": "Mtumiaji hayuko mtandaoni - kutuma kumezimwa",
+    "send_aria_label_file": "Tuma faili",
+    "send_aria_label_message": "Tuma ujumbe",
+    "download_link": {
+      "not_found": "Faili haipatikani kwenye hifadhidata ya ndani.",
+      "error": "Hitilafu ilitokea wakati wa kupakua.",
+      "loading": "Inapakia...",
+      "download": "📥 Pakua",
+      "title": "Pakua faili"
+    },
+    "header": {
+      "back": "Nyuma",
+      "online": "Mtandaoni",
+      "offline": "Nje ya mtandao",
+      "delete_conversation_title": "Futa mazungumzo",
+      "cancel_transfers_title": "Ghairi uhamishaji unaoendelea"
+    },
+    "cancel_transfers": {
+      "title": "Uhamishaji unaoendelea",
+      "receiving_progress": "Inapokea: {{progress}}%",
+      "sending_progress": "Inatuma: {{progress}}%",
+      "cancel": "Ghairi",
+      "warning_title": "Onyo:",
+      "warning_body": "Kughairi kunakatiza uhamishaji kabisa.",
+      "cancelled_by_user": "(Imeghairiwa na mtumiaji)"
+    },
+    "message_menu": {
+      "title": "Chaguo za ujumbe",
+      "info": "Taarifa",
+      "delete": "Futa"
+    },
+    "reactions": {
+      "title": "Jibu na {{emoji}}"
+    },
+    "file_message": {
+      "size": "Ukubwa:",
+      "unknown_size": "Haijulikani",
+      "status_sending": "Inatuma...",
+      "status_sent": "Imetumwa",
+      "status_receiving": "Inapokea...",
+      "status_pending": "Inasubiri",
+      "sending": "Inatuma",
+      "receiving": "Inapokea"
+    },
+    "new_messages_button": {
+      "aria_label": "Nenda kwenye ujumbe mpya",
+      "text_one": "{{count}} ujumbe mpya",
+      "text_other": "{{count}} ujumbe mpya"
+    },
+    "input": {
+      "remove_file": "Ondoa faili",
+      "file_disabled_offline": "Mwenza hayuko mtandaoni - kutuma faili hakupatikani",
+      "attach_file": "Ambatisha faili",
+      "file_too_large": "Faili ni kubwa mno. Ukubwa wa juu unaoruhusiwa: {{maxSize}} MB\n\nKumbuka: Faili hubanwa kiotomatiki kabla ya kutumwa ili kuboresha uhamishaji.",
+      "selected_file": "Faili iliyochaguliwa: {{fileName}}",
+      "placeholder": "Andika ujumbe wako...",
+      "placeholder_offline": "Mtumiaji hayuko mtandaoni - kutuma ujumbe kumezimwa",
+      "aria_label": "Ingizo la ujumbe",
+      "add_emoji": "Ongeza emoji",
+      "record_voice": "Rekodi ujumbe wa sauti",
+      "peer_offline_warning": "{{peerName}} hayuko mtandaoni. Kutuma ujumbe kumezimwa."
+    }
+  },
+  "connectionStatus": {
+    "reconnecting": "Inaunganisha tena...",
+    "disconnected": "Imekatika",
+    "reconnect": "Unganisha tena"
+  },
+  "conversationList": {
+    "title": "Mazungumzo ({{count}})",
+    "search_placeholder": "Tafuta kwa jina au ujumbe...",
+    "clear_search_aria": "Futa utafutaji",
+    "clear_search_title": "Futa",
+    "no_conversations_title": "Hakuna mazungumzo",
+    "no_conversations_prompt": "Chagua mwenza ili kuanza",
+    "loading": "Inapakia...",
+    "delete_confirm": "Una uhakika unataka kufuta mazungumzo haya?",
+    "last_message_none": "Hakuna ujumbe",
+    "last_message_file": "📎 Faili iliyoshirikiwa",
+    "user_default_name": "Mtumiaji",
+    "gender": {
+      "male": "Mwanamume",
+      "female": "Mwanamke",
+      "other": "Nyingine"
+    },
+    "age_suffix": "miaka",
+    "delete_button_title": "Futa mazungumzo haya",
+    "delete_button_aria": "Futa"
+  },
+  "diagnosticPanel": {
+    "title": "Uchunguzi wa NoNetChat",
+    "close": "Funga",
+    "resize": "Badilisha ukubwa",
+    "connectivity_tests": "Majaribio ya Muunganisho",
+    "testing_in_progress": "Inajaribu...",
+    "test_connectivity": "Jaribu Muunganisho",
+    "signaling": "Kuashiria",
+    "ok": "Sawa",
+    "fail": "IMESHINDWA",
+    "stun_servers": "Seva za STUN:",
+    "network_info": "Maelezo ya Mtandao:",
+    "logs_title": "Kumbukumbu za Wakati Halisi",
+    "auto_scroll": "Kusogeza kiotomatiki",
+    "clear": "Futa",
+    "export": "Hamisha",
+    "no_logs": "Hakuna kumbukumbu zinazopatikana. Kumbukumbu zitaonekana hapa kwa wakati halisi.",
+    "instructions_title": "Maagizo:",
+    "instructions_body": "1) Endesha \"Jaribu Muunganisho\". 2) Fuatilia kumbukumbu. 3) Hamisha ili kushiriki."
+  },
+  "filePreview": {
+    "unknown_size": "ukubwa haujulikani",
+    "file_not_found": "Faili haipatikani kwenye hifadhidata ya ndani.",
+    "clipboard_error": "Imeshindwa kunakili maandishi kwenye ubao wa kunakili.",
+    "audio_error": "Imeshindwa kucheza faili hii ya sauti.",
+    "default_filename": "faili",
+    "unplayable_audio": "Umbizo hili la sauti huenda lisiweze kuchezwa kwenye kivinjari hiki. Unaweza kulipakua hapo juu.",
+    "hide_preview": "Ficha onyesho la kukagua",
+    "show_preview": "Onyesha onyesho la kukagua",
+    "loading": "Inapakia…",
+    "unknown_type": "aina isiyojulikana",
+    "download": "Pakua",
+    "open_in_new_tab": "Fungua kwenye kichupo kipya",
+    "copy_text": "Nakili maandishi",
+    "preview_unavailable": "Onyesho la kukagua halipatikani kwa aina hii ya faili.",
+    "change_speed": "Badilisha kasi",
+    "media_album": "Viambatisho"
+  },
+  "messageStatus": {
+    "sending": "Inatuma...",
+    "sent": "Imetumwa",
+    "delivered": "Imewasilishwa",
+    "read": "Imesomwa",
+    "error": "Hitilafu"
+  },
+  "notificationSettings": {
+    "title": "Mipangilio ya Arifa",
+    "general": "Arifa za Jumla",
+    "enable_notifications": "Washa arifa",
+    "enable_notifications_description": "Pokea arifa za ujumbe mpya",
+    "sound": "Sauti za arifa",
+    "sound_description": "Cheza sauti unapopokea ujumbe",
+    "system": "Arifa za mfumo",
+    "system_description": "Onyesha arifa kwenye kivinjari",
+    "authorize": "Idhinisha",
+    "dnd": "Hali ya Usinisumbue",
+    "dnd_description": "Zima arifa zote kwa muda",
+    "tips_title": "💡 Vidokezo:",
+    "tip1": "• Arifa za mfumo hufanya kazi tu ikiwa kichupo kiko wazi",
+    "tip2": "• Hali ya \"Usinisumbue\" huzima arifa zote",
+    "tip3": "• Mipangilio huhifadhiwa kiotomatiki",
+    "close": "Funga"
+  },
+  "peerList": {
+    "title": "Wenza Waliojiunga ({{count}})",
+    "filter_by_gender": "Chuja kwa jinsia",
+    "all_genders": "Jinsia zote",
+    "male": "Wanaume",
+    "female": "Wanawake",
+    "other_gender": "Nyingine / Haijabainishwa",
+    "sort_by": "Panga kwa",
+    "distance_asc": "Umbali (↑)",
+    "distance_desc": "Umbali (↓)",
+    "age_asc": "Umri (↑)",
+    "age_desc": "Umri (↓)",
+    "connection_required_title": "Muunganisho unahitajika",
+    "connection_required_body": "Unganisha kwenye seva ya kuashiria",
+    "no_peers_title": "Hakuna wenza mtandaoni",
+    "no_peers_body": "Rekebisha vichujio hapo juu",
+    "user_default_name": "Mtumiaji",
+    "estimated_distance": "Umbali wa makadirio",
+    "gender_title": "Jinsia: {{gender}}",
+    "age_suffix": "miaka",
+    "view_profile": "Tazama wasifu",
+    "start_conversation": "Anzisha mazungumzo",
+    "join_time": {
+      "unknown": "Haijulikani",
+      "now": "Sasa hivi",
+      "minutes_ago": "dakika {{count}} zilizopita",
+      "hours_ago": "saa {{count}} zilizopita"
+    },
+    "tooltip": {
+      "status": "Hali:",
+      "age": "Umri:",
+      "gender": "Jinsia:",
+      "distance": "Umbali:",
+      "connected": "Imeunganishwa:"
+    },
+    "modal": {
+      "title": "Wasifu wa {{name}}",
+      "close": "Funga",
+      "connected_since": "Imeunganishwa tangu:"
+    }
+  },
+  "profileModal": {
+    "title": "Wasifu Wako",
+    "close_aria": "Funga",
+    "username_cannot_be_empty": "Jina la mtumiaji haliwezi kuwa tupu.",
+    "select_valid_image": "Tafadhali chagua picha halali.",
+    "avatar_alt": "Avatar",
+    "change_avatar_title": "Badilisha avatar",
+    "refresh_avatar_title": "Tengeneza avatar mpya ya msingi",
+    "optimizing_image": "Inaboresha picha…",
+    "username_label": "Jina la mtumiaji",
+    "age_label": "Umri",
+    "gender_label": "Jinsia",
+    "gender_unspecified": "Haijabainishwa",
+    "gender_male": "Mwanamume",
+    "gender_female": "Mwanamke",
+    "gender_other": "Nyingine",
+    "cancel": "Ghairi",
+    "save": "Hifadhi"
+  },
+  "publicChatWindow": {
+    "back": "Nyuma",
+    "default_user_name": "Mtumiaji",
+    "placeholder": "Ujumbe wa umma...",
+    "gender_male_short": "M",
+    "gender_female_short": "Mke",
+    "gender_other": "Nyingine",
+    "age_suffix": "miaka"
+  },
+  "statusBar": {
+    "peers_connected_aria_one": "{{count}} mwenza ameunganishwa",
+    "peers_connected_aria_other": "{{count}} wenza wameunganishwa",
+    "peers_connected_text": "mwenza(o)",
+    "id": "Kitambulisho:",
+    "full_id_title": "Kitambulisho Kamili: {{clientId}}",
+    "connected": "Imeunganishwa",
+    "disconnected": "Imekatika",
+    "open_diagnostic_panel": "Fungua paneli ya uchunguzi",
+    "change_signaling_server": "Badilisha seva ya kuashiria"
+  },
+  "voiceRecorder": {
+    "voice_note": "Ujumbe wa sauti",
+    "mic_error": "Imeshindwa kufikia maikrofoni. Angalia ruhusa za kivinjari.",
+    "idle_title_click": "Bofya: rekodi (imefungwa) • Ingiza: tuma • Esc: ghairi",
+    "idle_title_hold": "Bonyeza kwa muda mrefu kurekodi • Telezesha ← ili kughairi • Telezesha ↑ ili kufunga",
+    "record_aria": "Rekodi ujumbe wa sauti",
+    "hint_slide_cancel": "Telezesha kushoto ili kughairi",
+    "hint_slide_lock": "Telezesha juu ili kufunga",
+    "cancel_aria": "Ghairi kurekodi",
+    "cancel_title": "Ghairi",
+    "lock_aria": "Funga kurekodi",
+    "lock_title": "Funga",
+    "send_aria": "Tuma ujumbe wa sauti",
+    "send_title": "Tuma",
+    "locked": "imefungwa",
+    "mobile_hint_lock": "Funga",
+    "mobile_hint_cancel": "Telezesha ← ili kughairi"
+  },
+  "languageSelector": {
+    "label": "Lugha",
+    "description": "Lugha itahifadhiwa kiotomatiki na kutambuliwa katika ziara yako ijayo."
+  }
+}

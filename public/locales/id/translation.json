@@ -1,0 +1,343 @@
+{
+  "app": {
+    "initializing": "Menginisialisasi layanan...",
+    "tagline": "Pesan langsung",
+    "status": {
+      "connected": "Terhubung",
+      "disconnected": "Terputus"
+    },
+    "install": "Instal",
+    "install_aria": "Instal aplikasi"
+  },
+  "geolocationError": {
+    "activate": "Aktifkan lokasi",
+    "close_alert": "Tutup peringatan",
+    "unavailable_location": "Tidak dapat menentukan negara/kota Anda. Pencarian yang diperluas dinonaktifkan.",
+    "gps_failed": "GPS gagal. Menggunakan perkiraan lokasi melalui IP.",
+    "permission_denied": "Akses ke geolokasi ditolak. Aplikasi tidak dapat menemukan rekan terdekat.",
+    "position_unavailable": "Tidak bisa mendapatkan posisi Anda saat ini. Periksa koneksi jaringan atau pengaturan lokasi.",
+    "timeout": "Waktu pencarian posisi habis. Silakan coba lagi.",
+    "unknown": "Kesalahan tidak diketahui saat mengambil posisi Anda."
+  },
+  "user": {
+    "default_name": "Pengguna"
+  },
+  "file": {
+    "receiving": "(Menerima...)"
+  },
+  "tabs": {
+    "peers": "Rekan",
+    "public_chat": "Publik",
+    "conversations": "Pesan"
+  },
+  "publicChat": {
+    "title": "Obrolan Publik",
+    "description": "Pesan di sini bersifat sementara dan dapat dilihat oleh semua orang di area Anda saat ini."
+  },
+  "settings": {
+    "title": "Pengaturan",
+    "close_aria": "Tutup pengaturan",
+    "profile_shortcut_title": "Profil belum lengkap",
+    "profile_shortcut_description": "Edit nama / avatar Anda",
+    "edit": "Edit",
+    "signaling_url_label": "URL server sinyal",
+    "signaling_url_placeholder": "wss://your-server.com",
+    "discovery_mode_label": "Mode pencarian",
+    "radius_km": "Radius (km)",
+    "city": "Kota",
+    "country": "Seluruh negara",
+    "unavailable": "(tidak tersedia)",
+    "cancel": "Batal",
+    "save": "Simpan"
+  },
+  "header": {
+    "logo_alt": "Logo NoNetChat",
+    "notifications_aria": "Pengaturan notifikasi",
+    "settings_aria": "Pengaturan",
+    "profile_aria": "Edit profil Anda",
+    "home_aria": "Kembali ke beranda"
+  },
+  "main": {
+    "connecting_to_peer": "Menyambungkan...",
+    "establishing_connection": "Membangun koneksi dengan rekan yang dipilih.",
+    "connecting_to_server": "Menyambungkan ke server sinyal...",
+    "select_peer_prompt": "Pilih rekan untuk memulai percakapan langsung dan aman."
+  },
+  "bottomNav": {
+    "peers": "Rekan",
+    "public_chat": "Obrolan Publik",
+    "public_chat_short": "Publik",
+    "messages": "Pesan",
+    "settings": "Pengaturan",
+    "notifications": "Notifikasi",
+    "notifications_short": "Notif."
+  },
+  "chat": {
+    "voice_note": "Catatan suara",
+    "sending_in_progress": "(Mengirim...)",
+    "sending_progress": "(Mengirim: {{progress}}%)",
+    "sending_error": "(Kesalahan pengiriman)",
+    "receiving_in_progress": "(Menerima...)",
+    "file_size_error": "Ukuran file salah: diterima {{totalSize}} byte, diharapkan {{expectedSize}} byte (selisih: {{sizeDifference}})",
+    "decryption_empty_error": "File yang didekripsi kosong",
+    "decryption_error": "Kesalahan: Tidak dapat mendekripsi {{fileName}}",
+    "delete_message_confirm": "Apakah Anda yakin ingin menghapus pesan ini?",
+    "delete_conversation_confirm": "Apakah Anda yakin ingin menghapus seluruh percakapan ini?",
+    "message_info_title": "Informasi",
+    "message_info_content": "ID: {{id}}\nJenis: {{type}}\nTerkirim: {{timestamp}}\nStatus: {{status}}",
+    "message_status_sent": "Terkirim",
+    "send_aria_label_offline": "Pengguna offline - pengiriman dinonaktifkan",
+    "send_aria_label_file": "Kirim file",
+    "send_aria_label_message": "Kirim pesan",
+    "download_link": {
+      "not_found": "File tidak ditemukan di database lokal.",
+      "error": "Terjadi kesalahan saat mengunduh.",
+      "loading": "Memuat...",
+      "download": "📥 Unduh",
+      "title": "Unduh file"
+    },
+    "header": {
+      "back": "Kembali",
+      "online": "Online",
+      "offline": "Offline",
+      "delete_conversation_title": "Hapus percakapan",
+      "cancel_transfers_title": "Batalkan transfer yang sedang berlangsung"
+    },
+    "cancel_transfers": {
+      "title": "Transfer yang sedang berlangsung",
+      "receiving_progress": "Menerima: {{progress}}%",
+      "sending_progress": "Mengirim: {{progress}}%",
+      "cancel": "Batal",
+      "warning_title": "Peringatan:",
+      "warning_body": "Pembatalan akan menghentikan transfer secara permanen.",
+      "cancelled_by_user": "(Dibatalkan oleh pengguna)"
+    },
+    "message_menu": {
+      "title": "Opsi pesan",
+      "info": "Informasi",
+      "delete": "Hapus"
+    },
+    "reactions": {
+      "title": "Bereaksi dengan {{emoji}}"
+    },
+    "file_message": {
+      "size": "Ukuran:",
+      "unknown_size": "Tidak diketahui",
+      "status_sending": "Mengirim...",
+      "status_sent": "Terkirim",
+      "status_receiving": "Menerima...",
+      "status_pending": "Tertunda",
+      "sending": "Mengirim",
+      "receiving": "Menerima"
+    },
+    "new_messages_button": {
+      "aria_label": "Buka pesan baru",
+      "text_one": "{{count}} pesan baru",
+      "text_other": "{{count}} pesan baru"
+    },
+    "input": {
+      "remove_file": "Hapus file",
+      "file_disabled_offline": "Rekan offline - pengiriman file tidak tersedia",
+      "attach_file": "Lampirkan file",
+      "file_too_large": "File terlalu besar. Ukuran maksimum yang diizinkan: {{maxSize}} MB\n\nCatatan: File secara otomatis dikompresi sebelum dikirim untuk mengoptimalkan transfer.",
+      "selected_file": "File yang dipilih: {{fileName}}",
+      "placeholder": "Ketik pesan Anda...",
+      "placeholder_offline": "Pengguna offline - pengiriman pesan dinonaktifkan",
+      "aria_label": "Input pesan",
+      "add_emoji": "Tambahkan emoji",
+      "record_voice": "Rekam pesan suara",
+      "peer_offline_warning": "{{peerName}} sedang offline. Pengiriman pesan dinonaktifkan."
+    }
+  },
+  "connectionStatus": {
+    "reconnecting": "Menyambungkan kembali...",
+    "disconnected": "Terputus",
+    "reconnect": "Sambungkan kembali"
+  },
+  "conversationList": {
+    "title": "Percakapan ({{count}})",
+    "search_placeholder": "Cari berdasarkan nama atau pesan...",
+    "clear_search_aria": "Hapus pencarian",
+    "clear_search_title": "Hapus",
+    "no_conversations_title": "Tidak ada percakapan",
+    "no_conversations_prompt": "Pilih rekan untuk memulai",
+    "loading": "Memuat...",
+    "delete_confirm": "Apakah Anda yakin ingin menghapus percakapan ini?",
+    "last_message_none": "Tidak ada pesan",
+    "last_message_file": "📎 File bersama",
+    "user_default_name": "Pengguna",
+    "gender": {
+      "male": "Pria",
+      "female": "Wanita",
+      "other": "Lainnya"
+    },
+    "age_suffix": "thn",
+    "delete_button_title": "Hapus percakapan ini",
+    "delete_button_aria": "Hapus"
+  },
+  "diagnosticPanel": {
+    "title": "Diagnostik NoNetChat",
+    "close": "Tutup",
+    "resize": "Ubah ukuran",
+    "connectivity_tests": "Tes Konektivitas",
+    "testing_in_progress": "Menguji...",
+    "test_connectivity": "Uji Konektivitas",
+    "signaling": "Sinyal",
+    "ok": "OK",
+    "fail": "GAGAL",
+    "stun_servers": "Server STUN:",
+    "network_info": "Info Jaringan:",
+    "logs_title": "Log Real-time",
+    "auto_scroll": "Gulir otomatis",
+    "clear": "Hapus",
+    "export": "Ekspor",
+    "no_logs": "Tidak ada log yang tersedia. Log akan muncul di sini secara real-time.",
+    "instructions_title": "Instruksi:",
+    "instructions_body": "1) Jalankan \"Uji Konektivitas\". 2) Pantau log. 3) Ekspor untuk dibagikan."
+  },
+  "filePreview": {
+    "unknown_size": "ukuran tidak diketahui",
+    "file_not_found": "File tidak ditemukan di database lokal.",
+    "clipboard_error": "Tidak dapat menyalin teks ke clipboard.",
+    "audio_error": "Tidak dapat memutar file audio ini.",
+    "default_filename": "file",
+    "unplayable_audio": "Format audio ini mungkin tidak dapat diputar di browser ini. Anda dapat mengunduhnya di atas.",
+    "hide_preview": "Sembunyikan pratinjau",
+    "show_preview": "Tampilkan pratinjau",
+    "loading": "Memuat…",
+    "unknown_type": "tipe tidak dikenal",
+    "download": "Unduh",
+    "open_in_new_tab": "Buka di tab baru",
+    "copy_text": "Salin teks",
+    "preview_unavailable": "Pratinjau tidak tersedia untuk jenis file ini.",
+    "change_speed": "Ubah kecepatan",
+    "media_album": "Lampiran"
+  },
+  "messageStatus": {
+    "sending": "Mengirim...",
+    "sent": "Terkirim",
+    "delivered": "Terkirim",
+    "read": "Dibaca",
+    "error": "Kesalahan"
+  },
+  "notificationSettings": {
+    "title": "Pengaturan Notifikasi",
+    "general": "Notifikasi Umum",
+    "enable_notifications": "Aktifkan notifikasi",
+    "enable_notifications_description": "Terima notifikasi untuk pesan baru",
+    "sound": "Suara notifikasi",
+    "sound_description": "Putar suara saat menerima pesan",
+    "system": "Notifikasi sistem",
+    "system_description": "Tampilkan notifikasi di browser",
+    "authorize": "Otorisasi",
+    "dnd": "Mode Jangan Ganggu",
+    "dnd_description": "Nonaktifkan sementara semua notifikasi",
+    "tips_title": "💡 Tips:",
+    "tip1": "• Notifikasi sistem hanya berfungsi jika tab terbuka",
+    "tip2": "• Mode \"Jangan Ganggu\" menonaktifkan semua notifikasi",
+    "tip3": "• Pengaturan disimpan secara otomatis",
+    "close": "Tutup"
+  },
+  "peerList": {
+    "title": "Rekan Terhubung ({{count}})",
+    "filter_by_gender": "Filter berdasarkan jenis kelamin",
+    "all_genders": "Semua jenis kelamin",
+    "male": "Pria",
+    "female": "Wanita",
+    "other_gender": "Lainnya / Tidak ditentukan",
+    "sort_by": "Urutkan berdasarkan",
+    "distance_asc": "Jarak (↑)",
+    "distance_desc": "Jarak (↓)",
+    "age_asc": "Usia (↑)",
+    "age_desc": "Usia (↓)",
+    "connection_required_title": "Koneksi diperlukan",
+    "connection_required_body": "Hubungkan ke server sinyal",
+    "no_peers_title": "Tidak ada rekan online",
+    "no_peers_body": "Sesuaikan filter di atas",
+    "user_default_name": "Pengguna",
+    "estimated_distance": "Perkiraan jarak",
+    "gender_title": "Jenis Kelamin: {{gender}}",
+    "age_suffix": "thn",
+    "view_profile": "Lihat profil",
+    "start_conversation": "Mulai percakapan",
+    "join_time": {
+      "unknown": "Tidak diketahui",
+      "now": "Baru saja",
+      "minutes_ago": "{{count}} menit yang lalu",
+      "hours_ago": "{{count}} jam yang lalu"
+    },
+    "tooltip": {
+      "status": "Status:",
+      "age": "Usia:",
+      "gender": "Jenis Kelamin:",
+      "distance": "Jarak:",
+      "connected": "Terhubung:"
+    },
+    "modal": {
+      "title": "Profil {{name}}",
+      "close": "Tutup",
+      "connected_since": "Terhubung sejak:"
+    }
+  },
+  "profileModal": {
+    "title": "Profil Anda",
+    "close_aria": "Tutup",
+    "username_cannot_be_empty": "Nama pengguna tidak boleh kosong.",
+    "select_valid_image": "Silakan pilih gambar yang valid.",
+    "avatar_alt": "Avatar",
+    "change_avatar_title": "Ubah avatar",
+    "refresh_avatar_title": "Hasilkan avatar default baru",
+    "optimizing_image": "Mengoptimalkan gambar…",
+    "username_label": "Nama pengguna",
+    "age_label": "Usia",
+    "gender_label": "Jenis Kelamin",
+    "gender_unspecified": "Tidak ditentukan",
+    "gender_male": "Pria",
+    "gender_female": "Wanita",
+    "gender_other": "Lainnya",
+    "cancel": "Batal",
+    "save": "Simpan"
+  },
+  "publicChatWindow": {
+    "back": "Kembali",
+    "default_user_name": "Pengguna",
+    "placeholder": "Pesan publik...",
+    "gender_male_short": "P",
+    "gender_female_short": "W",
+    "gender_other": "Lainnya",
+    "age_suffix": "thn"
+  },
+  "statusBar": {
+    "peers_connected_aria_one": "{{count}} rekan terhubung",
+    "peers_connected_aria_other": "{{count}} rekan terhubung",
+    "peers_connected_text": "rekan",
+    "id": "ID:",
+    "full_id_title": "ID Lengkap: {{clientId}}",
+    "connected": "Terhubung",
+    "disconnected": "Terputus",
+    "open_diagnostic_panel": "Buka panel diagnostik",
+    "change_signaling_server": "Ubah server sinyal"
+  },
+  "voiceRecorder": {
+    "voice_note": "Catatan suara",
+    "mic_error": "Tidak dapat mengakses mikrofon. Periksa izin browser.",
+    "idle_title_click": "Klik: rekam (terkunci) • Enter: kirim • Esc: batal",
+    "idle_title_hold": "Tekan lama untuk merekam • Geser ← untuk membatalkan • Geser ↑ untuk mengunci",
+    "record_aria": "Rekam pesan suara",
+    "hint_slide_cancel": "Geser ke kiri untuk membatalkan",
+    "hint_slide_lock": "Geser ke atas untuk mengunci",
+    "cancel_aria": "Batalkan perekaman",
+    "cancel_title": "Batal",
+    "lock_aria": "Kunci perekaman",
+    "lock_title": "Kunci",
+    "send_aria": "Kirim catatan suara",
+    "send_title": "Kirim",
+    "locked": "terkunci",
+    "mobile_hint_lock": "Kunci",
+    "mobile_hint_cancel": "Geser ← untuk membatalkan"
+  },
+  "languageSelector": {
+    "label": "Bahasa",
+    "description": "Bahasa akan disimpan secara otomatis dan terdeteksi pada kunjungan berikutnya."
+  }
+}

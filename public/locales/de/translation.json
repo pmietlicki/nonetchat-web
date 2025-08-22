@@ -1,0 +1,343 @@
+{
+  "app": {
+    "initializing": "Dienste werden initialisiert...",
+    "tagline": "Direktnachrichten",
+    "status": {
+      "connected": "Verbunden",
+      "disconnected": "Getrennt"
+    },
+    "install": "Installieren",
+    "install_aria": "Anwendung installieren"
+  },
+  "geolocationError": {
+    "activate": "Standort aktivieren",
+    "close_alert": "Warnung schließen",
+    "unavailable_location": "Ihr Land/Ihre Stadt konnte nicht bestimmt werden. Die erweiterte Suche ist deaktiviert.",
+    "gps_failed": "GPS fehlgeschlagen. Ungefährer Standort über IP wird verwendet.",
+    "permission_denied": "Der Zugriff auf die Geolokalisierung wurde verweigert. Die Anwendung kann keine Peers in der Nähe finden.",
+    "position_unavailable": "Ihre aktuelle Position konnte nicht abgerufen werden. Überprüfen Sie die Netzwerkverbindung oder die Standorteinstellungen.",
+    "timeout": "Zeitüberschreitung bei der Positionssuche. Bitte versuchen Sie es erneut.",
+    "unknown": "Unbekannter Fehler beim Abrufen Ihrer Position."
+  },
+  "user": {
+    "default_name": "Benutzer"
+  },
+  "file": {
+    "receiving": "(Empfange...)"
+  },
+  "tabs": {
+    "peers": "Peers",
+    "public_chat": "Öffentlich",
+    "conversations": "Nachrichten"
+  },
+  "publicChat": {
+    "title": "Öffentlicher Chat",
+    "description": "Nachrichten hier sind flüchtig und für jeden in Ihrer aktuellen Umgebung sichtbar."
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "close_aria": "Einstellungen schließen",
+    "profile_shortcut_title": "Profil nicht vervollständigt",
+    "profile_shortcut_description": "Bearbeiten Sie Ihren Namen / Avatar",
+    "edit": "Bearbeiten",
+    "signaling_url_label": "Signaling-Server-URL",
+    "signaling_url_placeholder": "wss://your-server.com",
+    "discovery_mode_label": "Suchmodus",
+    "radius_km": "Radius (km)",
+    "city": "Stadt",
+    "country": "Ganzes Land",
+    "unavailable": "(nicht verfügbar)",
+    "cancel": "Abbrechen",
+    "save": "Speichern"
+  },
+  "header": {
+    "logo_alt": "NoNetChat-Logo",
+    "notifications_aria": "Benachrichtigungseinstellungen",
+    "settings_aria": "Einstellungen",
+    "profile_aria": "Bearbeiten Sie Ihr Profil",
+    "home_aria": "Zurück zur Startseite"
+  },
+  "main": {
+    "connecting_to_peer": "Verbinde...",
+    "establishing_connection": "Verbindung mit dem ausgewählten Peer wird hergestellt.",
+    "connecting_to_server": "Verbindung zum Signaling-Server wird hergestellt...",
+    "select_peer_prompt": "Wählen Sie einen Peer aus, um ein direktes und sicheres Gespräch zu beginnen."
+  },
+  "bottomNav": {
+    "peers": "Peers",
+    "public_chat": "Öffentlicher Chat",
+    "public_chat_short": "Öffentlich",
+    "messages": "Nachrichten",
+    "settings": "Einstellungen",
+    "notifications": "Benachrichtigungen",
+    "notifications_short": "Benachr."
+  },
+  "chat": {
+    "voice_note": "Sprachnotiz",
+    "sending_in_progress": "(Senden...)",
+    "sending_progress": "(Senden: {{progress}}%)",
+    "sending_error": "(Sendefehler)",
+    "receiving_in_progress": "(Empfange...)",
+    "file_size_error": "Falsche Dateigröße: {{totalSize}} Bytes empfangen, {{expectedSize}} Bytes erwartet (Unterschied: {{sizeDifference}})",
+    "decryption_empty_error": "Entschlüsselte Datei ist leer",
+    "decryption_error": "Fehler: {{fileName}} konnte nicht entschlüsselt werden",
+    "delete_message_confirm": "Möchten Sie diese Nachricht wirklich löschen?",
+    "delete_conversation_confirm": "Möchten Sie diese gesamte Konversation wirklich löschen?",
+    "message_info_title": "Information",
+    "message_info_content": "ID: {{id}}\nTyp: {{type}}\nGesendet: {{timestamp}}\nStatus: {{status}}",
+    "message_status_sent": "Gesendet",
+    "send_aria_label_offline": "Benutzer offline - Senden deaktiviert",
+    "send_aria_label_file": "Datei senden",
+    "send_aria_label_message": "Nachricht senden",
+    "download_link": {
+      "not_found": "Datei nicht in der lokalen Datenbank gefunden.",
+      "error": "Beim Herunterladen ist ein Fehler aufgetreten.",
+      "loading": "Laden...",
+      "download": "📥 Herunterladen",
+      "title": "Datei herunterladen"
+    },
+    "header": {
+      "back": "Zurück",
+      "online": "Online",
+      "offline": "Offline",
+      "delete_conversation_title": "Konversation löschen",
+      "cancel_transfers_title": "Laufende Übertragungen abbrechen"
+    },
+    "cancel_transfers": {
+      "title": "Laufende Übertragungen",
+      "receiving_progress": "Empfangen: {{progress}}%",
+      "sending_progress": "Senden: {{progress}}%",
+      "cancel": "Abbrechen",
+      "warning_title": "Warnung:",
+      "warning_body": "Das Abbrechen unterbricht die Übertragung dauerhaft.",
+      "cancelled_by_user": "(Vom Benutzer abgebrochen)"
+    },
+    "message_menu": {
+      "title": "Nachrichtenoptionen",
+      "info": "Information",
+      "delete": "Löschen"
+    },
+    "reactions": {
+      "title": "Mit {{emoji}} reagieren"
+    },
+    "file_message": {
+      "size": "Größe:",
+      "unknown_size": "Unbekannt",
+      "status_sending": "Senden...",
+      "status_sent": "Gesendet",
+      "status_receiving": "Empfangen...",
+      "status_pending": "Ausstehend",
+      "sending": "Senden",
+      "receiving": "Empfangen"
+    },
+    "new_messages_button": {
+      "aria_label": "Zu neuen Nachrichten gehen",
+      "text_one": "{{count}} neue Nachricht",
+      "text_other": "{{count}} neue Nachrichten"
+    },
+    "input": {
+      "remove_file": "Datei entfernen",
+      "file_disabled_offline": "Peer offline - Dateiversand nicht verfügbar",
+      "attach_file": "Datei anhängen",
+      "file_too_large": "Die Datei ist zu groß. Maximal zulässige Größe: {{maxSize}} MB\n\nHinweis: Dateien werden vor dem Senden automatisch komprimiert, um die Übertragung zu optimieren.",
+      "selected_file": "Ausgewählte Datei: {{fileName}}",
+      "placeholder": "Schreiben Sie Ihre Nachricht...",
+      "placeholder_offline": "Benutzer offline - Nachrichtenversand deaktiviert",
+      "aria_label": "Nachrichteneingabe",
+      "add_emoji": "Emoji hinzufügen",
+      "record_voice": "Sprachnachricht aufnehmen",
+      "peer_offline_warning": "{{peerName}} ist offline. Das Senden von Nachrichten ist deaktiviert."
+    }
+  },
+  "connectionStatus": {
+    "reconnecting": "Verbindung wird wiederhergestellt...",
+    "disconnected": "Getrennt",
+    "reconnect": "Wiederverbinden"
+  },
+  "conversationList": {
+    "title": "Konversationen ({{count}})",
+    "search_placeholder": "Suche nach Name oder Nachricht...",
+    "clear_search_aria": "Suche löschen",
+    "clear_search_title": "Löschen",
+    "no_conversations_title": "Keine Konversationen",
+    "no_conversations_prompt": "Wählen Sie einen Peer aus, um zu beginnen",
+    "loading": "Laden...",
+    "delete_confirm": "Möchten Sie diese Konversation wirklich löschen?",
+    "last_message_none": "Keine Nachrichten",
+    "last_message_file": "📎 Geteilte Datei",
+    "user_default_name": "Benutzer",
+    "gender": {
+      "male": "Männlich",
+      "female": "Weiblich",
+      "other": "Andere"
+    },
+    "age_suffix": "Jahre alt",
+    "delete_button_title": "Diese Konversation löschen",
+    "delete_button_aria": "Löschen"
+  },
+  "diagnosticPanel": {
+    "title": "NoNetChat-Diagnose",
+    "close": "Schließen",
+    "resize": "Größe ändern",
+    "connectivity_tests": "Konnektivitätstests",
+    "testing_in_progress": "Testen...",
+    "test_connectivity": "Konnektivität testen",
+    "signaling": "Signalisierung",
+    "stun_servers": "STUN-Server:",
+    "network_info": "Netzwerkinformationen:",
+    "logs_title": "Echtzeit-Protokolle",
+    "auto_scroll": "Auto-Scroll",
+    "clear": "Löschen",
+    "export": "Exportieren",
+    "no_logs": "Keine Protokolle verfügbar. Protokolle werden hier in Echtzeit angezeigt.",
+    "instructions_title": "Anweisungen:",
+    "instructions_body": "1) Führen Sie \"Konnektivität testen\". 2) Überwachen Sie die Protokolle. 3) Exportieren Sie sie zum Teilen.",
+    "ok": "OK",
+    "fail": "FEHLER"
+  },
+  "filePreview": {
+    "unknown_size": "unbekannte Größe",
+    "file_not_found": "Datei nicht in der lokalen Datenbank gefunden.",
+    "clipboard_error": "Text konnte nicht in die Zwischenablage kopiert werden.",
+    "audio_error": "Diese Audiodatei konnte nicht abgespielt werden.",
+    "default_filename": "Datei",
+    "unplayable_audio": "Dieses Audioformat kann in diesem Browser möglicherweise nicht abgespielt werden. Sie können es oben herunterladen.",
+    "hide_preview": "Vorschau ausblenden",
+    "show_preview": "Vorschau anzeigen",
+    "loading": "Laden…",
+    "unknown_type": "unbekannter Typ",
+    "download": "Herunterladen",
+    "open_in_new_tab": "In neuem Tab öffnen",
+    "copy_text": "Text kopieren",
+    "preview_unavailable": "Vorschau für diesen Dateityp nicht verfügbar.",
+    "change_speed": "Geschwindigkeit ändern",
+    "media_album": "Anhänge"
+  },
+  "messageStatus": {
+    "sending": "Senden...",
+    "sent": "Gesendet",
+    "delivered": "Zugestellt",
+    "read": "Gelesen",
+    "error": "Fehler"
+  },
+  "notificationSettings": {
+    "title": "Benachrichtigungseinstellungen",
+    "general": "Allgemeine Benachrichtigungen",
+    "enable_notifications": "Benachrichtigungen aktivieren",
+    "enable_notifications_description": "Benachrichtigungen für neue Nachrichten erhalten",
+    "sound": "Benachrichtigungstöne",
+    "sound_description": "Ton beim Empfang von Nachrichten abspielen",
+    "system": "Systembenachrichtigungen",
+    "system_description": "Benachrichtigungen im Browser anzeigen",
+    "authorize": "Autorisieren",
+    "dnd": "Bitte nicht stören-Modus",
+    "dnd_description": "Alle Benachrichtigungen vorübergehend deaktivieren",
+    "tips_title": "💡 Tipps:",
+    "tip1": "• Systembenachrichtigungen funktionieren nur, wenn der Tab geöffnet ist",
+    "tip2": "• Der Modus \"Bitte nicht stören\" deaktiviert alle Benachrichtigungen",
+    "tip3": "• Einstellungen werden automatisch gespeichert",
+    "close": "Schließen"
+  },
+  "peerList": {
+    "title": "Verbundene Peers ({{count}})",
+    "filter_by_gender": "Nach Geschlecht filtern",
+    "all_genders": "Alle Geschlechter",
+    "male": "Männer",
+    "female": "Frauen",
+    "other_gender": "Andere / Nicht angegeben",
+    "sort_by": "Sortieren nach",
+    "distance_asc": "Entfernung (↑)",
+    "distance_desc": "Entfernung (↓)",
+    "age_asc": "Alter (↑)",
+    "age_desc": "Alter (↓)",
+    "connection_required_title": "Verbindung erforderlich",
+    "connection_required_body": "Verbindung zum Signalisierungsserver herstellen",
+    "no_peers_title": "Keine Peers online",
+    "no_peers_body": "Passen Sie die Filter oben an",
+    "user_default_name": "Benutzer",
+    "estimated_distance": "Geschätzte Entfernung",
+    "gender_title": "Geschlecht: {{gender}}",
+    "age_suffix": "Jahre alt",
+    "view_profile": "Profil anzeigen",
+    "start_conversation": "Gespräch beginnen",
+    "join_time": {
+      "unknown": "Unbekannt",
+      "now": "Gerade eben",
+      "minutes_ago": "vor {{count}} min",
+      "hours_ago": "vor {{count}}h"
+    },
+    "tooltip": {
+      "status": "Status:",
+      "age": "Alter:",
+      "gender": "Geschlecht:",
+      "distance": "Entfernung:",
+      "connected": "Verbunden:"
+    },
+    "modal": {
+      "title": "Profil von {{name}}",
+      "close": "Schließen",
+      "connected_since": "Verbunden seit:"
+    }
+  },
+  "profileModal": {
+    "title": "Ihr Profil",
+    "close_aria": "Schließen",
+    "username_cannot_be_empty": "Benutzername darf nicht leer sein.",
+    "select_valid_image": "Bitte wählen Sie ein gültiges Bild aus.",
+    "avatar_alt": "Avatar",
+    "change_avatar_title": "Avatar ändern",
+    "refresh_avatar_title": "Neuen Standard-Avatar generieren",
+    "optimizing_image": "Bild wird optimiert…",
+    "username_label": "Benutzername",
+    "age_label": "Alter",
+    "gender_label": "Geschlecht",
+    "gender_unspecified": "Nicht angegeben",
+    "gender_male": "Männlich",
+    "gender_female": "Weiblich",
+    "gender_other": "Andere",
+    "cancel": "Abbrechen",
+    "save": "Speichern"
+  },
+  "publicChatWindow": {
+    "back": "Zurück",
+    "default_user_name": "Benutzer",
+    "placeholder": "Öffentliche Nachricht...",
+    "gender_male_short": "M",
+    "gender_female_short": "W",
+    "gender_other": "Andere",
+    "age_suffix": "Jahre alt"
+  },
+  "statusBar": {
+    "peers_connected_aria_one": "{{count}} Peer verbunden",
+    "peers_connected_aria_other": "{{count}} Peers verbunden",
+    "peers_connected_text": "Peer(s)",
+    "id": "ID:",
+    "full_id_title": "Vollständige ID: {{clientId}}",
+    "connected": "Verbunden",
+    "disconnected": "Getrennt",
+    "open_diagnostic_panel": "Diagnosefenster öffnen",
+    "change_signaling_server": "Signalisierungsserver ändern"
+  },
+  "voiceRecorder": {
+    "voice_note": "Sprachnotiz",
+    "mic_error": "Auf das Mikrofon konnte nicht zugegriffen werden. Überprüfen Sie die Browserberechtigungen.",
+    "idle_title_click": "Klick: aufnehmen (gesperrt) • Enter: senden • Esc: abbrechen",
+    "idle_title_hold": "Lange drücken zum Aufnehmen • Nach links wischen zum Abbrechen • Nach oben wischen zum Sperren",
+    "record_aria": "Sprachnachricht aufnehmen",
+    "hint_slide_cancel": "Nach links wischen zum Abbrechen",
+    "hint_slide_lock": "Nach oben wischen zum Sperren",
+    "cancel_aria": "Aufnahme abbrechen",
+    "cancel_title": "Abbrechen",
+    "lock_aria": "Aufnahme sperren",
+    "lock_title": "Sperren",
+    "send_aria": "Sprachnotiz senden",
+    "send_title": "Senden",
+    "locked": "gesperrt",
+    "mobile_hint_lock": "Sperren",
+    "mobile_hint_cancel": "Nach links wischen zum Abbrechen"
+  },
+  "languageSelector": {
+    "label": "Sprache",
+    "description": "Die Sprache wird automatisch gespeichert und bei Ihrem nächsten Besuch erkannt."
+  }
+}
