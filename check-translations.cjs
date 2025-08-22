@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-// Fonction pour extraire toutes les clés d'un objet JSON de manière récursive
+// Function to recursively extract all keys from a JSON object
 function extractKeys(obj, prefix = '') {
   const keys = [];
   
@@ -10,10 +10,10 @@ function extractKeys(obj, prefix = '') {
       const fullKey = prefix ? `${prefix}.${key}` : key;
       
       if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
-        // Récursion pour les objets imbriqués
+        // Recursion for nested objects
         keys.push(...extractKeys(obj[key], fullKey));
       } else {
-        // Clé finale (valeur primitive)
+        // Final key (primitive value)
         keys.push(fullKey);
       }
     }
@@ -22,52 +22,52 @@ function extractKeys(obj, prefix = '') {
   return keys;
 }
 
-// Fonction pour lire et parser un fichier JSON
+// Function to read and parse a JSON file
 function readTranslationFile(filePath) {
   try {
     const content = fs.readFileSync(filePath, 'utf8');
     return JSON.parse(content);
   } catch (error) {
-    console.error(`Erreur lors de la lecture de ${filePath}:`, error.message);
+    console.error(`Error reading ${filePath}:`, error.message);
     return null;
   }
 }
 
-// Fonction principale
+// Main function
 function checkTranslations() {
   const localesDir = path.join(__dirname, 'public', 'locales');
   const englishFile = path.join(localesDir, 'en', 'translation.json');
   
-  // Lire le fichier de référence (anglais)
-  console.log('📖 Lecture du fichier de référence (anglais)...');
+  // Read the reference file (English)
+  console.log('📖 Reading reference file (English)...');
   const englishData = readTranslationFile(englishFile);
   
   if (!englishData) {
-    console.error('❌ Impossible de lire le fichier anglais de référence');
+    console.error('❌ Unable to read the English reference file');
     return;
   }
   
-  // Extraire toutes les clés du fichier anglais
+  // Extract all keys from the English file
   const englishKeys = extractKeys(englishData).sort();
-  console.log(`✅ ${englishKeys.length} clés trouvées dans le fichier anglais\n`);
+  console.log(`✅ ${englishKeys.length} keys found in the English file\n`);
   
-  // Lire tous les dossiers de langues
+  // Read all language directories
   const languageDirs = fs.readdirSync(localesDir, { withFileTypes: true })
     .filter(dirent => dirent.isDirectory())
     .map(dirent => dirent.name)
-    .filter(lang => lang !== 'en'); // Exclure l'anglais
+    .filter(lang => lang !== 'en'); // Exclude English
   
-  console.log(`🌍 Langues à vérifier: ${languageDirs.join(', ')}\n`);
+  console.log(`🌍 Languages to check: ${languageDirs.join(', ')}\n`);
   
   let allLanguagesValid = true;
   const results = [];
   
-  // Vérifier chaque langue
+  // Check each language
   for (const lang of languageDirs) {
     const langFile = path.join(localesDir, lang, 'translation.json');
     
     if (!fs.existsSync(langFile)) {
-      console.log(`⚠️  ${lang}: Fichier translation.json manquant`);
+      console.log(`⚠️  ${lang}: Missing translation.json file`);
       results.push({ lang, status: 'missing_file', missingKeys: [], extraKeys: [] });
       allLanguagesValid = false;
       continue;
@@ -76,7 +76,7 @@ function checkTranslations() {
     const langData = readTranslationFile(langFile);
     
     if (!langData) {
-      console.log(`❌ ${lang}: Erreur de lecture du fichier`);
+      console.log(`❌ ${lang}: Error reading file`);
       results.push({ lang, status: 'read_error', missingKeys: [], extraKeys: [] });
       allLanguagesValid = false;
       continue;
@@ -84,25 +84,25 @@ function checkTranslations() {
     
     const langKeys = extractKeys(langData).sort();
     
-    // Trouver les clés manquantes et en surplus
+    // Find missing and extra keys
     const missingKeys = englishKeys.filter(key => !langKeys.includes(key));
     const extraKeys = langKeys.filter(key => !englishKeys.includes(key));
     
     const isValid = missingKeys.length === 0 && extraKeys.length === 0;
     
     if (isValid) {
-      console.log(`✅ ${lang}: Toutes les clés sont présentes (${langKeys.length} clés)`);
+      console.log(`✅ ${lang}: All keys are present (${langKeys.length} keys)`);
       results.push({ lang, status: 'valid', missingKeys: [], extraKeys: [] });
     } else {
-      console.log(`❌ ${lang}: Problèmes détectés`);
+      console.log(`❌ ${lang}: Issues detected`);
       
       if (missingKeys.length > 0) {
-        console.log(`   📝 ${missingKeys.length} clés manquantes:`);
+        console.log(`   📝 ${missingKeys.length} missing keys:`);
         missingKeys.forEach(key => console.log(`      - ${key}`));
       }
       
       if (extraKeys.length > 0) {
-        console.log(`   ➕ ${extraKeys.length} clés en surplus:`);
+        console.log(`   ➕ ${extraKeys.length} extra keys:`);
         extraKeys.forEach(key => console.log(`      + ${key}`));
       }
       
@@ -113,36 +113,36 @@ function checkTranslations() {
     console.log('');
   }
   
-  // Résumé final
+  // Final summary
   console.log('\n' + '='.repeat(60));
-  console.log('📊 RÉSUMÉ FINAL');
+  console.log('📊 FINAL SUMMARY');
   console.log('='.repeat(60));
   
   const validLanguages = results.filter(r => r.status === 'valid').length;
   const totalLanguages = results.length;
   
-  console.log(`✅ Langues valides: ${validLanguages}/${totalLanguages}`);
+  console.log(`✅ Valid languages: ${validLanguages}/${totalLanguages}`);
   
   if (allLanguagesValid) {
-    console.log('🎉 Toutes les traductions sont cohérentes!');
+    console.log('🎉 All translations are consistent!');
   } else {
-    console.log('⚠️  Des problèmes ont été détectés dans certaines traductions.');
+    console.log('⚠️  Some issues were detected in the translations.');
     
-    // Détail des problèmes
+    // Detail of problems
     const problemLanguages = results.filter(r => r.status !== 'valid');
-    console.log(`\n🔍 Langues avec des problèmes (${problemLanguages.length}):`);
+    console.log(`\n🔍 Languages with issues (${problemLanguages.length}):`);
     
     problemLanguages.forEach(result => {
       const { lang, status, missingKeys, extraKeys } = result;
       
       if (status === 'missing_file') {
-        console.log(`   ${lang}: Fichier manquant`);
+        console.log(`   ${lang}: Missing file`);
       } else if (status === 'read_error') {
-        console.log(`   ${lang}: Erreur de lecture`);
+        console.log(`   ${lang}: Read error`);
       } else {
         const issues = [];
-        if (missingKeys.length > 0) issues.push(`${missingKeys.length} manquantes`);
-        if (extraKeys.length > 0) issues.push(`${extraKeys.length} en surplus`);
+        if (missingKeys.length > 0) issues.push(`${missingKeys.length} missing`);
+        if (extraKeys.length > 0) issues.push(`${extraKeys.length} extra`);
         console.log(`   ${lang}: ${issues.join(', ')}`);
       }
     });
@@ -151,7 +151,7 @@ function checkTranslations() {
   return allLanguagesValid;
 }
 
-// Exécuter la vérification
+// Run the check
 if (require.main === module) {
   checkTranslations();
 }
