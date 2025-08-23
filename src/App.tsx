@@ -54,6 +54,7 @@ function App() {
   const [publicRoomId, setPublicRoomId] = useState<string | null>(null);
   const [publicRoomName, setPublicRoomName] = useState(t('publicChat.title'));
   const [publicMessages, setPublicMessages] = useState<any[]>([]);
+  const [publicUnreadCount, setPublicUnreadCount] = useState(0);
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -285,6 +286,11 @@ useEffect(() => {
 
     const onPublicMessage = async (message: any) => {
       setPublicMessages(prev => [...prev, message]);
+      
+      // Incrémenter le compteur de messages non lus si l'onglet public n'est pas actif
+      if (activeTab !== 'public') {
+        setPublicUnreadCount(prev => prev + 1);
+      }
       
       // Ajouter au cache éphémère (capped)
       try {
@@ -1249,6 +1255,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
             onClick={() => {
               setActiveTab('public');
               setSelectedPeerId(undefined);
+              setPublicUnreadCount(0); // Remettre à zéro le compteur quand on accède à l'onglet public
             }}
             className={`relative flex flex-col items-center justify-center py-2 ${activeTab === 'public' && !selectedPeer ? 'text-blue-600' : 'text-gray-600'}`}
             aria-label={t('bottomNav.aria.public_chat')}
@@ -1256,6 +1263,11 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
           >
             <Globe size={22} />
             <span className="text-[11px] leading-3 mt-0.5">{t('bottomNav.public_chat_short')}</span>
+            {publicUnreadCount > 0 && (
+              <span className="absolute top-1 right-6 bg-red-500 text-white text-[10px] rounded-full h-4 min-w-4 px-1 flex items-center justify-center font-medium">
+                {publicUnreadCount > 99 ? '99+' : publicUnreadCount}
+              </span>
+            )}
           </button>
 
           <button

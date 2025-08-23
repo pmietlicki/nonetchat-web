@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User } from '../types';
 import PeerService from '../services/PeerService';
-import { Send, ArrowLeft } from 'lucide-react';
+import { Send, ArrowLeft, Smile } from 'lucide-react';
 import { t } from '../i18n';
 
 interface PublicChatWindowProps {
@@ -32,9 +32,14 @@ const formatMeta = (u?: Partial<User>): string | null => {
   return parts.length ? parts.join(t('publicChatWindow.meta_separator')) : null;
 };
 
+// Émojis communs pour le sélecteur
+const commonEmojis = ['😀', '😂', '😍', '🥰', '😊', '😎', '🤔', '😢', '😡', '👍', '👎', '❤️', '🔥', '💯', '🎉', '👏', '🙏', '💪', '🤝', '✨'];
+
 const PublicChatWindow: React.FC<PublicChatWindowProps> = ({ roomId, roomName, myId, messages, onBack, peers, userProfile, myAvatarUrl }) => {
   const [newMessage, setNewMessage] = useState('');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const emojiWrapRef = useRef<HTMLDivElement>(null);
   const peerService = PeerService.getInstance();
 
   useEffect(() => {
@@ -51,6 +56,26 @@ const PublicChatWindow: React.FC<PublicChatWindowProps> = ({ roomId, roomName, m
       setNewMessage('');
     }
   };
+
+  const insertEmoji = (emoji: string) => {
+    setNewMessage(prev => prev + emoji);
+    setShowEmojiPicker(false);
+  };
+
+  // Fermer le sélecteur d'émojis quand on clique ailleurs
+  useEffect(() => {
+    const onDocDown = (event: MouseEvent | TouchEvent) => {
+      const targetNode = event.target as Node;
+      if (emojiWrapRef.current?.contains(targetNode)) return;
+      setShowEmojiPicker(false);
+    };
+    document.addEventListener('mousedown', onDocDown);
+    document.addEventListener('touchstart', onDocDown);
+    return () => {
+      document.removeEventListener('mousedown', onDocDown);
+      document.removeEventListener('touchstart', onDocDown);
+    };
+  }, []);
 
   return (
        <div className="flex-1 flex flex-col min-h-0" data-room-id={roomId ?? 'public'}>
@@ -119,6 +144,39 @@ const PublicChatWindow: React.FC<PublicChatWindowProps> = ({ roomId, roomName, m
             placeholder={t('publicChatWindow.placeholder')}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          
+          {/* Sélecteur d'émojis */}
+          <div ref={emojiWrapRef} className="relative shrink-0">
+            <button
+              onClick={() => setShowEmojiPicker(v => !v)}
+              className="p-2 text-gray-500 hover:text-gray-700"
+              title={t('chat.input.add_emoji')}
+              aria-label={t('chat.input.add_emoji')}
+              aria-expanded={showEmojiPicker}
+            >
+              <Smile size={18} />
+            </button>
+            {showEmojiPicker && (
+              <div
+                className="absolute bottom-12 right-0 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-50 w-64 max-h-60 overflow-y-auto"
+                role="dialog"
+              >
+                <div className="grid grid-cols-10 gap-1">
+                  {commonEmojis.map((emoji, index) => (
+                    <button
+                      key={index}
+                      onClick={() => insertEmoji(emoji)}
+                      className="text-lg hover:bg-gray-100 rounded p-1 transition-colors"
+                      title={emoji}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          
           <button
             onClick={handleSendMessage}
             disabled={!newMessage.trim()}
