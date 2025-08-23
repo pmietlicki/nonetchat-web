@@ -50,6 +50,7 @@ class PeerService extends EventEmitter {
   private publicCtrlChannels: Map<string, RTCDataChannel> = new Map();
   private seenPublicMessages: Set<string> = new Set(); // LRU cache can be implemented later
   private K_NEIGHBORS = 7;
+  private publicPeerDistance: Map<string, number> = new Map();
 
   private cryptoService: CryptoService;
   private diagnosticService: DiagnosticService;
@@ -401,7 +402,12 @@ class PeerService extends EventEmitter {
   }
 
   private updatePublicNeighbors() {
-  const peers = Array.from(this.publicPeers).sort((a,b) => this.strHash(a) - this.strHash(b));
+  let peers = Array.from(this.publicPeers);
+  if (peers.some(id => this.publicPeerDistance.has(id))) {
+    peers.sort((a,b) => (this.publicPeerDistance.get(a) ?? Infinity) - (this.publicPeerDistance.get(b) ?? Infinity));
+  } else {
+    peers.sort((a,b) => this.strHash(a) - this.strHash(b));
+  }
   const myIndex = peers.indexOf(this.myId);
   
   this.diagnosticService.log(`Updating public neighbors. Total peers: ${peers.length}, My index: ${myIndex}`);
@@ -441,17 +447,47 @@ class PeerService extends EventEmitter {
   });
   this.diagnosticService.log(`Created ${newConnectionsCount} new connections`);
 
-  // Fermer les PC qui ne sont ni voisins publics, ni utilisés en DM (pas de canal "chat")
+  // Conserver quelques ponts publics non-voisins pour stabiliser la diffusion,
+  // mais seulement s'ils sont encore listés par le serveur.
+  const MAX_PUBLIC_BRIDGES = 3;
+
   let closedConnectionsCount = 0;
+  const nonNeighborPublic: string[] = [];
+  const toClose: string[] = [];
+
   for (const pid of this.peerConnections.keys()) {
     const hasChat = this.dataChannels.has(pid); // DM actif
-    if (!newNeighbors.has(pid) && !hasChat) {
-      this.diagnosticService.log(`Closing connection to ${pid} (not neighbor, no chat)`);
-      this.closePeerConnection(pid);
-      closedConnectionsCount++;
+    const hasPublic = this.publicDataChannels.has(pid) || this.publicCtrlChannels.has(pid);
+    const isNeighbor = newNeighbors.has(pid);
+    const stillListed = this.publicPeers.has(pid); // reçu dans nearby-peers
+
+    if (isNeighbor || hasChat) continue; // voisins directs ou DM : on garde
+
+    if (hasPublic && stillListed) {
+      // candidat "pont" public
+      nonNeighborPublic.push(pid);
+    } else {
+      // pas voisin, pas DM, pas public OU plus listé : on ferme
+      toClose.push(pid);
     }
   }
-  this.diagnosticService.log(`Closed ${closedConnectionsCount} connections`);
+
+  // Sélectionne quelques ponts. Si distance connue, favoriser les plus proches, sinon hash stable
+  if (nonNeighborPublic.some(id => this.publicPeerDistance.has(id))) {
+    nonNeighborPublic.sort((a,b) => (this.publicPeerDistance.get(a) ?? Infinity) - (this.publicPeerDistance.get(b) ?? Infinity));
+  } else {
+    nonNeighborPublic.sort((a,b) => this.strHash(a) - this.strHash(b));
+  }
+  const keep = new Set(nonNeighborPublic.slice(0, MAX_PUBLIC_BRIDGES));
+  const bridgesToClose = nonNeighborPublic.filter(pid => !keep.has(pid));
+
+  // Ferme ce qui doit l'être
+  for (const pid of [...toClose, ...bridgesToClose]) {
+    this.diagnosticService.log(`Closing connection to ${pid} (not neighbor; keeping ${keep.size} public bridges)`);
+    this.closePeerConnection(pid);
+    closedConnectionsCount++;
+  }
+  this.diagnosticService.log(`Closed ${closedConnectionsCount} connections; kept ${keep.size} public bridges`);
 
   this.publicNeighbors = newNeighbors;
   this.diagnosticService.log(`Updated public neighbors: ${Array.from(newNeighbors).join(', ')}`);
@@ -483,6 +519,15 @@ class PeerService extends EventEmitter {
 
   const now = Date.now();
   this.lastSeen = new Map(peers.map((p:any) => [p.peerId, now]));
+
+  // Enregistrer les distances si fournies par le serveur
+  this.publicPeerDistance.clear();
+  (peers as Array<any>).forEach((p:any) => {
+    const d = p?.distanceKm;
+    if (typeof d === 'number' && isFinite(d)) {
+      this.publicPeerDistance.set(p.peerId, d);
+    }
+  });
 
   const nextSet = new Set<string>((peers as Array<{ peerId: string }>).map(p => p.peerId));
 nextSet.add(this.myId);
@@ -713,12 +758,35 @@ private setupPublicDataChannel(peerId: string, channel: RTCDataChannel) {
     this.diagnosticService.log(`Received public message from ${peerId}: ${event.data.substring(0, 100)}...`);
     try {
       const msg = JSON.parse(event.data);
-      this.diagnosticService.log(`Parsed message: origin=${msg.origin}, roomId=${msg.roomId}, ttl=${msg.ttl}`);
       
-      if (msg.roomId !== this.publicRoomId) {
-        this.diagnosticService.log(`Message room mismatch: ${msg.roomId} vs ${this.publicRoomId}`);
+      const myRoom = this.publicRoomId;
+      const msgRoom = msg.roomId;
+      let shouldDisplay = false;
+
+      if (myRoom === msgRoom) {
+        shouldDisplay = true;
+      } else if (myRoom && msgRoom && myRoom.startsWith('group:km:') && msgRoom.startsWith('group:km:')) {
+        const myParts = myRoom.split(':');
+        const msgParts = msgRoom.split(':');
+
+        if (myParts.length === 4 && msgParts.length === 4) {
+          const myPrecision = parseInt(myParts[2].substring(1), 10);
+          const msgPrecision = parseInt(msgParts[2].substring(1), 10);
+          const myGeohash = myParts[3];
+          const msgGeohash = msgParts[3];
+
+          // A user with a larger radius (lower precision) sees messages from smaller radii (higher precision)
+          if (myPrecision < msgPrecision && msgGeohash.startsWith(myGeohash)) {
+            shouldDisplay = true;
+          }
+        }
+      }
+
+      if (!shouldDisplay) {
+        this.diagnosticService.log(`Message room mismatch or hierarchy rule not met: ${msg.roomId} vs ${this.publicRoomId}`);
         return;
       }
+
       if (this.blockList.has(msg.origin)) {
         this.diagnosticService.log(`Message from blocked origin: ${msg.origin}`);
         return;
@@ -729,7 +797,7 @@ private setupPublicDataChannel(peerId: string, channel: RTCDataChannel) {
       }
 
       this.seenPublicMessages.add(msg.id);
-      this.trimSeenPublic();                                 // ✅ borné
+      this.trimSeenPublic();
       this.diagnosticService.log(`Emitting public message: ${msg.text}`);
       this.emit('public-message', msg);
 

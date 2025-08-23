@@ -431,10 +431,11 @@ function broadcastPeerUpdates() {
           const distance = getDistance(client.location, otherClient.location);
           const accAkm = (client.location.accuracyMeters || 0) / 1000;
           const accBkm = (otherClient.location.accuracyMeters || 0) / 1000;
-          const otherRadiusNum = typeof otherClient.radius === 'number' ? otherClient.radius : 2.0;
-          const threshold = Math.min(client.radius, otherRadiusNum) + accAkm + accBkm;
+          // Englobement unilatéral : on utilise UNIQUEMENT le radius du client (receveur)
+          // => un 10 km "voit" un 1 km s'il est dans 10 km ; l'inverse n'est pas vrai.
+          const clientHorizonKm = client.radius + accAkm + accBkm;
 
-          if (distance <= threshold) {
+          if (distance <= clientHorizonKm) {
             const distanceLabel = distance < 1 ? `${(distance * 1000).toFixed(0)} m` : `${distance.toFixed(2)} km`;
              nearbyPeers.add({ 
   peerId: candidate.clientId, 
