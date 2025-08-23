@@ -5,6 +5,10 @@ import { User } from '../types';
 
 // --- Mocks ---
 
+vi.mock('../i18n', () => ({
+  t: (key: string) => key, // Renvoie la clé elle-même
+}));
+
 const mockPeerService = {
   sendMessage: vi.fn(),
   sendFile: vi.fn(),
@@ -84,7 +88,7 @@ describe('ChatWindow', () => {
 
     // Attendre le rendu et les chargements async
     expect(await screen.findByText('Bob')).toBeInTheDocument();
-    expect(await screen.findByText('En ligne')).toBeInTheDocument();
+    expect(await screen.findByText('chat.header.online')).toBeInTheDocument();
     expect(await screen.findByText('Hello Bob')).toBeInTheDocument();
     expect(await screen.findByText('Hello Alice')).toBeInTheDocument();
 
@@ -98,9 +102,9 @@ describe('ChatWindow', () => {
 
     await screen.findByText('Hello Bob');
 
-    const input = screen.getByPlaceholderText('Tapez votre message...');
+    const input = screen.getByPlaceholderText('chat.input.placeholder');
     // On cible le bouton via son nom accessible (aria-label dynamique)
-    const sendButton = screen.getByRole('button', { name: /envoyer le message/i });
+    const sendButton = screen.getByRole('button', { name: /chat.send_aria.send_message/i });
 
     await act(async () => {
       fireEvent.change(input, { target: { value: 'Test message' } });
@@ -128,11 +132,11 @@ describe('ChatWindow', () => {
     const offlinePeer: User = { ...mockPeer, status: 'offline' as const };
     render(<ChatWindow selectedPeer={offlinePeer} myId={mockMyId} onBack={() => {}} />);
 
-    await screen.findByText('Hors ligne');
+    await screen.findByText('chat.header.offline');
 
-    const input = screen.getByPlaceholderText(/utilisateur hors ligne/i);
+    const input = screen.getByPlaceholderText(/chat.input.placeholder_offline/i);
     // Le bouton d’envoi porte le nom accessible "Utilisateur hors ligne - envoi désactivé"
-    const sendButton = screen.getByRole('button', { name: /utilisateur hors ligne - envoi désactivé/i });
+    const sendButton = screen.getByRole('button', { name: /chat.send_aria.offline_disabled/i });
 
     expect(input).toBeDisabled();
     expect(sendButton).toBeDisabled();

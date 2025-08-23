@@ -3,6 +3,11 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import ProfileModal from './ProfileModal';
 import React from 'react';
 
+// --- Mocks ---
+vi.mock('../i18n', () => ({
+  t: (key: string) => key, // Renvoie la clé elle-même
+}));
+
 // --- Tests ---
 
 describe('ProfileModal', () => {
@@ -32,8 +37,8 @@ describe('ProfileModal', () => {
         onRefreshAvatar={mockOnRefreshAvatar}
       />
     );
-    // Le modal est identifié par son titre "Votre Profil"
-    expect(screen.queryByText('Votre Profil')).toBeNull();
+    // Le modal est identifié par son titre
+    expect(screen.queryByText('profileModal.title')).toBeNull();
   });
 
   it('devrait s\'afficher avec les bonnes données initiales si isOpen est true', () => {
@@ -48,30 +53,28 @@ describe('ProfileModal', () => {
       />
     );
 
-    // Utiliser getByLabelText pour trouver les champs par leur label, ce qui est une bonne pratique
-    expect(screen.getByLabelText(/Nom d\'utilisateur/i)).toHaveValue('Old Name');
-    expect(screen.getByLabelText(/Âge/i)).toHaveValue(30);
-    expect(screen.getByLabelText(/Genre/i)).toHaveValue('male');
+    // Utiliser getByLabelText pour trouver les champs par leur label
+    expect(screen.getByLabelText('profileModal.username_label')).toHaveValue('Old Name');
+    expect(screen.getByLabelText('profileModal.age_label')).toHaveValue(30);
+    expect(screen.getByLabelText('profileModal.gender_label')).toHaveValue('male');
     expect(screen.getByRole('img')).toHaveAttribute('src', 'some-url');
   });
 
   it('devrait appeler onClose quand on clique sur le bouton Annuler', () => {
-    render(
-      <ProfileModal isOpen={true} onClose={mockOnClose} onSave={mockOnSave} initialProfile={{}} displayAvatarUrl="" onRefreshAvatar={mockOnRefreshAvatar} />
+    render(<ProfileModal isOpen={true} onClose={mockOnClose} onSave={mockOnSave} initialProfile={{}} displayAvatarUrl="" onRefreshAvatar={mockOnRefreshAvatar} />
     );
 
-    fireEvent.click(screen.getByText('Annuler'));
+    fireEvent.click(screen.getByText('profileModal.cancel'));
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
   it('devrait appeler onSave avec les nouvelles données quand on clique sur Sauvegarder', () => {
-    render(
-      <ProfileModal isOpen={true} onClose={mockOnClose} onSave={mockOnSave} initialProfile={initialProfile} displayAvatarUrl="" onRefreshAvatar={mockOnRefreshAvatar} />
+    render(<ProfileModal isOpen={true} onClose={mockOnClose} onSave={mockOnSave} initialProfile={initialProfile} displayAvatarUrl="" onRefreshAvatar={mockOnRefreshAvatar} />
     );
 
-    const nameInput = screen.getByLabelText(/Nom d\'utilisateur/i);
-    const ageInput = screen.getByLabelText(/Âge/i);
-    const genderSelect = screen.getByLabelText(/Genre/i);
+    const nameInput = screen.getByLabelText('profileModal.username_label');
+    const ageInput = screen.getByLabelText('profileModal.age_label');
+    const genderSelect = screen.getByLabelText('profileModal.gender_label');
 
     // Simuler les actions de l'utilisateur
     fireEvent.change(nameInput, { target: { value: 'New Name' } });
@@ -79,7 +82,7 @@ describe('ProfileModal', () => {
     fireEvent.change(genderSelect, { target: { value: 'female' } });
 
     // Cliquer sur Sauvegarder
-    fireEvent.click(screen.getByText('Sauvegarder'));
+    fireEvent.click(screen.getByText('profileModal.save'));
 
     // Vérifier que onSave a été appelé avec les bonnes données
     expect(mockOnSave).toHaveBeenCalledTimes(1);
@@ -90,11 +93,11 @@ describe('ProfileModal', () => {
   });
 
   it('devrait appeler onRefreshAvatar quand on clique sur le bouton de rafraîchissement', () => {
-    render(
-      <ProfileModal isOpen={true} onClose={mockOnClose} onSave={mockOnSave} initialProfile={{}} displayAvatarUrl="" onRefreshAvatar={mockOnRefreshAvatar} />
+    render(<ProfileModal isOpen={true} onClose={mockOnClose} onSave={mockOnSave} initialProfile={{}} displayAvatarUrl="" onRefreshAvatar={mockOnRefreshAvatar} />
     );
 
-    fireEvent.click(screen.getByTitle('Générer un nouvel avatar par défaut'));
+    fireEvent.click(screen.getByTitle('profileModal.refresh_avatar_title'));
     expect(mockOnRefreshAvatar).toHaveBeenCalledTimes(1);
   });
 });
+

@@ -5,6 +5,10 @@ import { User } from '../types';
 
 // --- Mocks & Test Data ---
 
+vi.mock('../i18n', () => ({
+  t: (key: string) => key, // Renvoie la clé elle-même
+}));
+
 const mockPeers: User[] = [
   {
     id: 'peer-1',
@@ -37,12 +41,12 @@ describe('PeerList', () => {
 
   it('devrait afficher un message quand aucun pair n\'est connecté', () => {
     render(<PeerList peers={[]} onSelectPeer={mockOnSelectPeer} isConnected={true} />);
-    expect(screen.getByText('Aucun pair en ligne')).toBeInTheDocument();
+    expect(screen.getByText('peerList.no_peers_title')).toBeInTheDocument();
   });
 
   it('devrait afficher un message quand la connexion est requise', () => {
     render(<PeerList peers={[]} onSelectPeer={mockOnSelectPeer} isConnected={false} />);
-    expect(screen.getByText('Connexion requise')).toBeInTheDocument();
+    expect(screen.getByText('peerList.connection_required_title')).toBeInTheDocument();
   });
 
   it('devrait afficher une liste de pairs', () => {
@@ -87,3 +91,4 @@ describe('PeerList', () => {
     expect(aliceContainer).not.toHaveClass('bg-blue-50');
   });
 });
+
