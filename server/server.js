@@ -374,7 +374,7 @@ function broadcastPeerUpdates() {
         if (client.countryCode === otherClient.countryCode) {
           nearbyPeers.add({ 
             peerId: otherClientId, 
-            distanceLabel: 'Pays',
+            distanceLabel: 'Country',
             profile: otherClient?.profile ? {
               name: otherClient.profile.name,
               avatar: otherClient.profile.avatar,
@@ -392,7 +392,7 @@ function broadcastPeerUpdates() {
         if (client.countryCode === otherClient.countryCode && client.normalizedCityName === otherClient.normalizedCityName) {
           nearbyPeers.add({ 
             peerId: otherClientId, 
-            distanceLabel: 'Ville',
+            distanceLabel: 'City',
             profile: otherClient?.profile ? {
               name: otherClient.profile.name,
               avatar: otherClient.profile.avatar,
@@ -514,7 +514,7 @@ wss.on('connection', (ws, req) => {
           ws,
           ip,
           isAlive: true,
-          radius: 1.0,
+          radius: 'city',
           location: null,
           discoveryMode: 'geo',
           countryCode,

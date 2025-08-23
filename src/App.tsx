@@ -82,7 +82,7 @@ function App() {
     () => {
       const stored = localStorage.getItem('searchRadius');
       if (stored === 'country' || stored === 'city') return stored;
-      return parseFloat(stored || '1.0');
+      return stored ? parseFloat(stored) : 'city';
     }
   );
   const [tempSearchRadius, setTempSearchRadius] = useState<number | 'country' | 'city'>(searchRadius);
@@ -949,7 +949,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                       className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 disabled:opacity-50"
                     />
                     <label htmlFor="radius-mode-city" className="ml-3 block text-sm font-medium text-gray-900 disabled:opacity-50">
-                      {t('settings.city')} {locationInfo?.city ? `(${locationInfo.city})` : `(${t('settings.unavailable')})`}
+                      {t('settings.city')} {locationInfo?.city ? `(${locationInfo.city})` : `${t('settings.unavailable')}`}
                     </label>
                   </div>
                   <div className="flex items-center">
@@ -963,7 +963,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                       className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 disabled:opacity-50"
                     />
                     <label htmlFor="radius-mode-country" className="ml-3 block text-sm font-medium text-gray-900 disabled:opacity-50">
-                      {t('settings.country')} {locationInfo?.country ? `(${locationInfo.country})` : `(${t('settings.unavailable')})`}
+                      {t('settings.country')} {locationInfo?.country ? `(${locationInfo.country})` : `${t('settings.unavailable')}`}
                     </label>
                   </div>
                 </div>

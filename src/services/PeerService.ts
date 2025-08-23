@@ -71,7 +71,7 @@ class PeerService extends EventEmitter {
   // --- TURN auth éphémère injectée depuis /api/turn-credentials ---
   private turnAuth: { username: string; credential: string } | null = null;
 
-  private searchRadius: number | 'country' | 'city' = 1.0; // Default 1km radius
+  private searchRadius: number | 'country' | 'city' = 'city'; // Default city radius
 
   private getIceConfig(): RTCConfiguration {
     const u = this.turnAuth?.username;
