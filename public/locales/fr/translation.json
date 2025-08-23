@@ -2,12 +2,18 @@
   "app": {
     "initializing": "Initialisation des services...",
     "tagline": "Messagerie directe",
+    "tagline_disconnected": "Messagerie directe (Déconnecté)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "Connecté",
       "disconnected": "Déconnecté"
     },
     "install": "Installer",
-    "install_aria": "Installer l’application"
+    "install_aria": "Installer l’application",
+    "aria": {
+      "connected": "Connecté",
+      "disconnected": "Déconnecté"
+    }
   },
   "geolocationError": {
     "activate": "Activer la localisation",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "Discussion Publique",
-    "description": "Les messages ici sont éphémères et visibles par tous dans votre zone actuelle."
+    "description": "Les messages ici sont éphémères et visibles par tous dans votre zone actuelle.",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "Les messages ici sont éphémères et visibles par tous dans votre zone actuelle."
+    }
   },
   "settings": {
     "title": "Paramètres",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "Connexion en cours...",
     "establishing_connection": "Établissement de la connexion avec le pair sélectionné.",
     "connecting_to_server": "Connexion au serveur de signalisation en cours...",
-    "select_peer_prompt": "Sélectionnez un pair pour commencer une conversation directe et sécurisée."
+    "select_peer_prompt": "Sélectionnez un pair pour commencer une conversation directe et sécurisée.",
+    "cancel_button": "Annuler",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "Connexion au serveur de signalisation en cours...",
+    "welcome_select_peer": "Sélectionnez un pair pour commencer une conversation directe et sécurisée."
   },
   "bottomNav": {
     "peers": "Pairs",
@@ -70,7 +84,14 @@
     "messages": "Messages",
     "settings": "Réglages",
     "notifications": "Notifications",
-    "notifications_short": "Notif."
+    "notifications_short": "Notif.",
+    "aria": {
+      "peers": "Pairs",
+      "public_chat": "Discussion Publique",
+      "messages": "Messages",
+      "settings": "Paramètres",
+      "notifications": "Notifications"
+    }
   },
   "chat": {
     "voice_note": "Note vocale",
@@ -118,7 +139,9 @@
       "delete": "Supprimer"
     },
     "reactions": {
-      "title": "Réagir avec {{emoji}}"
+      "title": "Réagir avec {{emoji}}",
+      "title_one": "1 réaction",
+      "title_other": "{{count}} réactions"
     },
     "file_message": {
       "size": "Taille:",
@@ -128,7 +151,11 @@
       "status_receiving": "Réception en cours...",
       "status_pending": "En attente",
       "sending": "Envoi",
-      "receiving": "Réception"
+      "receiving": "Réception",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10s",
+      "seek_backward": "⟲ 10s",
+      "change_speed_aria": "Changer la vitesse"
     },
     "new_messages_button": {
       "aria_label": "Aller aux nouveaux messages",
@@ -146,7 +173,8 @@
       "aria_label": "Saisie du message",
       "add_emoji": "Ajouter un émoji",
       "record_voice": "Enregistrer un message vocal",
-      "peer_offline_warning": "{{peerName}} est hors ligne. L'envoi de messages est désactivé."
+      "peer_offline_warning": "{{peerName}} est hors ligne. L'envoi de messages est désactivé.",
+      "compression_notice": "Sera compressé et chiffré automatiquement"
     }
   },
   "connectionStatus": {
@@ -277,7 +305,13 @@
       "title": "Profil de {{name}}",
       "close": "Fermer",
       "connected_since": "Connecté depuis :"
-    }
+    },
+    "status": {
+        "online": "En ligne",
+        "offline": "Hors ligne",
+        "busy": "Occupé"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "Votre Profil",
@@ -305,7 +339,8 @@
     "gender_male_short": "H",
     "gender_female_short": "F",
     "gender_other": "Autre",
-    "age_suffix": "ans"
+    "age_suffix": "ans",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} pair connecté",

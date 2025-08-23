@@ -2,12 +2,18 @@
   "app": {
     "initializing": "Initializing services...",
     "tagline": "Direct messaging",
+    "tagline_disconnected": "Direct messaging (Disconnected)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "Connected",
       "disconnected": "Disconnected"
     },
     "install": "Install",
-    "install_aria": "Install application"
+    "install_aria": "Install application",
+    "aria": {
+      "connected": "Connected",
+      "disconnected": "Disconnected"
+    }
   },
   "geolocationError": {
     "activate": "Enable location",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "Public Chat",
-    "description": "Messages here are ephemeral and visible to everyone in your current area."
+    "description": "Messages here are ephemeral and visible to everyone in your current area.",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "Messages here are ephemeral and visible to everyone in your current area."
+    }
   },
   "settings": {
     "title": "Settings",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "Connecting...",
     "establishing_connection": "Establishing connection with the selected peer.",
     "connecting_to_server": "Connecting to signaling server...",
-    "select_peer_prompt": "Select a peer to start a direct and secure conversation."
+    "select_peer_prompt": "Select a peer to start a direct and secure conversation.",
+    "cancel_button": "Cancel",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "Connecting to signaling server...",
+    "welcome_select_peer": "Select a peer to start a direct and secure conversation."
   },
   "bottomNav": {
     "peers": "Peers",
@@ -70,7 +84,14 @@
     "messages": "Messages",
     "settings": "Settings",
     "notifications": "Notifications",
-    "notifications_short": "Notif."
+    "notifications_short": "Notif.",
+    "aria": {
+      "peers": "Peers",
+      "public_chat": "Public Chat",
+      "messages": "Messages",
+      "settings": "Settings",
+      "notifications": "Notifications"
+    }
   },
   "chat": {
     "voice_note": "Voice note",
@@ -118,7 +139,9 @@
       "delete": "Delete"
     },
     "reactions": {
-      "title": "React with {{emoji}}"
+      "title": "React with {{emoji}}",
+      "title_one": "1 reaction",
+      "title_other": "{{count}} reactions"
     },
     "file_message": {
       "size": "Size:",
@@ -128,7 +151,11 @@
       "status_receiving": "Receiving...",
       "status_pending": "Pending",
       "sending": "Sending",
-      "receiving": "Receiving"
+      "receiving": "Receiving",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10s",
+      "seek_backward": "⟲ 10s",
+      "change_speed_aria": "Change speed"
     },
     "new_messages_button": {
       "aria_label": "Go to new messages",
@@ -146,7 +173,8 @@
       "aria_label": "Message input",
       "add_emoji": "Add emoji",
       "record_voice": "Record a voice message",
-      "peer_offline_warning": "{{peerName}} is offline. Sending messages is disabled."
+      "peer_offline_warning": "{{peerName}} is offline. Sending messages is disabled.",
+      "compression_notice": "Will be compressed and encrypted automatically"
     }
   },
   "connectionStatus": {
@@ -277,7 +305,13 @@
       "title": "{{name}}'s Profile",
       "close": "Close",
       "connected_since": "Connected since:"
-    }
+    },
+    "status": {
+      "online": "Online",
+      "offline": "Offline",
+      "busy": "Busy"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "Your Profile",
@@ -305,7 +339,8 @@
     "gender_male_short": "M",
     "gender_female_short": "F",
     "gender_other": "Other",
-    "age_suffix": "yo"
+    "age_suffix": "yo",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} peer connected",

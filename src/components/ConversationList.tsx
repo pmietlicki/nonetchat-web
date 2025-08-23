@@ -3,8 +3,7 @@ import { Search, MessageSquare, Trash2, X } from 'lucide-react';
 import IndexedDBService from '../services/IndexedDBService';
 import PeerService from '../services/PeerService';
 import NotificationService from '../services/NotificationService';
-import { t } from '../i18n';
-
+import { t, getCurrentLanguage } from '../i18n';
 interface ConversationListProps {
   onSelectConversation: (participantId: string) => void;
   selectedConversationId?: string;
@@ -37,12 +36,12 @@ const formatTime = (timestamp: number) => {
   const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
   if (diffInHours < 24) {
-    return new Intl.DateTimeFormat('fr-FR', {
+    return new Intl.DateTimeFormat(getCurrentLanguage(), {
       hour: '2-digit',
       minute: '2-digit',
     }).format(date);
   } else {
-    return new Intl.DateTimeFormat('fr-FR', {
+    return new Intl.DateTimeFormat(getCurrentLanguage(), {
       day: '2-digit',
       month: '2-digit',
     }).format(date);
@@ -282,7 +281,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
                         </div>
                         <div className="flex items-center gap-2">
                           {conversation.lastMessage && (
-                            <span className="text-xs text-gray-500" title={new Date(conversation.lastMessage.timestamp).toLocaleString('fr-FR')}>
+                            <span className="text-xs text-gray-500" title={new Date(conversation.lastMessage.timestamp).toLocaleString(getCurrentLanguage())}>
                               {formatTime(conversation.lastMessage.timestamp)}
                             </span>
                           )}

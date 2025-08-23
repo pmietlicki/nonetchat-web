@@ -2,12 +2,18 @@
   "app": {
     "initializing": "Hizmetler başlatılıyor...",
     "tagline": "Doğrudan mesajlaşma",
+    "tagline_disconnected": "Doğrudan mesajlaşma (Bağlantı kesildi)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "Bağlandı",
       "disconnected": "Bağlantı kesildi"
     },
     "install": "Yükle",
-    "install_aria": "Uygulamayı yükle"
+    "install_aria": "Uygulamayı yükle",
+    "aria": {
+      "connected": "Bağlandı",
+      "disconnected": "Bağlantı kesildi"
+    }
   },
   "geolocationError": {
     "activate": "Konumu etkinleştir",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "Genel Sohbet",
-    "description": "Buradaki mesajlar geçicidir ve mevcut bölgenizdeki herkes tarafından görülebilir."
+    "description": "Buradaki mesajlar geçicidir ve mevcut bölgenizdeki herkes tarafından görülebilir.",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "Buradaki mesajlar geçicidir ve mevcut bölgenizdeki herkes tarafından görülebilir."
+    }
   },
   "settings": {
     "title": "Ayarlar",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "Bağlanılıyor...",
     "establishing_connection": "Seçilen eşle bağlantı kuruluyor.",
     "connecting_to_server": "Sinyal sunucusuna bağlanılıyor...",
-    "select_peer_prompt": "Doğrudan ve güvenli bir görüşme başlatmak için bir eş seçin."
+    "select_peer_prompt": "Doğrudan ve güvenli bir görüşme başlatmak için bir eş seçin.",
+    "cancel_button": "İptal",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "Sinyal sunucusuna bağlanılıyor...",
+    "welcome_select_peer": "Doğrudan ve güvenli bir görüşme başlatmak için bir eş seçin."
   },
   "bottomNav": {
     "peers": "Eşler",
@@ -70,7 +84,14 @@
     "messages": "Mesajlar",
     "settings": "Ayarlar",
     "notifications": "Bildirimler",
-    "notifications_short": "Bildirimler"
+    "notifications_short": "Bildirimler",
+    "aria": {
+      "peers": "Eşler",
+      "public_chat": "Genel Sohbet",
+      "messages": "Mesajlar",
+      "settings": "Ayarlar",
+      "notifications": "Bildirimler"
+    }
   },
   "chat": {
     "voice_note": "Sesli not",
@@ -118,7 +139,9 @@
       "delete": "Sil"
     },
     "reactions": {
-      "title": "{{emoji}} ile tepki ver"
+      "title": "{{emoji}} ile tepki ver",
+      "title_one": "1 tepki",
+      "title_other": "{{count}} tepki"
     },
     "file_message": {
       "size": "Boyut:",
@@ -128,7 +151,11 @@
       "status_receiving": "Alınıyor...",
       "status_pending": "Beklemede",
       "sending": "Gönderiliyor",
-      "receiving": "Alınıyor"
+      "receiving": "Alınıyor",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10sn",
+      "seek_backward": "⟲ 10sn",
+      "change_speed_aria": "Hızı değiştir"
     },
     "new_messages_button": {
       "aria_label": "Yeni mesajlara git",
@@ -146,7 +173,8 @@
       "aria_label": "Mesaj girişi",
       "add_emoji": "Emoji ekle",
       "record_voice": "Sesli mesaj kaydet",
-      "peer_offline_warning": "{{peerName}} çevrimdışı. Mesaj gönderme devre dışı."
+      "peer_offline_warning": "{{peerName}} çevrimdışı. Mesaj gönderme devre dışı.",
+      "compression_notice": "Otomatik olarak sıkıştırılacak ve şifrelenecektir"
     }
   },
   "connectionStatus": {
@@ -277,7 +305,13 @@
       "title": "{{name}} Profili",
       "close": "Kapat",
       "connected_since": "Bağlandığından beri:"
-    }
+    },
+    "status": {
+      "online": "Çevrimiçi",
+      "offline": "Çevrimdışı",
+      "busy": "Meşgul"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "Profiliniz",
@@ -305,7 +339,8 @@
     "gender_male_short": "E",
     "gender_female_short": "K",
     "gender_other": "Diğer",
-    "age_suffix": "yaşında"
+    "age_suffix": "yaşında",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} eş bağlandı",

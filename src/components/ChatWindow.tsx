@@ -1072,7 +1072,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
                           ? 'bg-blue-500 text-white border-blue-600'
                           : 'bg-white/90 text-gray-800 border-gray-200 hover:bg-white'
                       }`}
-                      title={`${userIds.length} réaction${userIds.length > 1 ? 's' : ''}`}
+                      title={userIds.length > 1 ? t('chat.reactions.title_other', { count: userIds.length }) : t('chat.reactions.title_one')}
                     >
                       <span className="text-sm leading-none">{emoji}</span>
                       {userIds.length > 1 && <span className="text-[10px] font-medium leading-none">{userIds.length}</span>}
@@ -1125,8 +1125,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
                 <Paperclip size={16} className="text-blue-600 shrink-0" />
                 <div className="min-w-0">
                   <div className="text-sm font-medium text-blue-900 truncate">{selectedFile.name}</div>
-                  <div className="text-xs text-blue-600">{(selectedFile.size / 1024).toFixed(1)} KB • {selectedFile.type || t('filePreview.unknown_type')}</div>
-                  <div className="text-xs text-blue-500 mt-1">🗜️ Sera compressé et chiffré automatiquement</div>
+                  <div className="text-xs text-blue-600">{(selectedFile.size / 1024).toFixed(1)} {t('chat.file_message.kb_unit')} • {selectedFile.type || t('filePreview.unknown_type')}</div>
+                  <div className="text-xs text-blue-500 mt-1">🗜️ {t('chat.input.compression_notice')}</div>
                 </div>
               </div>
               <button onClick={() => setSelectedFile(null)} className="text-blue-600 hover:text-blue-800 text-sm font-medium" aria-label={t('chat.input.remove_file')}>

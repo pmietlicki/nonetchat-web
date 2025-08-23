@@ -2,12 +2,18 @@
   "app": {
     "initializing": "Services initialiseren...",
     "tagline": "Directe berichten",
+    "tagline_disconnected": "Directe berichten (Verbinding verbroken)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "Verbonden",
       "disconnected": "Verbinding verbroken"
     },
     "install": "Installeren",
-    "install_aria": "Applicatie installeren"
+    "install_aria": "Applicatie installeren",
+    "aria": {
+      "connected": "Verbonden",
+      "disconnected": "Verbinding verbroken"
+    }
   },
   "geolocationError": {
     "activate": "Locatie inschakelen",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "Openbare chat",
-    "description": "Berichten hier zijn kortstondig en zichtbaar voor iedereen in uw huidige gebied."
+    "description": "Berichten hier zijn kortstondig en zichtbaar voor iedereen in uw huidige gebied.",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "Berichten hier zijn kortstondig en zichtbaar voor iedereen in uw huidige gebied."
+    }
   },
   "settings": {
     "title": "Instellingen",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "Bezig met verbinden...",
     "establishing_connection": "Verbinding maken met de geselecteerde peer.",
     "connecting_to_server": "Verbinding maken met signaleringsserver...",
-    "select_peer_prompt": "Selecteer een peer om een directe en veilige conversatie te starten."
+    "select_peer_prompt": "Selecteer een peer om een directe en veilige conversatie te starten.",
+    "cancel_button": "Annuleren",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "Verbinding maken met signaleringsserver...",
+    "welcome_select_peer": "Selecteer een peer om een directe en veilige conversatie te starten."
   },
   "bottomNav": {
     "peers": "Peers",
@@ -70,7 +84,14 @@
     "messages": "Berichten",
     "settings": "Instellingen",
     "notifications": "Meldingen",
-    "notifications_short": "Meld."
+    "notifications_short": "Meld.",
+    "aria": {
+      "peers": "Peers",
+      "public_chat": "Openbare chat",
+      "messages": "Berichten",
+      "settings": "Instellingen",
+      "notifications": "Meldingen"
+    }
   },
   "chat": {
     "voice_note": "Spraakbericht",
@@ -118,7 +139,9 @@
       "delete": "Verwijderen"
     },
     "reactions": {
-      "title": "Reageer met {{emoji}}"
+      "title": "Reageer met {{emoji}}",
+      "title_one": "1 reactie",
+      "title_other": "{{count}} reacties"
     },
     "file_message": {
       "size": "Grootte:",
@@ -128,7 +151,11 @@
       "status_receiving": "Ontvangen...",
       "status_pending": "In behandeling",
       "sending": "Verzenden",
-      "receiving": "Ontvangen"
+      "receiving": "Ontvangen",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10s",
+      "seek_backward": "⟲ 10s",
+      "change_speed_aria": "Snelheid wijzigen"
     },
     "new_messages_button": {
       "aria_label": "Ga naar nieuwe berichten",
@@ -146,7 +173,8 @@
       "aria_label": "Berichtinvoer",
       "add_emoji": "Emoji toevoegen",
       "record_voice": "Spraakbericht opnemen",
-      "peer_offline_warning": "{{peerName}} is offline. Het verzenden van berichten is uitgeschakeld."
+      "peer_offline_warning": "{{peerName}} is offline. Het verzenden van berichten is uitgeschakeld.",
+      "compression_notice": "Wordt automatisch gecomprimeerd en versleuteld"
     }
   },
   "connectionStatus": {
@@ -277,7 +305,13 @@
       "title": "Profiel van {{name}}",
       "close": "Sluiten",
       "connected_since": "Verbonden sinds:"
-    }
+    },
+    "status": {
+      "online": "Online",
+      "offline": "Offline",
+      "busy": "Bezet"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "Uw profiel",
@@ -305,7 +339,8 @@
     "gender_male_short": "M",
     "gender_female_short": "V",
     "gender_other": "Anders",
-    "age_suffix": "jaar"
+    "age_suffix": "jaar",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} peer verbonden",

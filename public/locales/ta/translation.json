@@ -2,12 +2,18 @@
   "app": {
     "initializing": "சேவைகளைத் தொடங்குகிறது...",
     "tagline": "நேரடி செய்தி",
+    "tagline_disconnected": "நேரடி செய்தி (துண்டிக்கப்பட்டது)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "இணைக்கப்பட்டது",
       "disconnected": "துண்டிக்கப்பட்டது"
     },
     "install": "நிறுவு",
-    "install_aria": "பயன்பாட்டை நிறுவு"
+    "install_aria": "பயன்பாட்டை நிறுவு",
+    "aria": {
+      "connected": "இணைக்கப்பட்டது",
+      "disconnected": "துண்டிக்கப்பட்டது"
+    }
   },
   "geolocationError": {
     "activate": "இருப்பிடத்தை இயக்கு",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "பொது அரட்டை",
-    "description": "இక్కడ సందేశాలు అశాశ్వతమైనవి మరియు మీ ప్రస్తుత ప్రాంతంలోని ప్రతి ఒక్కరికీ కనిపిస్తాయి."
+    "description": "இక్కడ సందేశాలు అశాశ్వతమైనవి మరియు మీ ప్రస్తుత ప్రాంతంలోని ప్రతి ఒక్కరికీ కనిపిస్తాయి.",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "இక్కడ సందేశాలు అశాశ్వతమైనవి మరియు మీ ప్రస్తుత ప్రాంతంలోని ప్రతి ఒక్కరికీ కనిపిస్తాయి."
+    }
   },
   "settings": {
     "title": "அமைப்புகள்",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "இணைக்கிறது...",
     "establishing_connection": "தேர்ந்தெடுக்கப்பட்ட சக பயனருடன் இணைப்பை நிறுவுகிறது.",
     "connecting_to_server": "சிக்னலிங் சேவையகத்துடன் இணைக்கிறது...",
-    "select_peer_prompt": "நேரடி மற்றும் பாதுகாப்பான உரையாடலைத் தொடங்க ஒரு சக பயனரைத் தேர்ந்தெடுக்கவும்."
+    "select_peer_prompt": "நேரடி மற்றும் பாதுகாப்பான உரையாடலைத் தொடங்க ஒரு சக பயனரைத் தேர்ந்தெடுக்கவும்.",
+    "cancel_button": "ரத்துசெய்",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "சிக்னலிங் சேவையகத்துடன் இணைக்கிறது...",
+    "welcome_select_peer": "நேரடி மற்றும் பாதுகாப்பான உரையாடலைத் தொடங்க ஒரு சக பயனரைத் தேர்ந்தெடுக்கவும்."
   },
   "bottomNav": {
     "peers": "சக பயனர்கள்",
@@ -70,7 +84,14 @@
     "messages": "செய்திகள்",
     "settings": "அமைப்புகள்",
     "notifications": "அறிவிப்புகள்",
-    "notifications_short": "அறிவிப்புகள்"
+    "notifications_short": "அறிவிப்புகள்",
+    "aria": {
+      "peers": "சக பயனர்கள்",
+      "public_chat": "பொது அரட்டை",
+      "messages": "செய்திகள்",
+      "settings": "அமைப்புகள்",
+      "notifications": "அறிவிப்புகள்"
+    }
   },
   "chat": {
     "voice_note": "குரல் குறிப்பு",
@@ -118,7 +139,9 @@
       "delete": "நீக்கு"
     },
     "reactions": {
-      "title": "{{emoji}} உடன் ಪ್ರತிகிரியையளிக்கவும்"
+      "title": "{{emoji}} உடன் ಪ್ರತிகிரியையளிக்கவும்",
+      "title_one": "1 പ്രതികരണം",
+      "title_other": "{{count}} പ്രതികരണങ്ങൾ"
     },
     "file_message": {
       "size": "அளவு:",
@@ -128,7 +151,11 @@
       "status_receiving": "பெறுகிறது...",
       "status_pending": "நிலுவையில்",
       "sending": "அனுப்புகிறது",
-      "receiving": "பெறுகிறது"
+      "receiving": "பெறுகிறது",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10வி",
+      "seek_backward": "⟲ 10வி",
+      "change_speed_aria": "வேகத்தை மாற்று"
     },
     "new_messages_button": {
       "aria_label": "புதிய செய்திகளுக்குச் செல்லவும்",
@@ -146,7 +173,8 @@
       "aria_label": "செய்தி உள்ளீடு",
       "add_emoji": "ஈமோஜியைச் சேர்",
       "record_voice": "குரல் செய்தியைப் பதிவுசெய்க",
-      "peer_offline_warning": "{{peerName}} ஆஃப்லைனில் உள்ளது. செய்திகளை அனுப்புவது முடக்கப்பட்டுள்ளது."
+      "peer_offline_warning": "{{peerName}} ஆஃப்லைனில் உள்ளது. செய்திகளை அனுப்புவது முடக்கப்பட்டுள்ளது.",
+      "compression_notice": "தானாகவே சுருக்கப்பட்டு குறியாக்கம் செய்யப்படும்"
     }
   },
   "connectionStatus": {
@@ -277,7 +305,13 @@
       "title": "{{name}} இன் சுயவிவரம்",
       "close": "மூடு",
       "connected_since": "இணைக்கப்பட்டது முதல்:"
-    }
+    },
+    "status": {
+      "online": "ஆன்லைன்",
+      "offline": "ஆஃப்லைன்",
+      "busy": "பிஸியாக"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "உங்கள் சுயவிவரம்",
@@ -305,7 +339,8 @@
     "gender_male_short": "ஆ",
     "gender_female_short": "பெ",
     "gender_other": "மற்றவை",
-    "age_suffix": "வயது"
+    "age_suffix": "வயது",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} சக பயனர் இணைக்கப்பட்டுள்ளார்",

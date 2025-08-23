@@ -2,12 +2,18 @@
   "app": {
     "initializing": "Инициализация служб...",
     "tagline": "Прямые сообщения",
+    "tagline_disconnected": "Прямые сообщения (Отключено)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "Подключено",
       "disconnected": "Отключено"
     },
     "install": "Установить",
-    "install_aria": "Установить приложение"
+    "install_aria": "Установить приложение",
+    "aria": {
+      "connected": "Подключено",
+      "disconnected": "Отключено"
+    }
   },
   "geolocationError": {
     "activate": "Включить геолокацию",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "Общий чат",
-    "description": "Сообщения здесь эфемерны и видны всем в вашем текущем районе."
+    "description": "Сообщения здесь эфемерны и видны всем в вашем текущем районе.",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "Сообщения здесь эфемерны и видны всем в вашем текущем районе."
+    }
   },
   "settings": {
     "title": "Настройки",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "Подключение...",
     "establishing_connection": "Установление соединения с выбранным пиром.",
     "connecting_to_server": "Подключение к серверу сигнализации...",
-    "select_peer_prompt": "Выберите пира, чтобы начать прямой и безопасный разговор."
+    "select_peer_prompt": "Выберите пира, чтобы начать прямой и безопасный разговор.",
+    "cancel_button": "Отмена",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "Подключение к серверу сигнализации...",
+    "welcome_select_peer": "Выберите пира, чтобы начать прямой и безопасный разговор."
   },
   "bottomNav": {
     "peers": "Пиры",
@@ -70,7 +84,14 @@
     "messages": "Сообщения",
     "settings": "Настройки",
     "notifications": "Уведомления",
-    "notifications_short": "Уведом."
+    "notifications_short": "Уведом.",
+    "aria": {
+      "peers": "Пиры",
+      "public_chat": "Общий чат",
+      "messages": "Сообщения",
+      "settings": "Настройки",
+      "notifications": "Уведомления"
+    }
   },
   "chat": {
     "voice_note": "Голосовая заметка",
@@ -118,7 +139,9 @@
       "delete": "Удалить"
     },
     "reactions": {
-      "title": "Отреагировать с помощью {{emoji}}"
+      "title": "Отреагировать с помощью {{emoji}}",
+      "title_one": "1 реакция",
+      "title_other": "{{count}} реакции"
     },
     "file_message": {
       "size": "Размер:",
@@ -128,7 +151,11 @@
       "status_receiving": "Получение...",
       "status_pending": "В ожидании",
       "sending": "Отправка",
-      "receiving": "Получение"
+      "receiving": "Получение",
+      "kb_unit": "КБ",
+      "seek_forward": "⟳ 10с",
+      "seek_backward": "⟲ 10с",
+      "change_speed_aria": "Изменить скорость"
     },
     "new_messages_button": {
       "aria_label": "Перейти к новым сообщениям",
@@ -146,7 +173,8 @@
       "aria_label": "Ввод сообщения",
       "add_emoji": "Добавить эмодзи",
       "record_voice": "Записать голосовое сообщение",
-      "peer_offline_warning": "{{peerName}} не в сети. Отправка сообщений отключена."
+      "peer_offline_warning": "{{peerName}} не в сети. Отправка сообщений отключена.",
+      "compression_notice": "Будет автоматически сжато и зашифровано"
     }
   },
   "connectionStatus": {
@@ -277,7 +305,13 @@
       "title": "Профиль {{name}}",
       "close": "Закрыть",
       "connected_since": "Подключен с:"
-    }
+    },
+    "status": {
+      "online": "В сети",
+      "offline": "Не в сети",
+      "busy": "Занят"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "Ваш профиль",
@@ -305,7 +339,8 @@
     "gender_male_short": "М",
     "gender_female_short": "Ж",
     "gender_other": "Другое",
-    "age_suffix": "лет"
+    "age_suffix": "лет",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} пир подключен",

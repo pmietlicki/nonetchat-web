@@ -2,12 +2,18 @@
   "app": {
     "initializing": "サービスを初期化しています...",
     "tagline": "ダイレクトメッセージ",
+    "tagline_disconnected": "ダイレクトメッセージ (切断されました)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "接続済み",
       "disconnected": "切断されました"
     },
     "install": "インストール",
-    "install_aria": "アプリケーションをインストール"
+    "install_aria": "アプリケーションをインストール",
+    "aria": {
+      "connected": "接続済み",
+      "disconnected": "切断されました"
+    }
   },
   "geolocationError": {
     "activate": "位置情報を有効にする",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "公開チャット",
-    "description": "ここでのメッセージは一時的なものであり、現在のエリアの全員に表示されます。"
+    "description": "ここでのメッセージは一時的なものであり、現在のエリアの全員に表示されます。",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "ここでのメッセージは一時的なものであり、現在のエリアの全員に表示されます。"
+    }
   },
   "settings": {
     "title": "設定",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "接続中...",
     "establishing_connection": "選択したピアとの接続を確立しています。",
     "connecting_to_server": "シグナリングサーバーに接続しています...",
-    "select_peer_prompt": "ダイレクトで安全な会話を開始するには、ピアを選択してください。"
+    "select_peer_prompt": "ダイレクトで安全な会話を開始するには、ピアを選択してください。",
+    "cancel_button": "キャンセル",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "シグナリングサーバーに接続しています...",
+    "welcome_select_peer": "ダイレクトで安全な会話を開始するには、ピアを選択してください。"
   },
   "bottomNav": {
     "peers": "ピア",
@@ -70,7 +84,14 @@
     "messages": "メッセージ",
     "settings": "設定",
     "notifications": "通知",
-    "notifications_short": "通知"
+    "notifications_short": "通知",
+    "aria": {
+      "peers": "ピア",
+      "public_chat": "公開チャット",
+      "messages": "メッセージ",
+      "settings": "設定",
+      "notifications": "通知"
+    }
   },
   "chat": {
     "voice_note": "ボイスノート",
@@ -118,7 +139,9 @@
       "delete": "削除"
     },
     "reactions": {
-      "title": "{{emoji}}でリアクション"
+      "title": "{{emoji}}でリアクション",
+      "title_one": "1件のリアクション",
+      "title_other": "{{count}}件のリアクション"
     },
     "file_message": {
       "size": "サイズ:",
@@ -128,7 +151,11 @@
       "status_receiving": "受信中...",
       "status_pending": "保留中",
       "sending": "送信中",
-      "receiving": "受信中"
+      "receiving": "受信中",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10秒",
+      "seek_backward": "⟲ 10秒",
+      "change_speed_aria": "速度を変更"
     },
     "new_messages_button": {
       "aria_label": "新しいメッセージに移動",
@@ -146,7 +173,8 @@
       "aria_label": "メッセージ入力",
       "add_emoji": "絵文字を追加",
       "record_voice": "音声メッセージを録音",
-      "peer_offline_warning": "{{peerName}}はオフラインです。メッセージの送信は無効になっています。"
+      "peer_offline_warning": "{{peerName}}はオフラインです。メッセージの送信は無効になっています。",
+      "compression_notice": "自動的に圧縮および暗号化されます"
     }
   },
   "connectionStatus": {
@@ -277,7 +305,13 @@
       "title": "{{name}}のプロフィール",
       "close": "閉じる",
       "connected_since": "接続日時:"
-    }
+    },
+    "status": {
+      "online": "オンライン",
+      "offline": "オフライン",
+      "busy": "取り込み中"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "あなたのプロフィール",
@@ -305,7 +339,8 @@
     "gender_male_short": "男",
     "gender_female_short": "女",
     "gender_other": "他",
-    "age_suffix": "歳"
+    "age_suffix": "歳",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}}ピアが接続しました",

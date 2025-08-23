@@ -2,12 +2,18 @@
   "app": {
     "initializing": "Menginisialisasi layanan...",
     "tagline": "Pesan langsung",
+    "tagline_disconnected": "Pesan langsung (Terputus)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "Terhubung",
       "disconnected": "Terputus"
     },
     "install": "Instal",
-    "install_aria": "Instal aplikasi"
+    "install_aria": "Instal aplikasi",
+    "aria": {
+      "connected": "Terhubung",
+      "disconnected": "Terputus"
+    }
   },
   "geolocationError": {
     "activate": "Aktifkan lokasi",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "Obrolan Publik",
-    "description": "Pesan di sini bersifat sementara dan dapat dilihat oleh semua orang di area Anda saat ini."
+    "description": "Pesan di sini bersifat sementara dan dapat dilihat oleh semua orang di area Anda saat ini.",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "Pesan di sini bersifat sementara dan dapat dilihat oleh semua orang di area Anda saat ini."
+    }
   },
   "settings": {
     "title": "Pengaturan",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "Menyambungkan...",
     "establishing_connection": "Membangun koneksi dengan rekan yang dipilih.",
     "connecting_to_server": "Menyambungkan ke server sinyal...",
-    "select_peer_prompt": "Pilih rekan untuk memulai percakapan langsung dan aman."
+    "select_peer_prompt": "Pilih rekan untuk memulai percakapan langsung dan aman.",
+    "cancel_button": "Batal",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "Menyambungkan ke server sinyal...",
+    "welcome_select_peer": "Pilih rekan untuk memulai percakapan langsung dan aman."
   },
   "bottomNav": {
     "peers": "Rekan",
@@ -70,7 +84,14 @@
     "messages": "Pesan",
     "settings": "Pengaturan",
     "notifications": "Notifikasi",
-    "notifications_short": "Notif."
+    "notifications_short": "Notif.",
+    "aria": {
+      "peers": "Rekan",
+      "public_chat": "Obrolan Publik",
+      "messages": "Pesan",
+      "settings": "Pengaturan",
+      "notifications": "Notifikasi"
+    }
   },
   "chat": {
     "voice_note": "Catatan suara",
@@ -118,7 +139,9 @@
       "delete": "Hapus"
     },
     "reactions": {
-      "title": "Bereaksi dengan {{emoji}}"
+      "title": "Bereaksi dengan {{emoji}}",
+      "title_one": "1 reaksi",
+      "title_other": "{{count}} reaksi"
     },
     "file_message": {
       "size": "Ukuran:",
@@ -128,7 +151,11 @@
       "status_receiving": "Menerima...",
       "status_pending": "Tertunda",
       "sending": "Mengirim",
-      "receiving": "Menerima"
+      "receiving": "Menerima",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10d",
+      "seek_backward": "⟲ 10d",
+      "change_speed_aria": "Ubah kecepatan"
     },
     "new_messages_button": {
       "aria_label": "Buka pesan baru",
@@ -146,7 +173,8 @@
       "aria_label": "Input pesan",
       "add_emoji": "Tambahkan emoji",
       "record_voice": "Rekam pesan suara",
-      "peer_offline_warning": "{{peerName}} sedang offline. Pengiriman pesan dinonaktifkan."
+      "peer_offline_warning": "{{peerName}} sedang offline. Pengiriman pesan dinonaktifkan.",
+      "compression_notice": "Akan dikompresi dan dienkripsi secara otomatis"
     }
   },
   "connectionStatus": {
@@ -277,7 +305,13 @@
       "title": "Profil {{name}}",
       "close": "Tutup",
       "connected_since": "Terhubung sejak:"
-    }
+    },
+    "status": {
+      "online": "Online",
+      "offline": "Offline",
+      "busy": "Sibuk"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "Profil Anda",
@@ -305,7 +339,8 @@
     "gender_male_short": "P",
     "gender_female_short": "W",
     "gender_other": "Lainnya",
-    "age_suffix": "thn"
+    "age_suffix": "thn",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} rekan terhubung",

@@ -82,7 +82,7 @@ const ProfileTooltip: React.FC<ProfileTooltipProps> = ({ peer, children }) => {
                   peer.status === 'online' ? 'text-green-600' : peer.status === 'busy' ? 'text-yellow-600' : 'text-gray-400'
                 }`}
               >
-                {peer.status}
+                {t(`peerList.status.${peer.status}`)}
               </span>
             </div>
 
@@ -174,7 +174,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ peer, isOpen, o
                 peer.status === 'online' ? 'text-green-600' : peer.status === 'busy' ? 'text-yellow-600' : 'text-gray-400'
               }`}
             >
-              {peer.status}
+              {t(`peerList.status.${peer.status}`)}
             </span>
           </div>
 
@@ -417,7 +417,7 @@ const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId
                         )}
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <span className={`capitalize ${getStatusColor(peer.status)}`}>{peer.status}</span>
+                        <span className={`capitalize ${getStatusColor(peer.status)}`}>{t(`peerList.status.${peer.status}`)}</span>
 
                         {peer.gender && (
                           <>

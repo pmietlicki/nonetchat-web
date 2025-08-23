@@ -2,12 +2,18 @@
   "app": {
     "initializing": "Inaanzisha huduma...",
     "tagline": "Ujumbe wa moja kwa moja",
+    "tagline_disconnected": "Ujumbe wa moja kwa moja (Imekatika)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "Imeunganishwa",
       "disconnected": "Imekatika"
     },
     "install": "Sakinisha",
-    "install_aria": "Sakinisha programu"
+    "install_aria": "Sakinisha programu",
+    "aria": {
+      "connected": "Imeunganishwa",
+      "disconnected": "Imekatika"
+    }
   },
   "geolocationError": {
     "activate": "Washa eneo",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "Soga ya Umma",
-    "description": "Ujumbe hapa ni wa muda mfupi na unaonekana kwa kila mtu katika eneo lako la sasa."
+    "description": "Ujumbe hapa ni wa muda mfupi na unaonekana kwa kila mtu katika eneo lako la sasa.",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "Ujumbe hapa ni wa muda mfupi na unaonekana kwa kila mtu katika eneo lako la sasa."
+    }
   },
   "settings": {
     "title": "Mipangilio",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "Inaunganisha...",
     "establishing_connection": "Inaanzisha muunganisho na mwenza aliyechaguliwa.",
     "connecting_to_server": "Inaunganisha kwenye seva ya kuashiria...",
-    "select_peer_prompt": "Chagua mwenza ili kuanzisha mazungumzo ya moja kwa moja na salama."
+    "select_peer_prompt": "Chagua mwenza ili kuanzisha mazungumzo ya moja kwa moja na salama.",
+    "cancel_button": "Ghairi",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "Inaunganisha kwenye seva ya kuashiria...",
+    "welcome_select_peer": "Chagua mwenza ili kuanzisha mazungumzo ya moja kwa moja na salama."
   },
   "bottomNav": {
     "peers": "Wenza",
@@ -70,7 +84,14 @@
     "messages": "Ujumbe",
     "settings": "Mipangilio",
     "notifications": "Arifa",
-    "notifications_short": "Arifa"
+    "notifications_short": "Arifa",
+    "aria": {
+      "peers": "Wenza",
+      "public_chat": "Soga ya Umma",
+      "messages": "Ujumbe",
+      "settings": "Mipangilio",
+      "notifications": "Arifa"
+    }
   },
   "chat": {
     "voice_note": "Ujumbe wa sauti",
@@ -118,7 +139,9 @@
       "delete": "Futa"
     },
     "reactions": {
-      "title": "Jibu na {{emoji}}"
+      "title": "Jibu na {{emoji}}",
+      "title_one": "1 jibu",
+      "title_other": "{{count}} majibu"
     },
     "file_message": {
       "size": "Ukubwa:",
@@ -128,7 +151,11 @@
       "status_receiving": "Inapokea...",
       "status_pending": "Inasubiri",
       "sending": "Inatuma",
-      "receiving": "Inapokea"
+      "receiving": "Inapokea",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10s",
+      "seek_backward": "⟲ 10s",
+      "change_speed_aria": "Badilisha kasi"
     },
     "new_messages_button": {
       "aria_label": "Nenda kwenye ujumbe mpya",
@@ -146,7 +173,8 @@
       "aria_label": "Ingizo la ujumbe",
       "add_emoji": "Ongeza emoji",
       "record_voice": "Rekodi ujumbe wa sauti",
-      "peer_offline_warning": "{{peerName}} hayuko mtandaoni. Kutuma ujumbe kumezimwa."
+      "peer_offline_warning": "{{peerName}} hayuko mtandaoni. Kutuma ujumbe kumezimwa.",
+      "compression_notice": "Itabanwa na kusimbwa kwa njia fiche kiotomatiki"
     }
   },
   "connectionStatus": {
@@ -277,7 +305,13 @@
       "title": "Wasifu wa {{name}}",
       "close": "Funga",
       "connected_since": "Imeunganishwa tangu:"
-    }
+    },
+    "status": {
+      "online": "Mtandaoni",
+      "offline": "Nje ya mtandao",
+      "busy": "Inashughulika"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "Wasifu Wako",
@@ -305,7 +339,8 @@
     "gender_male_short": "M",
     "gender_female_short": "Mke",
     "gender_other": "Nyingine",
-    "age_suffix": "miaka"
+    "age_suffix": "miaka",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} mwenza ameunganishwa",

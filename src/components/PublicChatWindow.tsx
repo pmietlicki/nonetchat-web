@@ -29,7 +29,7 @@ const formatMeta = (u?: Partial<User>): string | null => {
     dist = km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
   }
   if (dist) parts.push(dist);
-  return parts.length ? parts.join(' · ') : null;
+  return parts.length ? parts.join(t('publicChatWindow.meta_separator')) : null;
 };
 
 const PublicChatWindow: React.FC<PublicChatWindowProps> = ({ roomId, roomName, myId, messages, onBack, peers, userProfile, myAvatarUrl }) => {

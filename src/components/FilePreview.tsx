@@ -383,7 +383,7 @@ export default function FilePreview({
                       }}
                       className="px-2 py-0.5 rounded bg-gray-200 hover:bg-gray-300"
                     >
-                      ⟲ 10s
+                      {t('chat.file_message.seek_backward')}
                     </button>
                     <button
                       onClick={(e) => {
@@ -394,7 +394,7 @@ export default function FilePreview({
                       }}
                       className="px-2 py-0.5 rounded bg-gray-200 hover:bg-gray-300"
                     >
-                      ⟳ 10s
+                      {t('chat.file_message.seek_forward')}
                     </button>
                     <button
                       onClick={(e) => {

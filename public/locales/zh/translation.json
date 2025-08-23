@@ -2,12 +2,18 @@
   "app": {
     "initializing": "正在初始化服务...",
     "tagline": "即时消息",
+    "tagline_disconnected": "即时消息 (已断开)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "已连接",
       "disconnected": "已断开"
     },
     "install": "安装",
-    "install_aria": "安装应用程序"
+    "install_aria": "安装应用程序",
+    "aria": {
+      "connected": "已连接",
+      "disconnected": "已断开"
+    }
   },
   "geolocationError": {
     "activate": "启用位置",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "公共聊天",
-    "description": "此处的留言是短暂的，并且对您当前区域中的每个人都可见。"
+    "description": "此处的留言是短暂的，并且对您当前区域中的每个人都可见。",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "此处的留言是短暂的，并且对您当前区域中的每个人都可见。"
+    }
   },
   "settings": {
     "title": "设置",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "正在连接...",
     "establishing_connection": "正在与选定的对等点建立连接。",
     "connecting_to_server": "正在连接到信令服务器...",
-    "select_peer_prompt": "选择一个对等点以开始直接和安全的对话。"
+    "select_peer_prompt": "选择一个对等点以开始直接和安全的对话。",
+    "cancel_button": "取消",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "正在连接到信令服务器...",
+    "welcome_select_peer": "选择一个对等点以开始直接和安全的对话。"
   },
   "bottomNav": {
     "peers": "对等点",
@@ -70,7 +84,14 @@
     "messages": "消息",
     "settings": "设置",
     "notifications": "通知",
-    "notifications_short": "通知"
+    "notifications_short": "通知",
+    "aria": {
+      "peers": "对等点",
+      "public_chat": "公共聊天",
+      "messages": "消息",
+      "settings": "设置",
+      "notifications": "通知"
+    }
   },
   "chat": {
     "voice_note": "语音留言",
@@ -118,7 +139,9 @@
       "delete": "删除"
     },
     "reactions": {
-      "title": "使用{{emoji}}作出反应"
+      "title": "使用{{emoji}}作出反应",
+      "title_one": "1个反应",
+      "title_other": "{{count}}个反应"
     },
     "file_message": {
       "size": "大小:",
@@ -128,7 +151,11 @@
       "status_receiving": "接收中...",
       "status_pending": "待定",
       "sending": "发送中",
-      "receiving": "接收中"
+      "receiving": "接收中",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10秒",
+      "seek_backward": "⟲ 10秒",
+      "change_speed_aria": "更改速度"
     },
     "new_messages_button": {
       "aria_label": "转到新消息",
@@ -146,7 +173,8 @@
       "aria_label": "消息输入",
       "add_emoji": "添加表情符号",
       "record_voice": "录制语音消息",
-      "peer_offline_warning": "{{peerName}}已离线。消息发送已禁用。"
+      "peer_offline_warning": "{{peerName}}已离线。消息发送已禁用。",
+      "compression_notice": "将自动压缩和加密"
     }
   },
   "connectionStatus": {
@@ -277,7 +305,13 @@
       "title": "{{name}}的个人资料",
       "close": "关闭",
       "connected_since": "连接时间:"
-    }
+    },
+    "status": {
+      "online": "在线",
+      "offline": "离线",
+      "busy": "忙碌"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "您的个人资料",
@@ -305,7 +339,8 @@
     "gender_male_short": "男",
     "gender_female_short": "女",
     "gender_other": "其他",
-    "age_suffix": "岁"
+    "age_suffix": "岁",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}}个对等点已连接",

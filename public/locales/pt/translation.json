@@ -2,12 +2,18 @@
   "app": {
     "initializing": "Inicializando services...",
     "tagline": "Mensagens diretas",
+    "tagline_disconnected": "Mensagens diretas (Desconectado)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "Conectado",
       "disconnected": "Desconectado"
     },
     "install": "Instalar",
-    "install_aria": "Instalar aplicativo"
+    "install_aria": "Instalar aplicativo",
+    "aria": {
+      "connected": "Conectado",
+      "disconnected": "Desconectado"
+    }
   },
   "geolocationError": {
     "activate": "Ativar localização",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "Chat Público",
-    "description": "As mensagens aqui são efêmeras e visíveis para todos em sua área atual."
+    "description": "As mensagens aqui são efêmeras e visíveis para todos em sua área atual.",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "As mensagens aqui são efêmeras e visíveis para todos em sua área atual."
+    }
   },
   "settings": {
     "title": "Configurações",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "Conectando...",
     "establishing_connection": "Estabelecendo conexão com o par selecionado.",
     "connecting_to_server": "Conectando ao servidor de sinalização...",
-    "select_peer_prompt": "Selecione um par para iniciar uma conversa direta e segura."
+    "select_peer_prompt": "Selecione um par para iniciar uma conversa direta e segura.",
+    "cancel_button": "Cancelar",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "Conectando ao servidor de sinalização...",
+    "welcome_select_peer": "Selecione um par para iniciar uma conversa direta e segura."
   },
   "bottomNav": {
     "peers": "Pares",
@@ -70,7 +84,14 @@
     "messages": "Mensagens",
     "settings": "Configurações",
     "notifications": "Notificações",
-    "notifications_short": "Notif."
+    "notifications_short": "Notif.",
+    "aria": {
+      "peers": "Pares",
+      "public_chat": "Chat Público",
+      "messages": "Mensagens",
+      "settings": "Configurações",
+      "notifications": "Notificações"
+    }
   },
   "chat": {
     "voice_note": "Nota de voz",
@@ -118,7 +139,9 @@
       "delete": "Excluir"
     },
     "reactions": {
-      "title": "Reagir com {{emoji}}"
+      "title": "Reagir com {{emoji}}",
+      "title_one": "1 reação",
+      "title_other": "{{count}} reações"
     },
     "file_message": {
       "size": "Tamanho:",
@@ -128,7 +151,11 @@
       "status_receiving": "Recebendo...",
       "status_pending": "Pendente",
       "sending": "Enviando",
-      "receiving": "Recebendo"
+      "receiving": "Recebendo",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10s",
+      "seek_backward": "⟲ 10s",
+      "change_speed_aria": "Alterar velocidade"
     },
     "new_messages_button": {
       "aria_label": "Ir para novas mensagens",
@@ -146,7 +173,8 @@
       "aria_label": "Entrada de mensagem",
       "add_emoji": "Adicionar emoji",
       "record_voice": "Gravar uma mensagem de voz",
-      "peer_offline_warning": "{{peerName}} está offline. O envio de mensagens está desativado."
+      "peer_offline_warning": "{{peerName}} está offline. O envio de mensagens está desativado.",
+      "compression_notice": "Será compactado e criptografado automaticamente"
     }
   },
   "connectionStatus": {
@@ -223,7 +251,7 @@
   "notificationSettings": {
     "title": "Configurações de notificação",
     "general": "Notificações gerais",
-    "enable_notifications": "Ativar notificações",
+    "enable_notifications": "Ativar notifications",
     "enable_notifications_description": "Receber notificações de novas mensagens",
     "sound": "Sons de notificação",
     "sound_description": "Reproduzir um som ao receber mensagens",
@@ -277,7 +305,13 @@
       "title": "Perfil de {{name}}",
       "close": "Fechar",
       "connected_since": "Conectado desde:"
-    }
+    },
+    "status": {
+      "online": "Online",
+      "offline": "Offline",
+      "busy": "Ocupado"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "Seu perfil",
@@ -305,7 +339,8 @@
     "gender_male_short": "M",
     "gender_female_short": "F",
     "gender_other": "Outro",
-    "age_suffix": "anos"
+    "age_suffix": "anos",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} par conectado",

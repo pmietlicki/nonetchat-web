@@ -2,12 +2,18 @@
   "app": {
     "initializing": "Dienste werden initialisiert...",
     "tagline": "Direktnachrichten",
+    "tagline_disconnected": "Direktnachrichten (Getrennt)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "Verbunden",
       "disconnected": "Getrennt"
     },
     "install": "Installieren",
-    "install_aria": "Anwendung installieren"
+    "install_aria": "Anwendung installieren",
+    "aria": {
+      "connected": "Verbunden",
+      "disconnected": "Getrennt"
+    }
   },
   "geolocationError": {
     "activate": "Standort aktivieren",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "Öffentlicher Chat",
-    "description": "Nachrichten hier sind flüchtig und für jeden in Ihrer aktuellen Umgebung sichtbar."
+    "description": "Nachrichten hier sind flüchtig und für jeden in Ihrer aktuellen Umgebung sichtbar.",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "Nachrichten hier sind flüchtig und für jeden in Ihrer aktuellen Umgebung sichtbar."
+    }
   },
   "settings": {
     "title": "Einstellungen",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "Verbinde...",
     "establishing_connection": "Verbindung mit dem ausgewählten Peer wird hergestellt.",
     "connecting_to_server": "Verbindung zum Signaling-Server wird hergestellt...",
-    "select_peer_prompt": "Wählen Sie einen Peer aus, um ein direktes und sicheres Gespräch zu beginnen."
+    "select_peer_prompt": "Wählen Sie einen Peer aus, um ein direktes und sicheres Gespräch zu beginnen.",
+    "cancel_button": "Abbrechen",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "Verbindung zum Signaling-Server wird hergestellt...",
+    "welcome_select_peer": "Wählen Sie einen Peer aus, um ein direktes und sicheres Gespräch zu beginnen."
   },
   "bottomNav": {
     "peers": "Peers",
@@ -70,7 +84,14 @@
     "messages": "Nachrichten",
     "settings": "Einstellungen",
     "notifications": "Benachrichtigungen",
-    "notifications_short": "Benachr."
+    "notifications_short": "Benachr.",
+    "aria": {
+      "peers": "Peers",
+      "public_chat": "Öffentlicher Chat",
+      "messages": "Nachrichten",
+      "settings": "Einstellungen",
+      "notifications": "Benachrichtigungen"
+    }
   },
   "chat": {
     "voice_note": "Sprachnotiz",
@@ -118,7 +139,9 @@
       "delete": "Löschen"
     },
     "reactions": {
-      "title": "Mit {{emoji}} reagieren"
+      "title": "Mit {{emoji}} reagieren",
+      "title_one": "1 Reaktion",
+      "title_other": "{{count}} Reaktionen"
     },
     "file_message": {
       "size": "Größe:",
@@ -128,7 +151,11 @@
       "status_receiving": "Empfangen...",
       "status_pending": "Ausstehend",
       "sending": "Senden",
-      "receiving": "Empfangen"
+      "receiving": "Empfangen",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10s",
+      "seek_backward": "⟲ 10s",
+      "change_speed_aria": "Geschwindigkeit ändern"
     },
     "new_messages_button": {
       "aria_label": "Zu neuen Nachrichten gehen",
@@ -146,7 +173,8 @@
       "aria_label": "Nachrichteneingabe",
       "add_emoji": "Emoji hinzufügen",
       "record_voice": "Sprachnachricht aufnehmen",
-      "peer_offline_warning": "{{peerName}} ist offline. Das Senden von Nachrichten ist deaktiviert."
+      "peer_offline_warning": "{{peerName}} ist offline. Das Senden von Nachrichten ist deaktiviert.",
+      "compression_notice": "Wird automatisch komprimiert und verschlüsselt"
     }
   },
   "connectionStatus": {
@@ -277,7 +305,13 @@
       "title": "Profil von {{name}}",
       "close": "Schließen",
       "connected_since": "Verbunden seit:"
-    }
+    },
+    "status": {
+      "online": "Online",
+      "offline": "Offline",
+      "busy": "Beschäftigt"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "Ihr Profil",
@@ -305,7 +339,8 @@
     "gender_male_short": "M",
     "gender_female_short": "W",
     "gender_other": "Andere",
-    "age_suffix": "Jahre alt"
+    "age_suffix": "Jahre alt",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} Peer verbunden",

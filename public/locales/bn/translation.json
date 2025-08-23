@@ -2,12 +2,18 @@
   "app": {
     "initializing": "পরিষেবাগুলি শুরু হচ্ছে...",
     "tagline": "সরাসরি মেসেজিং",
+    "tagline_disconnected": "সরাসরি মেসেজিং (বিচ্ছিন্ন)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "সংযুক্ত",
       "disconnected": "বিচ্ছিন্ন"
     },
     "install": "ইনস্টল করুন",
-    "install_aria": "অ্যাপ্লিকেশন ইনস্টল করুন"
+    "install_aria": "অ্যাপ্লিকেশন ইনস্টল করুন",
+    "aria": {
+      "connected": "সংযুক্ত",
+      "disconnected": "বিচ্ছিন্ন"
+    }
   },
   "geolocationError": {
     "activate": "অবস্থান সক্ষম করুন",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "সর্বজনীন চ্যাট",
-    "description": " এখানকার বার্তাগুলি ক্ষণস্থায়ী এবং আপনার বর্তমান এলাকার প্রত্যেকের কাছে দৃশ্যমান।"
+    "description": " এখানকার বার্তাগুলি ক্ষণস্থায়ী এবং আপনার বর্তমান এলাকার প্রত্যেকের কাছে দৃশ্যমান।",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "এখানকার বার্তাগুলি ক্ষণস্থায়ী এবং আপনার বর্তমান এলাকার প্রত্যেকের কাছে দৃশ্যমান।"
+    }
   },
   "settings": {
     "title": "সেটিংস",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "সংযোগ করা হচ্ছে...",
     "establishing_connection": "নির্বাচিত পিয়ারের সাথে সংযোগ স্থাপন করা হচ্ছে।",
     "connecting_to_server": "সিগন্যালিং সার্ভারের সাথে সংযোগ করা হচ্ছে...",
-    "select_peer_prompt": "একটি সরাসরি এবং সুরক্ষিত কথোপকথন শুরু করতে একটি পিয়ার নির্বাচন করুন।"
+    "select_peer_prompt": "একটি সরাসরি এবং সুরক্ষিত কথোপকথন শুরু করতে একটি পিয়ার নির্বাচন করুন।",
+    "cancel_button": "বাতিল করুন",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "সিগন্যালিং সার্ভারের সাথে সংযোগ করা হচ্ছে...",
+    "welcome_select_peer": "একটি সরাসরি এবং সুরক্ষিত কথোপকথন শুরু করতে একটি পিয়ার নির্বাচন করুন।"
   },
   "bottomNav": {
     "peers": "সহকর্মীরা",
@@ -70,7 +84,14 @@
     "messages": "বার্তা",
     "settings": "সেটিংস",
     "notifications": "বিজ্ঞপ্তি",
-    "notifications_short": "বিজ্ঞপ্তি"
+    "notifications_short": "বিজ্ঞপ্তি",
+    "aria": {
+      "peers": "সহকর্মীরা",
+      "public_chat": "সর্বজনীন চ্যাট",
+      "messages": "বার্তা",
+      "settings": "সেটিংস",
+      "notifications": "বিজ্ঞপ্তি"
+    }
   },
   "chat": {
     "voice_note": "ভয়েস নোট",
@@ -118,7 +139,9 @@
       "delete": "মুছে ফেলুন"
     },
     "reactions": {
-      "title": "{{emoji}} দিয়ে প্রতিক্রিয়া জানান"
+      "title": "{{emoji}} দিয়ে প্রতিক্রিয়া জানান",
+      "title_one": "1টি প্রতিক্রিয়া",
+      "title_other": "{{count}}টি প্রতিক্রিয়া"
     },
     "file_message": {
       "size": "আকার:",
@@ -128,7 +151,11 @@
       "status_receiving": "গ্রহণ করা হচ্ছে...",
       "status_pending": "বিচারাধীন",
       "sending": "পাঠানো হচ্ছে",
-      "receiving": "গ্রহণ করা হচ্ছে"
+      "receiving": "গ্রহণ করা হচ্ছে",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10সেকেন্ড",
+      "seek_backward": "⟲ 10সেকেন্ড",
+      "change_speed_aria": "গতি পরিবর্তন করুন"
     },
     "new_messages_button": {
       "aria_label": "নতুন বার্তাগুলিতে যান",
@@ -146,7 +173,8 @@
       "aria_label": "বার্তা ইনপুট",
       "add_emoji": "ইমোজি যোগ করুন",
       "record_voice": "একটি ভয়েস বার্তা রেকর্ড করুন",
-      "peer_offline_warning": "{{peerName}} অফলাইন। বার্তা পাঠানো অক্ষম।"
+      "peer_offline_warning": "{{peerName}} অফলাইন। বার্তা পাঠানো অক্ষম।",
+      "compression_notice": "স্বয়ংক্রিয়ভাবে সংকুচিত এবং এনক্রিপ্ট করা হবে"
     }
   },
   "connectionStatus": {
@@ -277,7 +305,13 @@
       "title": "{{name}} এর প্রোফাইল",
       "close": "বন্ধ করুন",
       "connected_since": "থেকে সংযুক্ত:"
-    }
+    },
+    "status": {
+      "online": "অনলাইন",
+      "offline": "অফলাইন",
+      "busy": "ব্যস্ত"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "আপনার প্রোফাইল",
@@ -305,7 +339,8 @@
     "gender_male_short": "পুং",
     "gender_female_short": "স্ত্রী",
     "gender_other": "অন্যান্য",
-    "age_suffix": "বছর বয়সী"
+    "age_suffix": "বছর বয়সী",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} সহকর্মী সংযুক্ত",

@@ -32,9 +32,9 @@ const GeolocationError = ({ message, onDismiss, onRetry }:{ message:string; onDi
   <div className="fixed top-16 left-1/2 -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 max-w-[90vw]">
     <span className="block sm:inline">{message}</span>
     <button onClick={onRetry} className="px-2 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700">
-      Activer la localisation
+      {t('geolocationError.activate')}
     </button>
-    <button onClick={onDismiss} className="absolute top-0 bottom-0 right-0 px-4 py-3" aria-label="Fermer l’alerte">✕</button>
+    <button onClick={onDismiss} className="absolute top-0 bottom-0 right-0 px-4 py-3" aria-label={t('geolocationError.close_alert')}>✕</button>
   </div>
 );
 
@@ -52,7 +52,7 @@ function App() {
 
   // State pour la discussion publique
   const [publicRoomId, setPublicRoomId] = useState<string | null>(null);
-  const [publicRoomName, setPublicRoomName] = useState('Discussion Publique');
+  const [publicRoomName, setPublicRoomName] = useState(t('publicChat.title'));
   const [publicMessages, setPublicMessages] = useState<any[]>([]);
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -110,7 +110,7 @@ function App() {
     } catch (err) {
       setLocationInfo(null);
       setGeolocationError(
-        "Impossible de déterminer votre pays/ville. La recherche étendue est désactivée."
+        t('geolocationError.unavailable_location')
       );
       return null;
     }
@@ -148,7 +148,7 @@ function App() {
           (peerService as any)?.updateLocation?.({ ...ipLocation, method: 'geoip' });
         }
         setGeolocationError(
-          "Le GPS a échoué. Utilisation de la localisation approximative par IP."
+          t('geolocationError.gps_failed')
         );
       },
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 }
@@ -241,16 +241,16 @@ useEffect(() => {
     const onGeolocationError = (error: GeolocationPositionError) => {
       switch (error.code) {
         case 1:
-          setGeolocationError("L'accès à la géolocalisation a été refusé. L'application ne peut pas trouver de pairs à proximité.");
+          setGeolocationError(t('geolocationError.permission_denied'));
           break;
         case 2:
-          setGeolocationError('Impossible d’obtenir votre position actuelle. Vérifiez la connexion réseau ou les paramètres de localisation.');
+          setGeolocationError(t('geolocationError.position_unavailable'));
           break;
         case 3:
-          setGeolocationError('La recherche de position a expiré. Veuillez réessayer.');
+          setGeolocationError(t('geolocationError.timeout'));
           break;
         default:
-          setGeolocationError('Erreur inconnue lors de la récupération de votre position.');
+          setGeolocationError(t('geolocationError.unknown'));
       }
     };
 
@@ -406,7 +406,7 @@ const avatar = payload.avatar
           content: plaintext,
           timestamp: now,
           type: 'text',
-          senderName: p?.name || 'Utilisateur',
+          senderName: p?.name || t('user.default_name'),
         });
 
         (peerService as any)?.sendMessageDeliveredAck?.(peerId, id);
@@ -448,7 +448,7 @@ const avatar = payload.avatar
       id,
       senderId: peerId,
       receiverId: myId,
-      content: `${meta.name} (En réception...)`,
+      content: `${meta.name} ${t('file.receiving')}`,
       timestamp: now,
       type: 'file',
       encrypted: true,
@@ -466,7 +466,7 @@ const avatar = payload.avatar
       content: meta.name,
       timestamp: now,
       type: 'file',
-      senderName: p?.name || 'Utilisateur',
+      senderName: p?.name || t('user.default_name'),
     });
     return;
   }
@@ -796,7 +796,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
     .filter(p => p.status === 'online')
     .map(p => ({
       ...p,
-      name: (p.name && p.name.trim()) ? p.name : 'Utilisateur',
+      name: (p.name && p.name.trim()) ? p.name : t('user.default_name'),
     }));
   const selectedPeer = peers.get(selectedPeerId || '');
 
@@ -809,7 +809,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Initialisation des services...</p>
+          <p className="text-gray-600">{t('app.initializing')}</p>
         </div>
       </div>
     );
@@ -988,8 +988,8 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
           <div className="flex items-center gap-3 min-w-0">
             <div
               className={`p-1.5 rounded-lg ${isConnected ? 'bg-blue-600' : 'bg-gray-300'}`}
-              aria-label={isConnected ? 'Connecté' : 'Déconnecté'}
-              title={isConnected ? 'Connecté' : 'Déconnecté'}
+              aria-label={isConnected ? t('app.aria.connected') : t('app.aria.disconnected')}
+              title={isConnected ? t('app.status.connected') : t('app.status.disconnected')}
             >
               <img
                 src="/manifest-icon-96.png"
@@ -1000,7 +1000,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
             <div className="min-w-0">
               <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">NoNetChat Web</h1>
               <p className="text-xs sm:text-sm text-gray-600 truncate">
-                Messagerie directe {!isConnected && '(Déconnecté)'}
+                {isConnected ? t('app.tagline') : t('app.tagline_disconnected')}
               </p>
             </div>
           </div>
@@ -1015,10 +1015,10 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                   setInstallEvent(null);
                 }}
                 className="px-3 py-1.5 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
-                aria-label="Installer l’application"
-                title="Installer l’application"
+                aria-label={t('app.install_aria')}
+                title={t('app.install_aria')}
               >
-                Installer
+                {t('app.install')}
               </button>
             )}
 
@@ -1176,8 +1176,8 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
           {activeTab === 'public' && (
              <div className="p-4 text-center text-gray-500">
                 <Globe size={48} className="mx-auto mb-2 text-gray-300" />
-                <p className="font-semibold">{publicRoomName}</p>
-                <p className="text-sm">Les messages ici sont éphémères et visibles par tous dans votre zone actuelle.</p>
+                <p className="font-semibold">{t('publicChat.empty_placeholder.title', { roomName: publicRoomName })}</p>
+                <p className="text-sm">{t('publicChat.empty_placeholder.body')}</p>
               </div>
           )}
         </div>
@@ -1201,13 +1201,13 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
             <div className="flex-1 flex items-center justify-center bg-gray-50">
               <div className="text-center text-gray-500">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <h3 className="text-lg font-medium mb-2">Connexion en cours...</h3>
-                <p className="max-w-md mb-4">Établissement de la connexion avec le pair sélectionné.</p>
+                <h3 className="text-lg font-medium mb-2">{t('main.connecting_to_peer')}</h3>
+                <p className="max-w-md mb-4">{t('main.establishing_connection')}</p>
                 <button
                   onClick={() => setSelectedPeerId(undefined)}
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                 >
-                  t('chat.cancel_transfers.cancel')
+                  {t('main.cancel_button')}
                 </button>
               </div>
             </div>
@@ -1215,11 +1215,11 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
             <div className="flex-1 flex items-center justify-center bg-gray-50">
               <div className="text-center text-gray-500 px-6">
                 <MessageSquare size={56} className="mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium mb-2">NoNetChat Web</h3>
+                <h3 className="text-lg font-medium mb-2">{t('main.welcome_title')}</h3>
                 {!isConnected ? (
-                  <p className="max-w-md mb-2">Connexion au serveur de signalisation en cours...</p>
+                  <p className="max-w-md mb-2">{t('main.welcome_connecting')}</p>
                 ) : (
-                  <p className="max-w-md">Sélectionnez un pair pour commencer une conversation directe et sécurisée.</p>
+                  <p className="max-w-md">{t('main.welcome_select_peer')}</p>
                 )}
               </div>
             </div>
@@ -1238,11 +1238,11 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
               setSelectedPeerId(undefined);
             }}
             className={`flex flex-col items-center justify-center py-2 ${activeTab === 'peers' && !selectedPeer ? 'text-blue-600' : 'text-gray-600'}`}
-            aria-label="Pairs"
-            title="Pairs"
+            aria-label={t('bottomNav.aria.peers')}
+            title={t('bottomNav.aria.peers')}
           >
             <Users size={22} />
-            <span className="text-[11px] leading-3 mt-0.5">Pairs</span>
+            <span className="text-[11px] leading-3 mt-0.5">{t('bottomNav.peers')}</span>
           </button>
 
           <button
@@ -1251,11 +1251,11 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
               setSelectedPeerId(undefined);
             }}
             className={`relative flex flex-col items-center justify-center py-2 ${activeTab === 'public' && !selectedPeer ? 'text-blue-600' : 'text-gray-600'}`}
-            aria-label="Discussion Publique"
-            title="Discussion Publique"
+            aria-label={t('bottomNav.aria.public_chat')}
+            title={t('bottomNav.aria.public_chat')}
           >
             <Globe size={22} />
-            <span className="text-[11px] leading-3 mt-0.5">Public</span>
+            <span className="text-[11px] leading-3 mt-0.5">{t('bottomNav.public_chat_short')}</span>
           </button>
 
           <button
@@ -1264,11 +1264,11 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
               setSelectedPeerId(undefined);
             }}
             className={`relative flex flex-col items-center justify-center py-2 ${activeTab === 'conversations' && !selectedPeer ? 'text-blue-600' : 'text-gray-600'}`}
-            aria-label="Messages"
-            title="Messages"
+            aria-label={t('bottomNav.aria.messages')}
+            title={t('bottomNav.aria.messages')}
           >
             <MessageSquare size={22} />
-            <span className="text-[11px] leading-3 mt-0.5">Messages</span>
+            <span className="text-[11px] leading-3 mt-0.5">{t('bottomNav.messages')}</span>
             {totalUnreadCount > 0 && (
               <span className="absolute top-1 right-6 bg-red-500 text-white text-[10px] rounded-full h-4 min-w-4 px-1 flex items-center justify-center font-medium">
                 {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
@@ -1279,21 +1279,21 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
           <button
             onClick={() => setIsSettingsOpen(true)}
             className="flex flex-col items-center justify-center py-2 text-gray-600"
-            aria-label="Paramètres"
-            title="Paramètres"
+            aria-label={t('bottomNav.aria.settings')}
+            title={t('bottomNav.aria.settings')}
           >
             <Cog size={22} />
-            <span className="text-[11px] leading-3 mt-0.5">Réglages</span>
+            <span className="text-[11px] leading-3 mt-0.5">{t('bottomNav.settings')}</span>
           </button>
 
           <button
             onClick={() => setShowNotificationSettings(true)}
             className="flex flex-col items-center justify-center py-2 text-gray-600"
-            aria-label="Notifications"
-            title="Notifications"
+            aria-label={t('bottomNav.aria.notifications')}
+            title={t('bottomNav.aria.notifications')}
           >
             <Bell size={22} />
-            <span className="text-[11px] leading-3 mt-0.5">Notif.</span>
+            <span className="text-[11px] leading-3 mt-0.5">{t('bottomNav.notifications_short')}</span>
           </button>
         </div>
       </nav>

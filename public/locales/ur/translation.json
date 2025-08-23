@@ -2,12 +2,18 @@
   "app": {
     "initializing": "خدمات شروع کی جا رہی ہیں...",
     "tagline": "براہ راست پیغام رسانی",
+    "tagline_disconnected": "براہ راست پیغام رسانی (منقطع)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "منسلک",
       "disconnected": "منقطع"
     },
     "install": "انسٹال کریں",
-    "install_aria": "ایپلیکیشن انسٹال کریں"
+    "install_aria": "ایپلیکیشن انسٹال کریں",
+    "aria": {
+      "connected": "منسلک",
+      "disconnected": "منقطع"
+    }
   },
   "geolocationError": {
     "activate": "مقام کو فعال کریں",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "عوامی چیٹ",
-    "description": "یہاں پیغامات عارضی ہیں اور آپ کے موجودہ علاقے میں ہر کسی کو نظر آتے ہیں۔"
+    "description": "یہاں پیغامات عارضی ہیں اور آپ کے موجودہ علاقے میں ہر کسی کو نظر آتے ہیں۔",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "یہاں پیغامات عارضی ہیں اور آپ کے موجودہ علاقے میں ہر کسی کو نظر آتے ہیں۔"
+    }
   },
   "settings": {
     "title": "ترتیبات",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "منسلک ہو رہا ہے...",
     "establishing_connection": "منتخب کردہ پیر کے ساتھ کنکشن قائم کیا جا رہا ہے۔",
     "connecting_to_server": "سگنلنگ سرور سے منسلک ہو رہا ہے...",
-    "select_peer_prompt": "براہ راست اور محفوظ گفتگو شروع کرنے کے لیے ایک پیر منتخب کریں۔"
+    "select_peer_prompt": "براہ راست اور محفوظ گفتگو شروع کرنے کے لیے ایک پیر منتخب کریں۔",
+    "cancel_button": "منسوخ کریں",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "سگنلنگ سرور سے منسلک ہو رہا ہے...",
+    "welcome_select_peer": "براہ راست اور محفوظ گفتگو شروع کرنے کے لیے ایک پیر منتخب کریں۔"
   },
   "bottomNav": {
     "peers": "ساتھی",
@@ -70,7 +84,14 @@
     "messages": "پیغامات",
     "settings": "ترتیبات",
     "notifications": "اطلاعات",
-    "notifications_short": "اطلاعات"
+    "notifications_short": "اطلاعات",
+    "aria": {
+      "peers": "ساتھی",
+      "public_chat": "عوامی چیٹ",
+      "messages": "پیغامات",
+      "settings": "ترتیبات",
+      "notifications": "اطلاعات"
+    }
   },
   "chat": {
     "voice_note": "صوتی نوٹ",
@@ -118,7 +139,9 @@
       "delete": "حذف کریں"
     },
     "reactions": {
-      "title": "{{emoji}} کے ساتھ رد عمل ظاہر کریں"
+      "title": "{{emoji}} کے ساتھ رد عمل ظاہر کریں",
+      "title_one": "1 رد عمل",
+      "title_other": "{{count}} رد عمل"
     },
     "file_message": {
       "size": "سائز:",
@@ -128,7 +151,11 @@
       "status_receiving": "وصول ہو رہا ہے...",
       "status_pending": "زیر التواء",
       "sending": "بھیج رہا ہے",
-      "receiving": "وصول ہو رہا ہے"
+      "receiving": "وصول ہو رہا ہے",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10s",
+      "seek_backward": "⟲ 10s",
+      "change_speed_aria": "رفتار تبدیل کریں"
     },
     "new_messages_button": {
       "aria_label": "نئے پیغامات پر جائیں",
@@ -146,7 +173,8 @@
       "aria_label": "پیغام ان پٹ",
       "add_emoji": "ایموجی شامل کریں",
       "record_voice": "صوتی پیغام ریکارڈ کریں",
-      "peer_offline_warning": "{{peerName}} آف لائن ہے۔ پیغام بھیجنا غیر فعال ہے۔"
+      "peer_offline_warning": "{{peerName}} آف لائن ہے۔ پیغام بھیجنا غیر فعال ہے۔",
+      "compression_notice": "خود بخود کمپریس اور خفیہ کردہ ہو جائے گا"
     }
   },
   "connectionStatus": {
@@ -277,7 +305,13 @@
       "title": "{{name}} کی پروفائل",
       "close": "بند کریں",
       "connected_since": "سے منسلک:"
-    }
+    },
+    "status": {
+      "online": "آن لائن",
+      "offline": "آف لائن",
+      "busy": "مصروف"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "آپ کی پروفائل",
@@ -305,7 +339,8 @@
     "gender_male_short": "م",
     "gender_female_short": "ع",
     "gender_other": "دیگر",
-    "age_suffix": "سال"
+    "age_suffix": "سال",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} پیر منسلک ہے",

@@ -21,6 +21,10 @@ function getByPath(obj: any, path: string): any {
   return path.split('.').reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : undefined), obj);
 }
 
+export function getCurrentLanguage(): string {
+  return currentLang;
+}
+
 export function t(key: string, vars?: Record<string, any>): string {
   const raw = getByPath(translations, key);
   const str = typeof raw === 'string' ? raw : key; // fallback to key

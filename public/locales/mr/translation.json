@@ -2,12 +2,18 @@
   "app": {
     "initializing": "सेवा सुरू करत आहे...",
     "tagline": "थेट संदेशन",
+    "tagline_disconnected": "थेट संदेशन (डिस्कनेक्ट केले आहे)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "जोडले आहे",
       "disconnected": "डिस्कनेक्ट केले आहे"
     },
     "install": "स्थापित करा",
-    "install_aria": "अनुप्रयोग स्थापित करा"
+    "install_aria": "अनुप्रयोग स्थापित करा",
+    "aria": {
+      "connected": "जोडले आहे",
+      "disconnected": "डिस्कनेक्ट केले आहे"
+    }
   },
   "geolocationError": {
     "activate": "स्थान सक्षम करा",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "सार्वजनिक गप्पा",
-    "description": "येथील संदेश क्षणिक आहेत आणि तुमच्या सध्याच्या क्षेत्रातील प्रत्येकासाठी दृश्यमान आहेत."
+    "description": "येथील संदेश क्षणिक आहेत आणि तुमच्या सध्याच्या क्षेत्रातील प्रत्येकासाठी दृश्यमान आहेत.",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "येथील संदेश क्षणिक आहेत आणि तुमच्या सध्याच्या क्षेत्रातील प्रत्येकासाठी दृश्यमान आहेत."
+    }
   },
   "settings": {
     "title": "सेटिंग्ज",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "कनेक्ट करत आहे...",
     "establishing_connection": " निवडलेल्या पीअरशी कनेक्शन स्थापित करत आहे.",
     "connecting_to_server": "सिग्नलिंग सर्व्हरशी कनेक्ट करत आहे...",
-    "select_peer_prompt": "थेट आणि सुरक्षित संभाषण सुरू करण्यासाठी पीअर निवडा."
+    "select_peer_prompt": "थेट आणि सुरक्षित संभाषण सुरू करण्यासाठी पीअर निवडा.",
+    "cancel_button": "रद्द करा",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "सिग्नलिंग सर्व्हरशी कनेक्ट करत आहे...",
+    "welcome_select_peer": "थेट आणि सुरक्षित संभाषण सुरू करण्यासाठी पीअर निवडा."
   },
   "bottomNav": {
     "peers": "पीअर्स",
@@ -70,7 +84,14 @@
     "messages": "संदेश",
     "settings": "सेटिंग्ज",
     "notifications": "सूचना",
-    "notifications_short": "सूचना"
+    "notifications_short": "सूचना",
+    "aria": {
+      "peers": "पीअर्स",
+      "public_chat": "सार्वजनिक गप्पा",
+      "messages": "संदेश",
+      "settings": "सेटिंग्ज",
+      "notifications": "सूचना"
+    }
   },
   "chat": {
     "voice_note": "व्हॉइस नोट",
@@ -118,7 +139,9 @@
       "delete": "हटवा"
     },
     "reactions": {
-      "title": "{{emoji}} सह प्रतिक्रिया द्या"
+      "title": "{{emoji}} सह प्रतिक्रिया द्या",
+      "title_one": "1 प्रतिक्रिया",
+      "title_other": "{{count}} प्रतिक्रिया"
     },
     "file_message": {
       "size": "आकार:",
@@ -128,7 +151,11 @@
       "status_receiving": "प्राप्त करत आहे...",
       "status_pending": "प्रलंबित",
       "sending": "पाठवत आहे",
-      "receiving": "प्राप्त करत आहे"
+      "receiving": "प्राप्त करत आहे",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10से",
+      "seek_backward": "⟲ 10से",
+      "change_speed_aria": "वेग बदला"
     },
     "new_messages_button": {
       "aria_label": "नवीन संदेशांवर जा",
@@ -146,7 +173,8 @@
       "aria_label": "संदेश इनपुट",
       "add_emoji": "इमोजी जोडा",
       "record_voice": "व्हॉइस संदेश रेकॉर्ड करा",
-      "peer_offline_warning": "{{peerName}} ऑफलाइन आहे. संदेश पाठवणे अक्षम आहे."
+      "peer_offline_warning": "{{peerName}} ऑफलाइन आहे. संदेश पाठवणे अक्षम आहे.",
+      "compression_notice": "स्वयंचलितपणे संकुचित आणि कूटबद्ध केले जाईल"
     }
   },
   "connectionStatus": {
@@ -277,7 +305,13 @@
       "title": "{{name}} ची प्रोफाइल",
       "close": "बंद करा",
       "connected_since": "पासून कनेक्ट केलेले:"
-    }
+    },
+    "status": {
+      "online": "ऑनलाइन",
+      "offline": "ऑफलाइन",
+      "busy": "व्यस्त"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "तुमची प्रोफाइल",
@@ -305,7 +339,8 @@
     "gender_male_short": "पु",
     "gender_female_short": "स्त्री",
     "gender_other": "इतर",
-    "age_suffix": "वर्षे"
+    "age_suffix": "वर्षे",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} पीअर कनेक्ट झाला आहे",

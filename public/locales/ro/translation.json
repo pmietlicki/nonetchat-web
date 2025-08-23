@@ -2,12 +2,18 @@
   "app": {
     "initializing": "Inițializarea serviciilor...",
     "tagline": "Mesagerie directă",
+    "tagline_disconnected": "Mesagerie directă (Deconectat)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "Conectat",
       "disconnected": "Deconectat"
     },
     "install": "Instalare",
-    "install_aria": "Instalare aplicație"
+    "install_aria": "Instalare aplicație",
+    "aria": {
+      "connected": "Conectat",
+      "disconnected": "Deconectat"
+    }
   },
   "geolocationError": {
     "activate": "Activați locația",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "Chat public",
-    "description": "Mesajele de aici sunt efemere și vizibile pentru toată lumea din zona dvs. curentă."
+    "description": "Mesajele de aici sunt efemere și vizibile pentru toată lumea din zona dvs. curentă.",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "Mesajele de aici sunt efemere și vizibile pentru toată lumea din zona dvs. curentă."
+    }
   },
   "settings": {
     "title": "Setări",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "Se conectează...",
     "establishing_connection": "Se stabilește conexiunea cu peer-ul selectat.",
     "connecting_to_server": "Se conectează la serverul de semnalizare...",
-    "select_peer_prompt": "Selectați un peer pentru a începe o conversație directă și sigură."
+    "select_peer_prompt": "Selectați un peer pentru a începe o conversație directă și sigură.",
+    "cancel_button": "Anulare",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "Se conectează la serverul de semnalizare...",
+    "welcome_select_peer": "Selectați un peer pentru a începe o conversație directă și sigură."
   },
   "bottomNav": {
     "peers": "Peer-uri",
@@ -70,7 +84,14 @@
     "messages": "Mesaje",
     "settings": "Setări",
     "notifications": "Notificări",
-    "notifications_short": "Notif."
+    "notifications_short": "Notif.",
+    "aria": {
+      "peers": "Peer-uri",
+      "public_chat": "Chat public",
+      "messages": "Mesaje",
+      "settings": "Setări",
+      "notifications": "Notificări"
+    }
   },
   "chat": {
     "voice_note": "Notă vocală",
@@ -118,7 +139,9 @@
       "delete": "Ștergere"
     },
     "reactions": {
-      "title": "Reacționează cu {{emoji}}"
+      "title": "Reacționează cu {{emoji}}",
+      "title_one": "1 reacție",
+      "title_other": "{{count}} reacții"
     },
     "file_message": {
       "size": "Dimensiune:",
@@ -128,7 +151,11 @@
       "status_receiving": "Se primește...",
       "status_pending": "În așteptare",
       "sending": "Se trimite",
-      "receiving": "Se primește"
+      "receiving": "Se primește",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10s",
+      "seek_backward": "⟲ 10s",
+      "change_speed_aria": "Schimbă viteza"
     },
     "new_messages_button": {
       "aria_label": "Mergi la mesajele noi",
@@ -146,7 +173,8 @@
       "aria_label": "Introducere mesaj",
       "add_emoji": "Adaugă emoji",
       "record_voice": "Înregistrează un mesaj vocal",
-      "peer_offline_warning": "{{peerName}} este offline. Trimiterea mesajelor este dezactivată."
+      "peer_offline_warning": "{{peerName}} este offline. Trimiterea mesajelor este dezactivată.",
+      "compression_notice": "Va fi comprimat și criptat automat"
     }
   },
   "connectionStatus": {
@@ -277,7 +305,13 @@
       "title": "Profilul lui {{name}}",
       "close": "Închide",
       "connected_since": "Conectat de la:"
-    }
+    },
+    "status": {
+      "online": "Online",
+      "offline": "Offline",
+      "busy": "Ocupat"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "Profilul tău",
@@ -305,7 +339,8 @@
     "gender_male_short": "B",
     "gender_female_short": "F",
     "gender_other": "Altul",
-    "age_suffix": "ani"
+    "age_suffix": "ani",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} peer conectat",

@@ -2,12 +2,18 @@
   "app": {
     "initializing": "جارٍ تهيئة الخدمات...",
     "tagline": "رسائل مباشرة",
+    "tagline_disconnected": "رسائل مباشرة (غير متصل)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "متصل",
       "disconnected": "غير متصل"
     },
     "install": "تثبيت",
-    "install_aria": "تثبيت التطبيق"
+    "install_aria": "تثبيت التطبيق",
+    "aria": {
+      "connected": "متصل",
+      "disconnected": "غير متصل"
+    }
   },
   "geolocationError": {
     "activate": "تمكين الموقع",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "دردشة عامة",
-    "description": "الرسائل هنا سريعة الزوال ومرئية للجميع في منطقتك الحالية."
+    "description": "الرسائل هنا سريعة الزوال ومرئية للجميع في منطقتك الحالية.",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "الرسائل هنا سريعة الزوال ومرئية للجميع في منطقتك الحالية."
+    }
   },
   "settings": {
     "title": "الإعدادات",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "جارٍ الاتصال...",
     "establishing_connection": "جارٍ إنشاء اتصال مع النظير المحدد.",
     "connecting_to_server": "جارٍ الاتصال بخادم الإشارة...",
-    "select_peer_prompt": "حدد نظيرًا لبدء محادثة مباشرة وآمنة."
+    "select_peer_prompt": "حدد نظيرًا لبدء محادثة مباشرة وآمنة.",
+    "cancel_button": "إلغاء",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "جارٍ الاتصال بخادم الإشارة...",
+    "welcome_select_peer": "حدد نظيرًا لبدء محادثة مباشرة وآمنة."
   },
   "bottomNav": {
     "peers": "الأقران",
@@ -70,7 +84,14 @@
     "messages": "الرسائل",
     "settings": "الإعدادات",
     "notifications": "الإشعارات",
-    "notifications_short": "إشعارات"
+    "notifications_short": "إشعارات",
+    "aria": {
+      "peers": "الأقران",
+      "public_chat": "دردشة عامة",
+      "messages": "الرسائل",
+      "settings": "الإعدادات",
+      "notifications": "الإشعارات"
+    }
   },
   "chat": {
     "voice_note": "ملاحظة صوتية",
@@ -118,7 +139,9 @@
       "delete": "حذف"
     },
     "reactions": {
-      "title": "تفاعل مع {{emoji}}"
+      "title": "تفاعل مع {{emoji}}",
+      "title_one": "1 تفاعل",
+      "title_other": "{{count}} تفاعلات"
     },
     "file_message": {
       "size": "الحجم:",
@@ -128,7 +151,11 @@
       "status_receiving": "جارٍ الاستلام...",
       "status_pending": "قيد الانتظار",
       "sending": "جارٍ الإرسال",
-      "receiving": "جارٍ الاستلام"
+      "receiving": "جارٍ الاستلام",
+      "kb_unit": "كيلوبايت",
+      "seek_forward": "⟳ 10 ثوانٍ",
+      "seek_backward": "⟲ 10 ثوانٍ",
+      "change_speed_aria": "تغيير السرعة"
     },
     "new_messages_button": {
       "aria_label": "الانتقال إلى الرسائل الجديدة",
@@ -146,7 +173,8 @@
       "aria_label": "إدخال الرسالة",
       "add_emoji": "إضافة رمز تعبيري",
       "record_voice": "تسجيل رسالة صوتية",
-      "peer_offline_warning": "{{peerName}} غير متصل. إرسال الرسائل معطل."
+      "peer_offline_warning": "{{peerName}} غير متصل. إرسال الرسائل معطل.",
+      "compression_notice": "سيتم ضغطه وتشفيره تلقائيًا"
     }
   },
   "connectionStatus": {
@@ -277,7 +305,13 @@
       "title": "ملف تعريف {{name}}",
       "close": "إغلاق",
       "connected_since": "متصل منذ:"
-    }
+    },
+    "status": {
+      "online": "متصل",
+      "offline": "غير متصل",
+      "busy": "مشغول"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "ملفك الشخصي",
@@ -305,7 +339,8 @@
     "gender_male_short": "ذ",
     "gender_female_short": "أ",
     "gender_other": "آخر",
-    "age_suffix": "سنة"
+    "age_suffix": "سنة",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} نظير متصل",

@@ -1,13 +1,19 @@
 {
   "app": {
-    "initializing": "Inicializando servicios...",
+    "initializing": "Inicializando servicios…",
     "tagline": "Mensajería directa",
+    "tagline_disconnected": "Mensajería directa (Desconectado)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "Conectado",
       "disconnected": "Desconectado"
     },
     "install": "Instalar",
-    "install_aria": "Instalar aplicación"
+    "install_aria": "Instalar aplicación",
+    "aria": {
+      "connected": "Conectado",
+      "disconnected": "Desconectado"
+    }
   },
   "geolocationError": {
     "activate": "Habilitar ubicación",
@@ -23,7 +29,7 @@
     "default_name": "Usuario"
   },
   "file": {
-    "receiving": "(Recibiendo...)"
+    "receiving": "(Recibiendo…)"
   },
   "tabs": {
     "peers": "Pares",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "Chat público",
-    "description": "Los mensajes aquí son efímeros y visibles para todos en su área actual."
+    "description": "Los mensajes aquí son efímeros y visibles para todos en su área actual.",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "Los mensajes aquí son efímeros y visibles para todos en su área actual."
+    }
   },
   "settings": {
     "title": "Configuración",
@@ -58,10 +68,14 @@
     "home_aria": "Volver a inicio"
   },
   "main": {
-    "connecting_to_peer": "Conectando...",
+    "connecting_to_peer": "Conectando…",
     "establishing_connection": "Estableciendo conexión con el par seleccionado.",
-    "connecting_to_server": "Conectando al servidor de señalización...",
-    "select_peer_prompt": "Seleccione un par para iniciar una conversación directa y segura."
+    "connecting_to_server": "Conectando al servidor de señalización…",
+    "select_peer_prompt": "Seleccione un par para iniciar una conversación directa y segura.",
+    "cancel_button": "Cancelar",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "Conectando al servidor de señalización…",
+    "welcome_select_peer": "Seleccione un par para iniciar una conversación directa y segura."
   },
   "bottomNav": {
     "peers": "Pares",
@@ -70,14 +84,21 @@
     "messages": "Mensajes",
     "settings": "Ajustes",
     "notifications": "Notificaciones",
-    "notifications_short": "Notif."
+    "notifications_short": "Notif.",
+    "aria": {
+      "peers": "Pares",
+      "public_chat": "Chat público",
+      "messages": "Mensajes",
+      "settings": "Ajustes",
+      "notifications": "Notificaciones"
+    }
   },
   "chat": {
     "voice_note": "Nota de voz",
-    "sending_in_progress": "(Enviando...)",
+    "sending_in_progress": "(Enviando…)",
     "sending_progress": "(Enviando: {{progress}}%)",
     "sending_error": "(Error de envío)",
-    "receiving_in_progress": "(Recibiendo...)",
+    "receiving_in_progress": "(Recibiendo…)",
     "file_size_error": "Tamaño de archivo incorrecto: se recibieron {{totalSize}} bytes, se esperaban {{expectedSize}} bytes (diferencia: {{sizeDifference}})",
     "decryption_empty_error": "El archivo descifrado está vacío",
     "decryption_error": "Error: No se pudo descifrar {{fileName}}",
@@ -92,7 +113,7 @@
     "download_link": {
       "not_found": "Archivo no encontrado en la base de datos local.",
       "error": "Ocurrió un error durante la descarga.",
-      "loading": "Cargando...",
+      "loading": "Cargando…",
       "download": "📥 Descargar",
       "title": "Descargar archivo"
     },
@@ -118,17 +139,23 @@
       "delete": "Eliminar"
     },
     "reactions": {
-      "title": "Reaccionar con {{emoji}}"
+      "title": "Reaccionar con {{emoji}}",
+      "title_one": "1 reacción",
+      "title_other": "{{count}} reacciones"
     },
     "file_message": {
       "size": "Tamaño:",
       "unknown_size": "Desconocido",
-      "status_sending": "Enviando...",
+      "status_sending": "Enviando…",
       "status_sent": "Enviado",
-      "status_receiving": "Recibiendo...",
+      "status_receiving": "Recibiendo…",
       "status_pending": "Pendiente",
       "sending": "Enviando",
-      "receiving": "Recibiendo"
+      "receiving": "Recibiendo",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10s",
+      "seek_backward": "⟲ 10s",
+      "change_speed_aria": "Cambiar velocidad"
     },
     "new_messages_button": {
       "aria_label": "Ir a mensajes nuevos",
@@ -141,27 +168,28 @@
       "attach_file": "Adjuntar archivo",
       "file_too_large": "El archivo es demasiado grande. Tamaño máximo permitido: {{maxSize}} MB\n\nNota: Los archivos se comprimen automáticamente antes de enviarlos para optimizar la transferencia.",
       "selected_file": "Archivo seleccionado: {{fileName}}",
-      "placeholder": "Escribe tu mensaje...",
+      "placeholder": "Escribe tu mensaje…",
       "placeholder_offline": "Usuario desconectado: envío de mensajes deshabilitado",
       "aria_label": "Entrada de mensaje",
       "add_emoji": "Añadir emoji",
       "record_voice": "Grabar un mensaje de voz",
-      "peer_offline_warning": "{{peerName}} está desconectado. El envío de mensajes está deshabilitado."
+      "peer_offline_warning": "{{peerName}} está desconectado. El envío de mensajes está deshabilitado.",
+      "compression_notice": "Se comprimirá y cifrará automáticamente"
     }
   },
   "connectionStatus": {
-    "reconnecting": "Reconectando...",
+    "reconnecting": "Reconectando…",
     "disconnected": "Desconectado",
     "reconnect": "Reconectar"
   },
   "conversationList": {
     "title": "Conversaciones ({{count}})",
-    "search_placeholder": "Buscar por nombre o mensaje...",
+    "search_placeholder": "Buscar por nombre o mensaje…",
     "clear_search_aria": "Borrar búsqueda",
     "clear_search_title": "Borrar",
     "no_conversations_title": "No hay conversaciones",
     "no_conversations_prompt": "Selecciona un par para empezar",
-    "loading": "Cargando...",
+    "loading": "Cargando…",
     "delete_confirm": "¿Estás seguro de que quieres eliminar esta conversación?",
     "last_message_none": "No hay mensajes",
     "last_message_file": "📎 Archivo compartido",
@@ -180,7 +208,7 @@
     "close": "Cerrar",
     "resize": "Redimensionar",
     "connectivity_tests": "Pruebas de conectividad",
-    "testing_in_progress": "Probando...",
+    "testing_in_progress": "Probando…",
     "test_connectivity": "Probar conectividad",
     "signaling": "Señalización",
     "ok": "OK",
@@ -196,7 +224,7 @@
     "instructions_body": "1) Ejecute \"Probar conectividad\". 2) Supervise los registros. 3) Exporte para compartir."
   },
   "messageStatus": {
-    "sending": "Enviando...",
+    "sending": "Enviando…",
     "sent": "Enviado",
     "delivered": "Entregado",
     "read": "Leído",
@@ -259,7 +287,13 @@
       "title": "Perfil de {{name}}",
       "close": "Cerrar",
       "connected_since": "Conectado desde:"
-    }
+    },
+    "status": {
+      "online": "En línea",
+      "offline": "Desconectado",
+      "busy": "Ocupado"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "Tu perfil",
@@ -283,11 +317,12 @@
   "publicChatWindow": {
     "back": "Atrás",
     "default_user_name": "Usuario",
-    "placeholder": "Mensaje público...",
+    "placeholder": "Mensaje público…",
     "gender_male_short": "H",
     "gender_female_short": "M",
     "gender_other": "Otro",
-    "age_suffix": "años"
+    "age_suffix": "años",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} par conectado",

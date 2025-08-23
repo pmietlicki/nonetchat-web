@@ -2,12 +2,18 @@
   "app": {
     "initializing": "సేవలను ప్రారంభిస్తోంది...",
     "tagline": "ప్రత్యక్ష సందేశం",
+    "tagline_disconnected": "ప్రత్యక్ష సందేశం (డిస్‌కనెక్ట్ చేయబడింది)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "కనెక్ట్ చేయబడింది",
       "disconnected": "డిస్‌కనెక్ట్ చేయబడింది"
     },
     "install": "ఇన్‌స్టాల్ చేయండి",
-    "install_aria": "అనువర్తనాన్ని ఇన్‌స్టాల్ చేయండి"
+    "install_aria": "అనువర్తనాన్ని ఇన్‌స్టాల్ చేయండి",
+    "aria": {
+      "connected": "కనెక్ట్ చేయబడింది",
+      "disconnected": "డిస్‌కనెక్ట్ చేయబడింది"
+    }
   },
   "geolocationError": {
     "activate": "స్థానాన్ని ప్రారంభించు",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "పబ్లిక్ చాట్",
-    "description": "ఇక్కడ సందేశాలు అశాశ్వతమైనవి మరియు మీ ప్రస్తుత ప్రాంతంలోని ప్రతి ఒక్కరికీ కనిపిస్తాయి."
+    "description": "ఇక్కడ సందేశాలు అశాశ్వతమైనవి మరియు మీ ప్రస్తుత ప్రాంతంలోని ప్రతి ఒక్కరికీ కనిపిస్తాయి.",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "ఇక్కడ సందేశాలు అశాశ్వతమైనవి మరియు మీ ప్రస్తుత ప్రాంతంలోని ప్రతి ఒక్కరికీ కనిపిస్తాయి."
+    }
   },
   "settings": {
     "title": "సెట్టింగ్‌లు",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "కనెక్ట్ చేస్తోంది...",
     "establishing_connection": "ఎంచుకున్న పీర్‌తో కనెక్షన్‌ను ఏర్పాటు చేస్తోంది.",
     "connecting_to_server": "సిగ్నలింగ్ సర్వర్‌కు కనెక్ట్ చేస్తోంది...",
-    "select_peer_prompt": "ప్రత్యక్ష మరియు సురక్షిత సంభాషణను ప్రారంభించడానికి ఒక పీర్‌ను ఎంచుకోండి."
+    "select_peer_prompt": "ప్రత్యక్ష మరియు సురక్షిత సంభాషణను ప్రారంభించడానికి ఒక పీర్‌ను ఎంచుకోండి.",
+    "cancel_button": "రద్దు చేయండి",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "సిగ్నలింగ్ సర్వర్‌కు కనెక్ట్ చేస్తోంది...",
+    "welcome_select_peer": "ప్రత్యక్ష మరియు సురక్షిత సంభాషణను ప్రారంభించడానికి ఒక పీర్‌ను ఎంచుకోండి."
   },
   "bottomNav": {
     "peers": "తోటివారు",
@@ -70,7 +84,14 @@
     "messages": "సందేశాలు",
     "settings": "సెట్టింగ్‌లు",
     "notifications": "నోటిఫికేషన్‌లు",
-    "notifications_short": "నోటిఫికేషన్‌లు"
+    "notifications_short": "నోటిఫికేషన్‌లు",
+    "aria": {
+      "peers": "తోటివారు",
+      "public_chat": "పబ్లిక్ చాట్",
+      "messages": "సందేశాలు",
+      "settings": "సెట్టింగ్‌లు",
+      "notifications": "నోటిఫికేషన్‌లు"
+    }
   },
   "chat": {
     "voice_note": "వాయిస్ నోట్",
@@ -118,7 +139,9 @@
       "delete": "తొలగించు"
     },
     "reactions": {
-      "title": "{{emoji}}తో ప్రతిస్పందించండి"
+      "title": "{{emoji}}తో ప్రతిస్పందించండి",
+      "title_one": "1 ప్రతిస్పందన",
+      "title_other": "{{count}} ప్రతిస్పందనలు"
     },
     "file_message": {
       "size": "పరిమాణం:",
@@ -128,7 +151,11 @@
       "status_receiving": "స్వీకరిస్తోంది...",
       "status_pending": "పెండింగ్‌లో ఉంది",
       "sending": "పంపుతోంది",
-      "receiving": "స్వీకరిస్తోంది"
+      "receiving": "స్వీకరిస్తోంది",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10సె",
+      "seek_backward": "⟲ 10సె",
+      "change_speed_aria": "వేగాన్ని మార్చండి"
     },
     "new_messages_button": {
       "aria_label": "కొత్త సందేశాలకు వెళ్లండి",
@@ -146,7 +173,8 @@
       "aria_label": "సందేశ ఇన్‌పుట్",
       "add_emoji": "ఎమోజీని జోడించండి",
       "record_voice": "వాయిస్ సందేశాన్ని రికార్డ్ చేయండి",
-      "peer_offline_warning": "{{peerName}} ఆఫ్‌లైన్‌లో ఉన్నారు. సందేశాలు పంపడం నిలిపివేయబడింది."
+      "peer_offline_warning": "{{peerName}} ఆఫ్‌లైన్‌లో ఉన్నారు. సందేశాలు పంపడం నిలిపివేయబడింది.",
+      "compression_notice": "స్వయంచాలకంగా కుదించబడుతుంది మరియు గుప్తీకరించబడుతుంది"
     }
   },
   "connectionStatus": {
@@ -277,7 +305,13 @@
       "title": "{{name}} యొక్క ప్రొఫైల్",
       "close": "మూసివేయండి",
       "connected_since": "నుండి కనెక్ట్ చేయబడింది:"
-    }
+    },
+    "status": {
+      "online": "ఆన్‌లైన్",
+      "offline": "ఆఫ్‌లైన్",
+      "busy": "బిజీ"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "మీ ప్రొఫైల్",
@@ -305,7 +339,8 @@
     "gender_male_short": "పు",
     "gender_female_short": "స్త్రీ",
     "gender_other": "ఇతర",
-    "age_suffix": "సంవత్సరాలు"
+    "age_suffix": "సంవత్సరాలు",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} పీర్ కనెక్ట్ చేయబడింది",

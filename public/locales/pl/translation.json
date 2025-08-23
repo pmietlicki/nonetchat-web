@@ -2,12 +2,18 @@
   "app": {
     "initializing": "Inicjowanie usług...",
     "tagline": "Wiadomości bezpośrednie",
+    "tagline_disconnected": "Wiadomości bezpośrednie (Rozłączono)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "Połączono",
       "disconnected": "Rozłączono"
     },
     "install": "Zainstaluj",
-    "install_aria": "Zainstaluj aplikację"
+    "install_aria": "Zainstaluj aplikację",
+    "aria": {
+      "connected": "Połączono",
+      "disconnected": "Rozłączono"
+    }
   },
   "geolocationError": {
     "activate": "Włącz lokalizację",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "Czat publiczny",
-    "description": "Wiadomości tutaj są efemeryczne i widoczne dla wszystkich w Twojej bieżącej okolicy."
+    "description": "Wiadomości tutaj są efemeryczne i widoczne dla wszystkich w Twojej bieżącej okolicy.",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "Wiadomości tutaj są efemeryczne i widoczne dla wszystkich w Twojej bieżącej okolicy."
+    }
   },
   "settings": {
     "title": "Ustawienia",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "Łączenie...",
     "establishing_connection": "Nawiązywanie połączenia z wybranym peerem.",
     "connecting_to_server": "Łączenie z serwerem sygnalizacyjnym...",
-    "select_peer_prompt": "Wybierz peera, aby rozpocząć bezpośrednią i bezpieczną rozmowę."
+    "select_peer_prompt": "Wybierz peera, aby rozpocząć bezpośrednią i bezpieczną rozmowę.",
+    "cancel_button": "Anuluj",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "Łączenie z serwerem sygnalizacyjnym...",
+    "welcome_select_peer": "Wybierz peera, aby rozpocząć bezpośrednią i bezpieczną rozmowę."
   },
   "bottomNav": {
     "peers": "Peers",
@@ -70,7 +84,14 @@
     "messages": "Wiadomości",
     "settings": "Ustawienia",
     "notifications": "Powiadomienia",
-    "notifications_short": "Powiad."
+    "notifications_short": "Powiad.",
+    "aria": {
+      "peers": "Peers",
+      "public_chat": "Czat publiczny",
+      "messages": "Wiadomości",
+      "settings": "Ustawienia",
+      "notifications": "Powiadomienia"
+    }
   },
   "chat": {
     "voice_note": "Notatka głosowa",
@@ -118,7 +139,9 @@
       "delete": "Usuń"
     },
     "reactions": {
-      "title": "Zareaguj za pomocą {{emoji}}"
+      "title": "Zareaguj za pomocą {{emoji}}",
+      "title_one": "1 reakcja",
+      "title_other": "{{count}} reakcje"
     },
     "file_message": {
       "size": "Rozmiar:",
@@ -128,7 +151,11 @@
       "status_receiving": "Odbieranie...",
       "status_pending": "Oczekujące",
       "sending": "Wysyłanie",
-      "receiving": "Odbieranie"
+      "receiving": "Odbieranie",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10s",
+      "seek_backward": "⟲ 10s",
+      "change_speed_aria": "Zmień prędkość"
     },
     "new_messages_button": {
       "aria_label": "Przejdź do nowych wiadomości",
@@ -146,7 +173,8 @@
       "aria_label": "Wprowadzanie wiadomości",
       "add_emoji": "Dodaj emoji",
       "record_voice": "Nagraj wiadomość głosową",
-      "peer_offline_warning": "{{peerName}} jest offline. Wysyłanie wiadomości jest wyłączone."
+      "peer_offline_warning": "{{peerName}} jest offline. Wysyłanie wiadomości jest wyłączone.",
+      "compression_notice": "Zostanie automatycznie skompresowany i zaszyfrowany"
     }
   },
   "connectionStatus": {
@@ -277,7 +305,13 @@
       "title": "Profil użytkownika {{name}}",
       "close": "Zamknij",
       "connected_since": "Połączono od:"
-    }
+    },
+    "status": {
+      "online": "Online",
+      "offline": "Offline",
+      "busy": "Zajęty"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "Twój profil",
@@ -305,7 +339,8 @@
     "gender_male_short": "M",
     "gender_female_short": "K",
     "gender_other": "Inne",
-    "age_suffix": "lat"
+    "age_suffix": "lat",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} połączony peer",

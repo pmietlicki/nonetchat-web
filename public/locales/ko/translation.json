@@ -2,12 +2,18 @@
   "app": {
     "initializing": "서비스 초기화 중...",
     "tagline": "직접 메시징",
+    "tagline_disconnected": "직접 메시징 (연결 끊김)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "연결됨",
       "disconnected": "연결 끊김"
     },
     "install": "설치",
-    "install_aria": "애플리케이션 설치"
+    "install_aria": "애플리케이션 설치",
+    "aria": {
+      "connected": "연결됨",
+      "disconnected": "연결 끊김"
+    }
   },
   "geolocationError": {
     "activate": "위치 활성화",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "공개 채팅",
-    "description": "여기 메시지는 일시적이며 현재 지역의 모든 사람에게 표시됩니다."
+    "description": "여기 메시지는 일시적이며 현재 지역의 모든 사람에게 표시됩니다.",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "여기 메시지는 일시적이며 현재 지역의 모든 사람에게 표시됩니다."
+    }
   },
   "settings": {
     "title": "설정",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "연결 중...",
     "establishing_connection": "선택한 피어와 연결을 설정하는 중입니다.",
     "connecting_to_server": "신호 서버에 연결 중...",
-    "select_peer_prompt": "직접적이고 안전한 대화를 시작하려면 피어를 선택하십시오."
+    "select_peer_prompt": "직접적이고 안전한 대화를 시작하려면 피어를 선택하십시오.",
+    "cancel_button": "취소",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "신호 서버에 연결 중...",
+    "welcome_select_peer": "직접적이고 안전한 대화를 시작하려면 피어를 선택하십시오."
   },
   "bottomNav": {
     "peers": "피어",
@@ -70,7 +84,14 @@
     "messages": "메시지",
     "settings": "설정",
     "notifications": "알림",
-    "notifications_short": "알림"
+    "notifications_short": "알림",
+    "aria": {
+      "peers": "피어",
+      "public_chat": "공개 채팅",
+      "messages": "메시지",
+      "settings": "설정",
+      "notifications": "알림"
+    }
   },
   "chat": {
     "voice_note": "음성 메모",
@@ -118,7 +139,9 @@
       "delete": "삭제"
     },
     "reactions": {
-      "title": "{{emoji}}(으)로 반응하기"
+      "title": "{{emoji}}(으)로 반응하기",
+      "title_one": "1개의 반응",
+      "title_other": "{{count}}개의 반응"
     },
     "file_message": {
       "size": "크기:",
@@ -128,7 +151,11 @@
       "status_receiving": "수신 중...",
       "status_pending": "대기 중",
       "sending": "전송 중",
-      "receiving": "수신 중"
+      "receiving": "수신 중",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10초",
+      "seek_backward": "⟲ 10초",
+      "change_speed_aria": "속도 변경"
     },
     "new_messages_button": {
       "aria_label": "새 메시지로 이동",
@@ -146,7 +173,8 @@
       "aria_label": "메시지 입력",
       "add_emoji": "이모티콘 추가",
       "record_voice": "음성 메시지 녹음",
-      "peer_offline_warning": "{{peerName}}이(가) 오프라인입니다. 메시지 전송이 비활성화되었습니다."
+      "peer_offline_warning": "{{peerName}}이(가) 오프라인입니다. 메시지 전송이 비활성화되었습니다.",
+      "compression_notice": "자동으로 압축 및 암호화됩니다"
     }
   },
   "connectionStatus": {
@@ -277,7 +305,13 @@
       "title": "{{name}}의 프로필",
       "close": "닫기",
       "connected_since": "연결 시간:"
-    }
+    },
+    "status": {
+      "online": "온라인",
+      "offline": "오프라인",
+      "busy": "바쁨"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "내 프로필",
@@ -305,7 +339,8 @@
     "gender_male_short": "남",
     "gender_female_short": "여",
     "gender_other": "기타",
-    "age_suffix": "세"
+    "age_suffix": "세",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}}개의 피어가 연결되었습니다.",

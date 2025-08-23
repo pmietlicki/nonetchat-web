@@ -2,12 +2,18 @@
   "app": {
     "initializing": "ਸੇਵਾਵਾਂ ਸ਼ੁਰੂ ਹੋ ਰਹੀਆਂ ਹਨ...",
     "tagline": "ਸਿੱਧਾ ਸੁਨੇਹਾ",
+    "tagline_disconnected": "ਸਿੱਧਾ ਸੁਨੇਹਾ (ਡਿਸਕਨੈਕਟ ਕੀਤਾ ਗਿਆ)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "ਜੁੜਿਆ ਹੋਇਆ ਹੈ",
       "disconnected": "ਡਿਸਕਨੈਕਟ ਕੀਤਾ ਗਿਆ"
     },
     "install": "ਇੰਸਟਾਲ ਕਰੋ",
-    "install_aria": "ਐਪਲੀਕੇਸ਼ਨ ਇੰਸਟਾਲ ਕਰੋ"
+    "install_aria": "ਐਪਲੀਕੇਸ਼ਨ ਇੰਸਟਾਲ ਕਰੋ",
+    "aria": {
+      "connected": "ਜੁੜਿਆ ਹੋਇਆ ਹੈ",
+      "disconnected": "ਡਿਸਕਨੈਕਟ ਕੀਤਾ ਗਿਆ"
+    }
   },
   "geolocationError": {
     "activate": "ਟਿਕਾਣਾ ਯੋਗ ਕਰੋ",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "ਜਨਤਕ ਗੱਲਬਾਤ",
-    "description": "ਇੱਥੇ ਸੁਨੇਹੇ ਅਸਥਾਈ ਹਨ ਅਤੇ ਤੁਹਾਡੇ ਮੌਜੂਦਾ ਖੇਤਰ ਵਿੱਚ ਹਰ ਕਿਸੇ ਨੂੰ ਦਿਖਾਈ ਦਿੰਦੇ ਹਨ।"
+    "description": "ਇੱਥੇ ਸੁਨੇਹੇ ਅਸਥਾਈ ਹਨ ਅਤੇ ਤੁਹਾਡੇ ਮੌਜੂਦਾ ਖੇਤਰ ਵਿੱਚ ਹਰ ਕਿਸੇ ਨੂੰ ਦਿਖਾਈ ਦਿੰਦੇ ਹਨ।",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "ਇੱਥੇ ਸੁਨੇਹੇ ਅਸਥਾਈ ਹਨ ਅਤੇ ਤੁਹਾਡੇ ਮੌਜੂਦਾ ਖੇਤਰ ਵਿੱਚ ਹਰ ਕਿਸੇ ਨੂੰ ਦਿਖਾਈ ਦਿੰਦੇ ਹਨ।"
+    }
   },
   "settings": {
     "title": "ਸੈਟਿੰਗਾਂ",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "ਕਨੈਕਟ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ...",
     "establishing_connection": "ਚੁਣੇ ਹੋਏ ਪੀਅਰ ਨਾਲ ਕਨੈਕਸ਼ਨ ਸਥਾਪਤ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ।",
     "connecting_to_server": "ਸਿਗਨਲਿੰਗ ਸਰਵਰ ਨਾਲ ਕਨੈਕਟ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ...",
-    "select_peer_prompt": "ਇੱਕ ਸਿੱਧੀ ਅਤੇ ਸੁਰੱਖਿਅਤ ਗੱਲਬਾਤ ਸ਼ੁਰੂ ਕਰਨ ਲਈ ਇੱਕ ਪੀਅਰ ਚੁਣੋ।"
+    "select_peer_prompt": "ਇੱਕ ਸਿੱਧੀ ਅਤੇ ਸੁਰੱਖਿਅਤ ਗੱਲਬਾਤ ਸ਼ੁਰੂ ਕਰਨ ਲਈ ਇੱਕ ਪੀਅਰ ਚੁਣੋ।",
+    "cancel_button": "ਰੱਦ ਕਰੋ",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "ਸਿਗਨਲਿੰਗ ਸਰਵਰ ਨਾਲ ਕਨੈਕਟ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ...",
+    "welcome_select_peer": "ਇੱਕ ਸਿੱਧੀ ਅਤੇ ਸੁਰੱਖਿਅਤ ਗੱਲਬਾਤ ਸ਼ੁਰੂ ਕਰਨ ਲਈ ਇੱਕ ਪੀਅਰ ਚੁਣੋ।"
   },
   "bottomNav": {
     "peers": "ਸਾਥੀ",
@@ -70,7 +84,14 @@
     "messages": "ਸੁਨੇਹੇ",
     "settings": "ਸੈਟਿੰਗਾਂ",
     "notifications": "ਸੂਚਨਾਵਾਂ",
-    "notifications_short": "ਸੂਚਨਾਵਾਂ"
+    "notifications_short": "ਸੂਚਨਾਵਾਂ",
+    "aria": {
+      "peers": "ਸਾਥੀ",
+      "public_chat": "ਜਨਤਕ ਗੱਲਬਾਤ",
+      "messages": "ਸੁਨੇਹੇ",
+      "settings": "ਸੈਟਿੰਗਾਂ",
+      "notifications": "ਸੂਚਨਾਵਾਂ"
+    }
   },
   "chat": {
     "voice_note": "ਵੌਇਸ ਨੋਟ",
@@ -118,7 +139,9 @@
       "delete": "ਮਿਟਾਓ"
     },
     "reactions": {
-      "title": "{{emoji}} ਨਾਲ ਪ੍ਰਤੀਕਿਰਿਆ ਕਰੋ"
+      "title": "{{emoji}} ਨਾਲ ਪ੍ਰਤੀਕਿਰਿਆ ਕਰੋ",
+      "title_one": "1 ਪ੍ਰਤੀਕਿਰਿਆ",
+      "title_other": "{{count}} ਪ੍ਰਤੀਕਿਰਿਆਵਾਂ"
     },
     "file_message": {
       "size": "ਆਕਾਰ:",
@@ -128,7 +151,11 @@
       "status_receiving": "ਪ੍ਰਾਪਤ ਹੋ ਰਿਹਾ ਹੈ...",
       "status_pending": "ਬਕਾਇਆ",
       "sending": "ਭੇਜ ਰਿਹਾ ਹੈ",
-      "receiving": "ਪ੍ਰਾਪਤ ਹੋ ਰਿਹਾ ਹੈ"
+      "receiving": "ਪ੍ਰਾਪਤ ਹੋ ਰਿਹਾ ਹੈ",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10 ਸਕਿੰਟ",
+      "seek_backward": "⟲ 10 ਸਕਿੰਟ",
+      "change_speed_aria": "ਗਤੀ ਬਦਲੋ"
     },
     "new_messages_button": {
       "aria_label": "ਨਵੇਂ ਸੁਨੇਹਿਆਂ 'ਤੇ ਜਾਓ",
@@ -146,7 +173,8 @@
       "aria_label": "ਸੁਨੇਹਾ ਇਨਪੁਟ",
       "add_emoji": "ਇਮੋਜੀ ਸ਼ਾਮਲ ਕਰੋ",
       "record_voice": "ਇੱਕ ਵੌਇਸ ਸੁਨੇਹਾ ਰਿਕਾਰਡ ਕਰੋ",
-      "peer_offline_warning": "{{peerName}} ਔਫਲਾਈਨ ਹੈ। ਸੁਨੇਹੇ ਭੇਜਣਾ ਅਯੋਗ ਹੈ।"
+      "peer_offline_warning": "{{peerName}} ਔਫਲਾਈਨ ਹੈ। ਸੁਨੇਹੇ ਭੇਜਣਾ ਅਯੋਗ ਹੈ।",
+      "compression_notice": "ਸਵੈਚਲਿਤ ਤੌਰ 'ਤੇ ਸੰਕੁਚਿਤ ਅਤੇ ਐਨਕ੍ਰਿਪਟ ਕੀਤਾ ਜਾਵੇਗਾ"
     }
   },
   "connectionStatus": {
@@ -277,7 +305,13 @@
       "title": "{{name}} ਦੀ ਪ੍ਰੋਫਾਈਲ",
       "close": "ਬੰਦ ਕਰੋ",
       "connected_since": "ਤੋਂ ਜੁੜਿਆ ਹੋਇਆ ਹੈ:"
-    }
+    },
+    "status": {
+      "online": "ਔਨਲਾਈਨ",
+      "offline": "ਔਫਲਾਈਨ",
+      "busy": "ਰੁੱਝੇ ਹੋਏ"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "ਤੁਹਾਡੀ ਪ੍ਰੋਫਾਈਲ",
@@ -305,7 +339,8 @@
     "gender_male_short": "M",
     "gender_female_short": "F",
     "gender_other": "ਹੋਰ",
-    "age_suffix": "ਸਾਲ"
+    "age_suffix": "ਸਾਲ",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} ਪੀਅਰ ਕਨੈਕਟ ਕੀਤਾ ਗਿਆ",

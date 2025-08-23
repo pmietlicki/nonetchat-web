@@ -2,12 +2,18 @@
   "app": {
     "initializing": "正在初始化服務...",
     "tagline": "即時訊息",
+    "tagline_disconnected": "即時訊息 (已斷線)",
+    "title": "NoNetChat Web",
     "status": {
       "connected": "已連線",
       "disconnected": "已斷線"
     },
     "install": "安裝",
-    "install_aria": "安裝應用程式"
+    "install_aria": "安裝應用程式",
+    "aria": {
+      "connected": "已連線",
+      "disconnected": "已斷線"
+    }
   },
   "geolocationError": {
     "activate": "啟用位置",
@@ -32,7 +38,11 @@
   },
   "publicChat": {
     "title": "公開聊天",
-    "description": "此處的留言是短暫的，並且對您目前區域中的每個人都可見。"
+    "description": "此處的留言是短暫的，並且對您目前區域中的每個人都可見。",
+    "empty_placeholder": {
+      "title": "{{roomName}}",
+      "body": "此處的留言是短暫的，並且對您目前區域中的每個人都可見。"
+    }
   },
   "settings": {
     "title": "設定",
@@ -61,7 +71,11 @@
     "connecting_to_peer": "正在連線...",
     "establishing_connection": "正在與選定的對等點建立連線。",
     "connecting_to_server": "正在連線到信令伺服器...",
-    "select_peer_prompt": "選擇一個對等點以開始直接和安全的對話。"
+    "select_peer_prompt": "選擇一個對等點以開始直接和安全的對話。",
+    "cancel_button": "取消",
+    "welcome_title": "NoNetChat Web",
+    "welcome_connecting": "正在連線到信令伺服器...",
+    "welcome_select_peer": "選擇一個對等點以開始直接和安全的對話。"
   },
   "bottomNav": {
     "peers": "對等點",
@@ -70,7 +84,14 @@
     "messages": "訊息",
     "settings": "設定",
     "notifications": "通知",
-    "notifications_short": "通知"
+    "notifications_short": "通知",
+    "aria": {
+      "peers": "對等點",
+      "public_chat": "公開聊天",
+      "messages": "訊息",
+      "settings": "設定",
+      "notifications": "通知"
+    }
   },
   "chat": {
     "voice_note": "語音留言",
@@ -118,7 +139,9 @@
       "delete": "刪除"
     },
     "reactions": {
-      "title": "使用{{emoji}}作出反應"
+      "title": "使用{{emoji}}作出反應",
+      "title_one": "1則反應",
+      "title_other": "{{count}}則反應"
     },
     "file_message": {
       "size": "大小:",
@@ -128,7 +151,11 @@
       "status_receiving": "接收中...",
       "status_pending": "待定",
       "sending": "傳送中",
-      "receiving": "接收中"
+      "receiving": "接收中",
+      "kb_unit": "KB",
+      "seek_forward": "⟳ 10秒",
+      "seek_backward": "⟲ 10秒",
+      "change_speed_aria": "變更速度"
     },
     "new_messages_button": {
       "aria_label": "轉到新訊息",
@@ -146,7 +173,8 @@
       "aria_label": "訊息輸入",
       "add_emoji": "新增表情符號",
       "record_voice": "錄製語音訊息",
-      "peer_offline_warning": "{{peerName}}已離線。訊息傳送已停用。"
+      "peer_offline_warning": "{{peerName}}已離線。訊息傳送已停用。",
+      "compression_notice": "將自動壓縮和加密"
     }
   },
   "connectionStatus": {
@@ -259,7 +287,13 @@
       "title": "{{name}}的個人資料",
       "close": "關閉",
       "connected_since": "連線時間:"
-    }
+    },
+    "status": {
+      "online": "在線",
+      "offline": "離線",
+      "busy": "忙碌"
+    },
+    "meta_separator": "•"
   },
   "profileModal": {
     "title": "您的個人資料",
@@ -287,7 +321,8 @@
     "gender_male_short": "男",
     "gender_female_short": "女",
     "gender_other": "其他",
-    "age_suffix": "歲"
+    "age_suffix": "歲",
+    "meta_separator": " · "
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}}個對等點已連線",
