@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { DiagnosticService } from '../services/DiagnosticService';
 import { Bug, Download, RefreshCw, Wifi, AlertTriangle, CheckCircle, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
+import { t } from '../i18n';
 
 interface DiagnosticPanelProps {
   isOpen: boolean;
@@ -135,7 +136,7 @@ const DiagnosticPanel: React.FC<DiagnosticPanelProps> = ({ isOpen, onClose, sign
     <div
       role="separator"
       aria-orientation="vertical"
-      title="Redimensionner"
+      title={t('diagnosticPanel.resize')}
       className={`hidden sm:flex w-2 items-stretch cursor-col-resize relative group ${isResizing ? 'bg-blue-200' : ''}`}
       onMouseDown={(e) => onDragStart(e.clientX)}
       onTouchStart={(e) => onDragStart(e.touches[0].clientX)}
@@ -154,7 +155,7 @@ const DiagnosticPanel: React.FC<DiagnosticPanelProps> = ({ isOpen, onClose, sign
         className="w-full px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
       >
         {isTestingConnectivity ? <RefreshCw className="animate-spin" size={16} /> : <Wifi size={16} />}
-        {isTestingConnectivity ? 'Test en cours...' : 'Tester la connectivité'}
+        {isTestingConnectivity ? t('diagnosticPanel.testing_in_progress') : t('diagnosticPanel.test_connectivity')}
       </button>
 
       {connectivity && (
@@ -166,12 +167,12 @@ const DiagnosticPanel: React.FC<DiagnosticPanelProps> = ({ isOpen, onClose, sign
               <AlertTriangle className="text-red-500" size={16} />
             )}
             <span className="text-sm">
-              Signalisation&nbsp;: {connectivity.signalingServer ? 'OK' : 'ÉCHEC'}
+              {t('diagnosticPanel.signaling')}&nbsp;: {connectivity.signalingServer ? t('diagnosticPanel.ok') : t('diagnosticPanel.fail')}
             </span>
           </div>
 
           <div>
-            <span className="text-sm font-medium">Serveurs STUN :</span>
+            <span className="text-sm font-medium">{t('diagnosticPanel.stun_servers')}</span>
             {(connectivity.stunServers || []).map((working: boolean, index: number) => (
               <div key={index} className="flex items-center gap-2 ml-4 mt-1">
                 {working ? (
@@ -179,14 +180,14 @@ const DiagnosticPanel: React.FC<DiagnosticPanelProps> = ({ isOpen, onClose, sign
                 ) : (
                   <AlertTriangle className="text-red-500" size={14} />
                 )}
-                <span className="text-xs">STUN {index + 1} : {working ? 'OK' : 'ÉCHEC'}</span>
+                <span className="text-xs">STUN {index + 1} : {working ? t('diagnosticPanel.ok') : t('diagnosticPanel.fail')}</span>
               </div>
             ))}
           </div>
 
           {connectivity.networkInfo && Object.keys(connectivity.networkInfo).length > 0 && (
             <div className="mt-1">
-              <span className="text-sm font-medium">Infos réseau :</span>
+              <span className="text-sm font-medium">{t('diagnosticPanel.network_info')}</span>
               <div className="text-xs text-gray-600 ml-4 mt-1 space-y-0.5">
                 {Object.entries(connectivity.networkInfo).map(([key, value]) => (
                   <div key={key} className="break-all">{key}: {String(value)}</div>
@@ -209,7 +210,7 @@ const DiagnosticPanel: React.FC<DiagnosticPanelProps> = ({ isOpen, onClose, sign
         <div className="p-3 sm:p-4 border-b border-gray-200 sticky top-0 bg-white z-10 flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
             <Bug className="text-blue-600" size={20} />
-            <h3 className="text-lg font-bold truncate">Diagnostic NoNetChat</h3>
+            <h3 className="text-lg font-bold truncate">{t('diagnosticPanel.title')}</h3>
           </div>
 
           <div className="flex items-center gap-2">
@@ -219,12 +220,12 @@ const DiagnosticPanel: React.FC<DiagnosticPanelProps> = ({ isOpen, onClose, sign
               className="sm:hidden px-2 py-1 rounded-md border text-xs flex items-center gap-1"
               aria-expanded={mobileTestsOpen}
               aria-controls="mobile-tests"
-              title="Tests de connectivité"
+              title={t('diagnosticPanel.connectivity_tests')}
             >
               {mobileTestsOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              Tests
+              {t('diagnosticPanel.connectivity_tests')}
             </button>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none px-2" aria-label="Fermer">
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none px-2" aria-label={t('diagnosticPanel.close')}>
               ×
             </button>
           </div>
@@ -242,7 +243,7 @@ const DiagnosticPanel: React.FC<DiagnosticPanelProps> = ({ isOpen, onClose, sign
             className="hidden sm:block shrink-0 border-r border-gray-200 p-4 overflow-y-auto"
             style={{ width: sidebarWidth, WebkitOverflowScrolling: 'touch' as any }}
           >
-            <h4 className="font-semibold mb-3">Tests de connectivité</h4>
+            <h4 className="font-semibold mb-3">{t('diagnosticPanel.connectivity_tests')}</h4>
             <ConnectivityPanel />
           </aside>
 
@@ -252,7 +253,7 @@ const DiagnosticPanel: React.FC<DiagnosticPanelProps> = ({ isOpen, onClose, sign
           {/* Colonne droite : logs */}
           <section className="flex-1 min-w-0 flex flex-col">
             <div className="p-3 sm:p-4 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white z-10">
-              <h4 className="font-semibold">Logs en temps réel <span className="text-gray-400 font-normal">({logs.length})</span></h4>
+              <h4 className="font-semibold">{t('diagnosticPanel.logs_title')} <span className="text-gray-400 font-normal">({logs.length})</span></h4>
               <div className="flex items-center gap-2">
                 <label className="flex items-center gap-1 text-xs text-gray-600 mr-2">
                   <input
@@ -261,17 +262,17 @@ const DiagnosticPanel: React.FC<DiagnosticPanelProps> = ({ isOpen, onClose, sign
                     onChange={(e) => setAutoScroll(e.target.checked)}
                     className="rounded border-gray-300"
                   />
-                  Auto-scroll
+                  {t('diagnosticPanel.auto_scroll')}
                 </label>
                 <button onClick={clearLogs} className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
-                  Effacer
+                  {t('diagnosticPanel.clear')}
                 </button>
                 <button
                   onClick={exportLogs}
                   className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-1"
                 >
                   <Download size={14} />
-                  Exporter
+                  {t('diagnosticPanel.export')}
                 </button>
               </div>
             </div>
@@ -285,7 +286,7 @@ const DiagnosticPanel: React.FC<DiagnosticPanelProps> = ({ isOpen, onClose, sign
             >
               {logs.length === 0 ? (
                 <div className="text-gray-500 text-center py-8">
-                  Aucun log disponible. Les logs apparaîtront ici en temps réel.
+                  {t('diagnosticPanel.no_logs')}
                 </div>
               ) : (
                 <div className="space-y-1.5">
@@ -308,7 +309,7 @@ const DiagnosticPanel: React.FC<DiagnosticPanelProps> = ({ isOpen, onClose, sign
         {/* Footer */}
         <div className="p-3 sm:p-4 border-t border-gray-200 bg-gray-50">
           <div className="text-xs sm:text-sm text-gray-600">
-            <strong>Instructions&nbsp;:</strong> 1) Lancez « Tester la connectivité ». 2) Surveillez les logs. 3) Exportez pour partager.
+            <strong>{t('diagnosticPanel.instructions_title')}&nbsp;</strong>{t('diagnosticPanel.instructions_body')}
           </div>
         </div>
       </div>

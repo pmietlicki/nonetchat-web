@@ -3,6 +3,7 @@ import { Search, MessageSquare, Trash2, X } from 'lucide-react';
 import IndexedDBService from '../services/IndexedDBService';
 import PeerService from '../services/PeerService';
 import NotificationService from '../services/NotificationService';
+import { t } from '../i18n';
 
 interface ConversationListProps {
   onSelectConversation: (participantId: string) => void;
@@ -49,9 +50,9 @@ const formatTime = (timestamp: number) => {
 };
 
 const getLastMessagePreview = (conversation: StoredConversation) => {
-  if (!conversation.lastMessage) return 'Aucun message';
+  if (!conversation.lastMessage) return t('conversationList.last_message_none');
   const message = conversation.lastMessage;
-  if (message.type === 'file') return '📎 Fichier partagé';
+  if (message.type === 'file') return t('conversationList.last_message_file');
   const content = message.content || '';
   return content.length > 80 ? content.substring(0, 80) + '…' : content;
 };
@@ -132,7 +133,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
     e.stopPropagation();
     if (!conversation) return;
 
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette conversation ?')) {
+    if (window.confirm(t('conversationList.delete_confirm'))) {
       try {
         // On supprime avec la clé de store (id)
         await dbService.deleteConversation(conversation.id);
@@ -153,7 +154,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
       <div className="w-80 bg-white border-r border-gray-200 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-          <p className="text-sm text-gray-500">Chargement...</p>
+          <p className="text-sm text-gray-500">{t('conversationList.loading')}</p>
         </div>
       </div>
     );
@@ -162,13 +163,13 @@ const ConversationList: React.FC<ConversationListProps> = ({
   return (
     <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">Conversations ({conversations.length})</h2>
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">{t('conversationList.title', { count: conversations.length })}</h2>
 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
           <input
             type="text"
-            placeholder="Rechercher par nom ou message…"
+            placeholder={t('conversationList.search_placeholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-9 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -176,8 +177,8 @@ const ConversationList: React.FC<ConversationListProps> = ({
           {searchQuery && (
             <button
               className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-100 text-gray-500"
-              aria-label="Effacer la recherche"
-              title="Effacer"
+              aria-label={t('conversationList.clear_search_aria')}
+              title={t('conversationList.clear_search_title')}
               onClick={() => setSearchQuery('')}
             >
               <X size={16} />
@@ -190,8 +191,8 @@ const ConversationList: React.FC<ConversationListProps> = ({
         {filteredConversations.length === 0 ? (
           <div className="p-4 text-center text-gray-500">
             <MessageSquare size={48} className="mx-auto mb-2 text-gray-300" />
-            <p>Aucune conversation</p>
-            <p className="text-sm">Sélectionnez un pair pour commencer</p>
+            <p>{t('conversationList.no_conversations_title')}</p>
+            <p className="text-sm">{t('conversationList.no_conversations_prompt')}</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
@@ -219,7 +220,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
                     <div className="relative">
                       <img
                         src={safeAvatar(conversation.participantId, conversation.participantAvatar)}
-                        alt={conversation.participantName || 'Utilisateur'}
+                        alt={conversation.participantName || t('conversationList.user_default_name')}
                         className="w-12 h-12 rounded-full object-cover"
                         loading="lazy"
                         decoding="async"
@@ -244,7 +245,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
                             }`}
                             title={conversation.participantName}
                           >
-                            {conversation.participantName || 'Utilisateur'}
+                            {conversation.participantName || t('conversationList.user_default_name')}
                           </h4>
                           {(conversation.participantAge || conversation.participantGender) && (
                             <div className="flex items-center gap-1 text-xs text-gray-500 flex-shrink-0">
@@ -254,10 +255,10 @@ const ConversationList: React.FC<ConversationListProps> = ({
                                   className="text-sm"
                                   title={
                                     conversation.participantGender === 'male'
-                                      ? 'Homme'
+                                      ? t('conversationList.gender.male')
                                       : conversation.participantGender === 'female'
-                                      ? 'Femme'
-                                      : 'Autre'
+                                      ? t('conversationList.gender.female')
+                                      : t('conversationList.gender.other')
                                   }
                                   style={{
                                     color:
@@ -275,7 +276,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
                                     : '⚧'}
                                 </span>
                               )}
-                              {conversation.participantAge && <span>{conversation.participantAge} ans</span>}
+                              {conversation.participantAge && <span>{conversation.participantAge} {t('conversationList.age_suffix')}</span>}
                             </div>
                           )}
                         </div>
@@ -288,8 +289,8 @@ const ConversationList: React.FC<ConversationListProps> = ({
                           <button
                             onClick={(e) => deleteConversation(conversation, e)}
                             className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:text-red-700 hover:bg-red-100 rounded transition-all duration-200"
-                            title="Supprimer cette conversation"
-                            aria-label="Supprimer"
+                            title={t('conversationList.delete_button_title')}
+                            aria-label={t('conversationList.delete_button_aria')}
                           >
                             <Trash2 size={14} />
                           </button>

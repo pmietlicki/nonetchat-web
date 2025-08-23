@@ -16,7 +16,7 @@ import NotificationService from './services/NotificationService';
 import { MessageSquare, Users, X, User as UserIcon, Bell, Cog, Globe, Home } from 'lucide-react'; // Ajout Globe, ArrowLeft, Home
 import CryptoService from './services/CryptoService';
 import { useState, useRef, useEffect } from 'react';
-
+import { t } from './i18n';
 
 const DEFAULT_SIGNALING_URL = 'wss://chat.nonetchat.com';
 // Clé publique VAPID (base64url)
@@ -262,7 +262,7 @@ useEffect(() => {
     const onRoomUpdate = async (payload: { roomId: string; roomName?: string; roomLabel?: string }) => {
       if (payload.roomId !== publicRoomId) {
         setPublicRoomId(payload.roomId);
-        setPublicRoomName(payload.roomLabel || payload.roomName || 'Discussion Publique');
+        setPublicRoomName(payload.roomLabel || payload.roomName || t('publicChat.title'));
         
         // Précharger depuis IndexedDB (éphémère)
         try {
@@ -844,11 +844,11 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
         <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50">
           <div className="bg-white rounded-t-2xl sm:rounded-lg shadow-xl p-4 sm:p-6 w-full sm:max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-2 sm:mb-4">
-              <h3 className="text-lg font-bold">Paramètres</h3>
+              <h3 className="text-lg font-bold">{t('settings.title')}</h3>
               <button
                 onClick={() => setIsSettingsOpen(false)}
                 className="p-2 rounded-full hover:bg-gray-100"
-                aria-label="Fermer les paramètres"
+                aria-label={t('settings.close_aria')}
               >
                 <X size={22} />
               </button>
@@ -863,15 +863,15 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                       myAvatarUrl ||
                       `https://i.pravatar.cc/150?u=${encodeURIComponent(`${userProfile.id || ''}:${(userProfile as any).avatarVersion || 1}`)}&_=${avatarRefreshKey}`
                     }
-                    alt="Avatar"
+                    alt={t('profileModal.avatar_alt')}
                     className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                   />
                   <div className="min-w-0">
                     <div className="text-sm font-medium text-gray-900 truncate">
-                      {userProfile.name || 'Profil non complété'}
+                      {userProfile.name || t('settings.profile_shortcut_title')}
                     </div>
                     <div className="text-xs text-gray-500 truncate">
-                      Modifier votre nom / avatar
+                      {t('settings.profile_shortcut_description')}
                     </div>
                   </div>
                 </div>
@@ -879,13 +879,13 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                   onClick={() => { setIsSettingsOpen(false); setIsProfileOpen(true); }}
                   className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
                 >
-                  Modifier
+                  {t('settings.edit')}
                 </button>
               </div>
 
               <div>
                 <label htmlFor="signaling-url" className="block text-sm font-medium text-gray-700 mb-2">
-                  URL du serveur de signalisation
+                  {t('settings.signaling_url_label')}
                 </label>
                 <input
                   type="text"
@@ -893,12 +893,12 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                   value={tempSignalingUrl}
                   onChange={(e) => setTempSignalingUrl(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="wss://votre-serveur.com"
+                  placeholder={t('settings.signaling_url_placeholder')}
                 />
               </div>
 
               <div>
-                <span className="block text-sm font-medium text-gray-700 mb-2">Mode de recherche</span>
+                <span className="block text-sm font-medium text-gray-700 mb-2">{t('settings.discovery_mode_label')}</span>
                 <div className="space-y-2 rounded-md bg-gray-50 p-3">
                   <div className="flex items-center">
                     <input
@@ -910,7 +910,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                       className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                     />
                     <label htmlFor="radius-mode-km" className="ml-3 block text-sm font-medium text-gray-900">
-                      Rayon (km)
+                      {t('settings.radius_km')}
                     </label>
                   </div>
                   {typeof tempSearchRadius === 'number' && (
@@ -943,7 +943,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                       className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 disabled:opacity-50"
                     />
                     <label htmlFor="radius-mode-city" className="ml-3 block text-sm font-medium text-gray-900 disabled:opacity-50">
-                      Ville {locationInfo?.city ? `(${locationInfo.city})` : '(indisponible)'}
+                      {t('settings.city')} {locationInfo?.city ? `(${locationInfo.city})` : `(${t('settings.unavailable')})`}
                     </label>
                   </div>
                   <div className="flex items-center">
@@ -957,7 +957,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                       className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 disabled:opacity-50"
                     />
                     <label htmlFor="radius-mode-country" className="ml-3 block text-sm font-medium text-gray-900 disabled:opacity-50">
-                      Pays entier {locationInfo?.country ? `(${locationInfo.country})` : '(indisponible)'}
+                      {t('settings.country')} {locationInfo?.country ? `(${locationInfo.country})` : `(${t('settings.unavailable')})`}
                     </label>
                   </div>
                 </div>
@@ -969,13 +969,13 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                 onClick={() => setIsSettingsOpen(false)}
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
               >
-                Annuler
+                {t('settings.cancel')}
               </button>
               <button
                 onClick={handleSaveSettings}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
               >
-                Sauvegarder
+                {t('settings.save')}
               </button>
             </div>
           </div>
@@ -993,7 +993,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
             >
               <img
                 src="/manifest-icon-96.png"
-                alt="Logo NoNetChat"
+                alt={t('header.logo_alt')}
                 className={`w-7 h-7 transition-all duration-300 ${!isConnected ? 'grayscale opacity-60' : ''}`}
               />
             </div>
@@ -1041,7 +1041,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                 }`}
               >
                 <Users size={16} />
-                Pairs ({peerList.length})
+                {t('tabs.peers')} ({peerList.length})
               </button>
               <button
                 onClick={() => {
@@ -1053,7 +1053,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                 }`}
               >
                 <Globe size={16} />
-                Public
+                {t('tabs.public_chat')}
               </button>
               <button
                 onClick={() => {
@@ -1065,7 +1065,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                 }`}
               >
                 <MessageSquare size={16} />
-                Messages
+                {t('tabs.conversations')}
                 {totalUnreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
                     {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
@@ -1082,8 +1082,8 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
             <button
               onClick={() => setShowNotificationSettings(true)}
               className="p-2 rounded-full hover:bg-gray-100"
-              title="Paramètres de notifications"
-              aria-label="Paramètres de notifications"
+              title={t('header.notifications_aria')}
+              aria-label={t('header.notifications_aria')}
             >
               <Bell size={20} />
             </button>
@@ -1091,8 +1091,8 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
             <button
               onClick={() => setIsSettingsOpen(true)}
               className="p-2 rounded-full hover:bg-gray-100"
-              title="Paramètres"
-              aria-label="Paramètres"
+              title={t('header.settings_aria')}
+              aria-label={t('header.settings_aria')}
             >
               <Cog size={20} />
             </button>
@@ -1100,8 +1100,8 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
             <button
               onClick={() => setIsProfileOpen(true)}
               className="p-2 rounded-full hover:bg-gray-100"
-              title="Modifier votre profil"
-              aria-label="Modifier votre profil"
+              title={t('header.profile_aria')}
+              aria-label={t('header.profile_aria')}
             >
               <UserIcon size={20} />
             </button>
@@ -1117,10 +1117,10 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                   setInstallEvent(null);
                 }}
                 className="px-2 py-1 bg-emerald-600 text-white text-xs rounded-md"
-                aria-label="Installer l'application"
-                title="Installer l'application"
+                aria-label={t('app.install_aria')}
+                title={t('app.install_aria')}
               >
-                Installer
+                {t('app.install')}
               </button>
             )}
             {/* Bouton de navigation mobile - affiché quand on est dans une conversation ou l'onglet public */}
@@ -1131,8 +1131,8 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                   setActiveTab('peers');
                 }}
                 className="p-2 rounded-full hover:bg-gray-100"
-                aria-label="Retour à l'accueil"
-                title="Retour à l'accueil"
+                aria-label={t('header.home_aria')}
+                title={t('header.home_aria')}
               >
                 <Home size={20} />
               </button>
@@ -1141,8 +1141,8 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
             <button
               onClick={() => setIsProfileOpen(true)}
               className="p-2 rounded-full hover:bg-gray-100"
-              aria-label="Modifier votre profil"
-              title="Modifier votre profil"
+              aria-label={t('header.profile_aria')}
+              title={t('header.profile_aria')}
             >
               <UserIcon size={20} />
             </button>
@@ -1207,7 +1207,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                   onClick={() => setSelectedPeerId(undefined)}
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                 >
-                  Annuler
+                  t('chat.cancel_transfers.cancel')
                 </button>
               </div>
             </div>

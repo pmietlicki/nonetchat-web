@@ -1,6 +1,7 @@
 // src/components/FilePreview.tsx
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import IndexedDBService from '../services/IndexedDBService';
+import { t } from '../i18n';
 
 type MsgLike = {
   id: string;
@@ -19,7 +20,7 @@ type Props = {
 
 /* ---------- Utils ---------- */
 const fmtBytes = (n?: number) => {
-  if (!n && n !== 0) return 'taille inconnue';
+  if (!n && n !== 0) return t('filePreview.unknown_size');
   if (n < 1024) return `${n} B`;
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
   return `${(n / (1024 * 1024)).toFixed(1)} MB`;
@@ -77,7 +78,7 @@ export default function FilePreview({
   const [rate, setRate] = useState<1 | 1.5 | 2>(1);
   const [audioErr, setAudioErr] = useState<string | null>(null);
 
-  const fileName = msg.fileData?.name || 'fichier';
+  const fileName = msg.fileData?.name || t('filePreview.default_filename');
   const fileType = useMemo(
     () => (msg.fileData?.type ? msg.fileData.type.split(';')[0].trim() : 'application/octet-stream'),
     [msg.fileData?.type]
@@ -144,7 +145,7 @@ export default function FilePreview({
   const loadBlob = async (): Promise<Blob | null> => {
     const blob = await safeGetBlob(msg.id);
     if (!blob) {
-      alert('Fichier introuvable dans la base locale.');
+      alert(t('filePreview.file_not_found'));
       return null;
     }
     setDisplayType(msg.fileData?.type || blob.type || 'application/octet-stream');
@@ -214,7 +215,7 @@ export default function FilePreview({
   const copyText = async () => {
     if (!textSample || typeof navigator === 'undefined') return;
     try { await navigator.clipboard.writeText(textSample); }
-    catch { alert('Impossible de copier le texte dans le presse-papiers.'); }
+    catch { alert(t('filePreview.clipboard_error')); }
   };
 
   /* ---------- Audio helpers ---------- */
@@ -243,7 +244,7 @@ export default function FilePreview({
     };
     const onLoadedMeta = () => setDuration(a.duration ?? NaN);
     const onRate = () => setRate(((a.playbackRate as 1 | 1.5 | 2) ?? 1));
-    const onError = () => setAudioErr('Impossible de lire ce fichier audio.');
+    const onError = () => setAudioErr(t('filePreview.audio_error'));
 
     a.addEventListener('timeupdate', onTime);
     a.addEventListener('loadedmetadata', onLoadedMeta);
@@ -268,7 +269,7 @@ export default function FilePreview({
     navigator.mediaSession.metadata = new window.MediaMetadata({
       title,
       artist: 'NoNetChat',
-      album: 'Pièces jointes',
+      album: t('filePreview.media_album'),
       artwork: [],
     });
     // @ts-ignore
@@ -306,12 +307,12 @@ export default function FilePreview({
         <button
           onClick={toggle}
           className="px-2 py-1 text-xs rounded bg-gray-200 hover:bg-gray-300"
-          aria-label={open ? 'Masquer l’aperçu' : 'Afficher l’aperçu'}
+          aria-label={open ? t('filePreview.hide_preview') : t('filePreview.show_preview')}
         >
-          {open ? 'Masquer l’aperçu' : loading ? 'Chargement…' : 'Afficher l’aperçu'}
+          {open ? t('filePreview.hide_preview') : loading ? t('filePreview.loading') : t('filePreview.show_preview')}
         </button>
         <span className="text-[11px] text-gray-500">
-          {fileType || 'type inconnu'} • {fmtBytes(msg.fileData?.size)}
+          {fileType || t('filePreview.unknown_type')} • {fmtBytes(msg.fileData?.size)}
         </span>
         {objUrl && (
           <a
@@ -320,7 +321,7 @@ export default function FilePreview({
             className="ml-auto px-2 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700"
             onClick={(e) => e.stopPropagation()}
           >
-            Télécharger
+            {t('filePreview.download')}
           </a>
         )}
       </div>
@@ -358,7 +359,7 @@ export default function FilePreview({
             <div className="p-1">
               {!audioPlayable && (
                 <div className="text-sm text-amber-600 mb-2">
-                  Ce format audio n’est peut-être pas lisible dans ce navigateur. Vous pouvez le télécharger ci-dessus.
+                  {t('filePreview.unplayable_audio')}
                 </div>
               )}
               {objUrl && audioPlayable && (
@@ -404,7 +405,7 @@ export default function FilePreview({
                         setRate(next);
                       }}
                       className="px-2 py-0.5 rounded bg-gray-200 hover:bg-gray-300"
-                      aria-label="Changer la vitesse"
+                      aria-label={t('filePreview.change_speed')}
                     >
                       {rate}×
                     </button>
@@ -429,7 +430,7 @@ export default function FilePreview({
                 rel="noopener"
                 className="px-2 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700"
               >
-                Ouvrir dans un onglet
+                {t('filePreview.open_in_new_tab')}
               </a>
             </div>
           )}
@@ -446,7 +447,7 @@ export default function FilePreview({
                   onClick={(e) => { e.stopPropagation(); void copyText(); }}
                   className="px-2 py-1 text-xs rounded bg-gray-200 hover:bg-gray-300"
                 >
-                  Copier le texte
+                  {t('filePreview.copy_text')}
                 </button>
               </div>
             </div>
@@ -454,7 +455,7 @@ export default function FilePreview({
 
           {/* Type inconnu */}
           {!isImage && !isVideo && !isAudio && !isPDF && textSample === null && (
-            <div className="p-2 text-sm text-gray-500">Aperçu indisponible pour ce type de fichier.</div>
+            <div className="p-2 text-sm text-gray-500">{t('filePreview.preview_unavailable')}</div>
           )}
         </div>
       )}

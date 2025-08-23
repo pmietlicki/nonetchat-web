@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { User } from '../types';
 import PeerService from '../services/PeerService';
 import { Send, ArrowLeft } from 'lucide-react';
+import { t } from '../i18n';
 
 interface PublicChatWindowProps {
   roomId: string | null;
@@ -18,8 +19,8 @@ interface PublicChatWindowProps {
 const formatMeta = (u?: Partial<User>): string | null => {
   if (!u) return null;
   const parts: string[] = [];
-  if (u.gender) parts.push(u.gender === 'male' ? 'H' : u.gender === 'female' ? 'F' : 'Autre');
-  if (typeof u.age === 'number') parts.push(`${u.age} ans`);
+  if (u.gender) parts.push(u.gender === 'male' ? t('publicChatWindow.gender_male_short') : u.gender === 'female' ? t('publicChatWindow.gender_female_short') : t('publicChatWindow.gender_other'));
+  if (typeof u.age === 'number') parts.push(`${u.age} ${t('publicChatWindow.age_suffix')}`);
   let dist: string | null = null;
   if ((u as any).distanceLabel) {
     dist = (u as any).distanceLabel as string;
@@ -55,7 +56,12 @@ const PublicChatWindow: React.FC<PublicChatWindowProps> = ({ roomId, roomName, m
        <div className="flex-1 flex flex-col min-h-0" data-room-id={roomId ?? 'public'}>
       <div className="p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="md:hidden p-2 -ml-2 text-gray-600 hover:text-gray-800 shrink-0" aria-label="Retour">
+          <button
+            onClick={onBack}
+            className="p-2 rounded hover:bg-gray-100"
+            title={t('publicChatWindow.back')}
+            aria-label={t('publicChatWindow.back')}
+          >
             <ArrowLeft size={20} />
           </button>
           <h3 className="font-semibold text-gray-900 truncate">{roomName}</h3>
@@ -66,7 +72,7 @@ const PublicChatWindow: React.FC<PublicChatWindowProps> = ({ roomId, roomName, m
         {messages.map((msg, index) => {
           const isMe = msg.origin === myId;
           const sender = isMe ? userProfile : peers.get(msg.origin);
-          const displayName = sender?.name || 'Utilisateur';
+          const displayName = sender?.name || t('publicChatWindow.default_user_name');
           const meta = formatMeta(sender);
           const key = msg.id ?? index;
           const avatar = isMe && myAvatarUrl
@@ -110,7 +116,7 @@ const PublicChatWindow: React.FC<PublicChatWindowProps> = ({ roomId, roomName, m
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-            placeholder="Message public..."
+            placeholder={t('publicChatWindow.placeholder')}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button

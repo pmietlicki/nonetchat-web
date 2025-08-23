@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, BellOff, Volume2, VolumeX, Settings, X } from 'lucide-react';
 import NotificationService from '../services/NotificationService';
+import { t } from '../i18n';
 
 interface NotificationSettingsProps {
   isOpen: boolean;
@@ -40,7 +41,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOpen, onC
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Settings size={20} />
-            Paramètres de notifications
+            {t('notificationSettings.title')}
           </h2>
           <button
             onClick={onClose}
@@ -53,14 +54,14 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOpen, onC
         <div className="p-4 space-y-6">
           {/* Notifications globales */}
           <div className="space-y-4">
-            <h3 className="font-medium text-gray-900">Notifications générales</h3>
+            <h3 className="font-medium text-gray-900">{t('notificationSettings.general')}</h3>
             
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {settings.globalEnabled ? <Bell size={20} className="text-blue-500" /> : <BellOff size={20} className="text-gray-400" />}
                 <div>
-                  <div className="font-medium text-gray-900">Activer les notifications</div>
-                  <div className="text-sm text-gray-500">Recevoir des notifications pour les nouveaux messages</div>
+                  <div className="font-medium text-gray-900">{t('notificationSettings.enable_notifications')}</div>
+                  <div className="text-sm text-gray-500">{t('notificationSettings.enable_notifications_description')}</div>
                 </div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -78,8 +79,8 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOpen, onC
               <div className="flex items-center gap-3">
                 {settings.soundEnabled ? <Volume2 size={20} className="text-green-500" /> : <VolumeX size={20} className="text-gray-400" />}
                 <div>
-                  <div className="font-medium text-gray-900">Sons de notification</div>
-                  <div className="text-sm text-gray-500">Jouer un son lors de la réception de messages</div>
+                  <div className="font-medium text-gray-900">{t('notificationSettings.sound')}</div>
+                  <div className="text-sm text-gray-500">{t('notificationSettings.sound_description')}</div>
                 </div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -100,8 +101,8 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOpen, onC
                   <span className="text-white text-xs font-bold">!</span>
                 </div>
                 <div>
-                  <div className="font-medium text-gray-900">Notifications système</div>
-                  <div className="text-sm text-gray-500">Afficher des notifications dans le navigateur</div>
+                  <div className="font-medium text-gray-900">{t('notificationSettings.system')}</div>
+                  <div className="text-sm text-gray-500">{t('notificationSettings.system_description')}</div>
                 </div>
               </div>
               {Notification.permission === 'granted' ? (
@@ -121,7 +122,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOpen, onC
                   className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
                   disabled={!settings.globalEnabled}
                 >
-                  Autoriser
+                  {t('notificationSettings.authorize')}
                 </button>
               )}
             </div>
@@ -132,8 +133,8 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOpen, onC
                   <span className="text-white text-xs">🌙</span>
                 </div>
                 <div>
-                  <div className="font-medium text-gray-900">Mode Ne pas déranger</div>
-                  <div className="text-sm text-gray-500">Désactiver temporairement toutes les notifications</div>
+                  <div className="font-medium text-gray-900">{t('notificationSettings.dnd')}</div>
+                  <div className="text-sm text-gray-500">{t('notificationSettings.dnd_description')}</div>
                 </div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -151,11 +152,11 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOpen, onC
           {/* Informations */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <div className="text-sm text-blue-800">
-              <div className="font-medium mb-1">💡 Conseils :</div>
+              <div className="font-medium mb-1">{t('notificationSettings.tips_title')}</div>
               <ul className="space-y-1 text-xs">
-                <li>• Les notifications système ne fonctionnent que si l'onglet est ouvert</li>
-                <li>• Le mode "Ne pas déranger" désactive toutes les notifications</li>
-                <li>• Les paramètres sont sauvegardés automatiquement</li>
+                <li>{t('notificationSettings.tip1')}</li>
+                <li>{t('notificationSettings.tip2')}</li>
+                <li>{t('notificationSettings.tip3')}</li>
               </ul>
             </div>
           </div>
@@ -166,7 +167,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOpen, onC
             onClick={onClose}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
           >
-            Fermer
+            {t('notificationSettings.close')}
           </button>
         </div>
       </div>

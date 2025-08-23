@@ -1,6 +1,7 @@
 // src/components/VoiceRecorderButton.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { Mic, Send, Lock as LockIcon, X, ChevronUp } from 'lucide-react';
+import { t } from '../i18n';
 
 type Props = {
   disabled?: boolean;
@@ -115,7 +116,7 @@ export default function VoiceRecorderButton({
         const durSec = Math.round(durMs / 1000);
         const nice = `${Math.floor(durSec/60)}:${String(durSec%60).padStart(2,'0')}`;
         const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0,19);
-        const file = new File([blob], `Note vocale (${nice}) ${ts}.${ext}`, { type: blob.type, lastModified: Date.now() });
+        const file = new File([blob], `${t('voiceRecorder.voice_note')} (${nice}) ${ts}.${ext}`, { type: blob.type, lastModified: Date.now() });
 
         cleanup();
         setState('idle');
@@ -140,7 +141,7 @@ export default function VoiceRecorderButton({
       console.error('[Voice] getUserMedia/MediaRecorder error:', e);
       cleanup();
       setState('idle');
-      alert("Impossible d'accéder au micro. Vérifiez les autorisations du navigateur.");
+      alert(t('voiceRecorder.mic_error'));
     }
   };
 
@@ -210,8 +211,8 @@ export default function VoiceRecorderButton({
   const label = `${mm}:${ss}`;
   const idleTitle = (() => {
     const fine = window.matchMedia?.('(pointer: fine)')?.matches;
-    if (fine && desktopMode !== 'hold') return 'Clic : enregistrer (verrouillé) • Entrée: envoyer • Échap: annuler';
-    return 'Appui long pour enregistrer • Glissez ← pour annuler • Glissez ↑ pour verrouiller';
+    if (fine && desktopMode !== 'hold') return t('voiceRecorder.idle_title_click');
+    return t('voiceRecorder.idle_title_hold');
   })();
 
   // Styles utilitaires pour les icônes (touch target >= 44px)
@@ -235,7 +236,7 @@ export default function VoiceRecorderButton({
           onPointerMove={onPointerMove}
           disabled={disabled}
           className={`p-2 rounded-lg ${disabled ? 'bg-gray-200 text-gray-400' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
-          aria-label="Enregistrer un message vocal"
+          aria-label={t('voiceRecorder.record_aria')}
           title={idleTitle}
         >
           <Mic size={20} />
@@ -253,7 +254,7 @@ export default function VoiceRecorderButton({
           {/* Indice gestes (mobile, compact) */}
           {state === 'recording' && (
             <div className="hidden sm:block text-xs text-gray-500 select-none">
-              {hint === 'slide-cancel' ? 'Glissez à gauche pour annuler' : 'Glissez vers le haut pour verrouiller'}
+              {hint === 'slide-cancel' ? t('voiceRecorder.hint_slide_cancel') : t('voiceRecorder.hint_slide_lock')}
             </div>
           )}
 
@@ -264,8 +265,8 @@ export default function VoiceRecorderButton({
                 type="button"
                 onClick={onCancel}
                 className={`${iconBtn} ${ghost}`}
-                aria-label="Annuler l’enregistrement"
-                title="Annuler"
+                aria-label={t('voiceRecorder.cancel_aria')}
+                title={t('voiceRecorder.cancel_title')}
               >
                 <X size={18} />
               </button>
@@ -273,8 +274,8 @@ export default function VoiceRecorderButton({
                 type="button"
                 onClick={onLockNow}
                 className={`${iconBtn} ${ghost}`}
-                aria-label="Verrouiller l’enregistrement"
-                title="Verrouiller"
+                aria-label={t('voiceRecorder.lock_aria')}
+                title={t('voiceRecorder.lock_title')}
               >
                 <LockIcon size={18} />
               </button>
@@ -282,8 +283,8 @@ export default function VoiceRecorderButton({
                 type="button"
                 onClick={onStopAndSend}
                 className={`${iconBtn} ${primary}`}
-                aria-label="Envoyer la note vocale"
-                title="Envoyer"
+                aria-label={t('voiceRecorder.send_aria')}
+                title={t('voiceRecorder.send_title')}
               >
                 <Send size={18} />
               </button>
@@ -296,8 +297,8 @@ export default function VoiceRecorderButton({
                 type="button"
                 onClick={onCancel}
                 className={`${iconBtn} ${ghost}`}
-                aria-label="Annuler l’enregistrement"
-                title="Annuler"
+                aria-label={t('voiceRecorder.cancel_aria')}
+                title={t('voiceRecorder.cancel_title')}
               >
                 <X size={18} />
               </button>
@@ -305,13 +306,13 @@ export default function VoiceRecorderButton({
                 type="button"
                 onClick={onStopAndSend}
                 className={`${iconBtn} ${primary}`}
-                aria-label="Envoyer la note vocale"
-                title="Envoyer"
+                aria-label={t('voiceRecorder.send_aria')}
+                title={t('voiceRecorder.send_title')}
               >
                 <Send size={18} />
               </button>
               <span className="text-gray-400 ml-1 flex items-center gap-1 text-xs">
-                <LockIcon size={12}/> verrouillé
+                <LockIcon size={12}/> {t('voiceRecorder.locked')}
               </span>
             </div>
           )}
@@ -321,9 +322,9 @@ export default function VoiceRecorderButton({
       {/* Aide visuelle mobile */}
       {state === 'recording' && (
         <div className="absolute -top-6 left-1/2 -translate-x-1/2 flex items-center gap-2 text-[11px] text-gray-400 sm:hidden">
-          <span className="inline-flex items-center gap-1"><ChevronUp size={12}/> Verrouiller</span>
+          <span className="inline-flex items-center gap-1"><ChevronUp size={12}/> {t('voiceRecorder.mobile_hint_lock')}</span>
           <span>•</span>
-          <span>Glissez ← pour annuler</span>
+          <span>{t('voiceRecorder.mobile_hint_cancel')}</span>
         </div>
       )}
     </div>

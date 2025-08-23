@@ -1,5 +1,6 @@
 import React from 'react';
 import { Check, CheckCheck, Clock, AlertCircle } from 'lucide-react';
+import { t } from '../i18n';
 
 interface MessageStatusIndicatorProps {
   status: 'sending' | 'sent' | 'delivered' | 'read';
@@ -25,15 +26,15 @@ const MessageStatusIndicator: React.FC<MessageStatusIndicatorProps> = ({ status,
   const getStatusText = () => {
     switch (status) {
       case 'sending':
-        return 'Envoi en cours...';
+        return t('messageStatus.sending');
       case 'sent':
-        return 'Envoyé';
+        return t('messageStatus.sent');
       case 'delivered':
-        return 'Distribué';
+        return t('messageStatus.delivered');
       case 'read':
-        return 'Lu';
+        return t('messageStatus.read');
       default:
-        return 'Erreur';
+        return t('messageStatus.error');
     }
   };
 

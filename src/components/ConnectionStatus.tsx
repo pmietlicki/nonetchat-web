@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
+import { t } from '../i18n';
 
 interface ConnectionStatusProps {
   isConnected: boolean;
@@ -41,11 +42,11 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ isConnected, onReco
   };
 
   const getConnectionText = () => {
-    if (isReconnecting) return 'Reconnexion...';
+    if (isReconnecting) return t('connectionStatus.reconnecting');
     if (isConnected) {
       return connectionType === 'webtransport' ? 'WebTransport' : 'WebSocket';
     }
-    return 'Déconnecté';
+    return t('connectionStatus.disconnected');
   };
 
   return (
@@ -60,7 +61,7 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ isConnected, onReco
           onClick={handleReconnect}
           className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition-colors"
         >
-          Reconnecter
+          {t('connectionStatus.reconnect')}
         </button>
       )}
     </div>
