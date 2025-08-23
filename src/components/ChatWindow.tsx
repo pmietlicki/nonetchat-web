@@ -5,7 +5,7 @@ import PeerService from '../services/PeerService';
 import IndexedDBService from '../services/IndexedDBService';
 import CryptoService from '../services/CryptoService';
 import NotificationService from '../services/NotificationService';
-import { Send, Paperclip, ArrowLeft, X, Trash2, MoreVertical, Info, Smile } from 'lucide-react';
+import { Send, Paperclip, ArrowLeft, X, Trash2, MoreVertical, Info, Smile, Ban } from 'lucide-react';
 import VoiceRecorderButton from './VoiceRecorderButton';
 import { v4 as uuidv4 } from 'uuid';
 import MessageStatusIndicator from './MessageStatusIndicator';
@@ -809,8 +809,21 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={deleteConversation}
+              onClick={() => {
+                if (window.confirm(t('chat.block_user_confirm', { name: selectedPeer.name }))) {
+                  peerService.blockPeer(selectedPeer.id);
+                  onBack();
+                }
+              }}
               className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-colors"
+              title={t('chat.header.block_user_title')}
+              aria-label={t('chat.header.block_user_title')}
+            >
+              <Ban size={20} />
+            </button>
+            <button
+              onClick={deleteConversation}
+              className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
               title={t('chat.header.delete_conversation_title')}
               aria-label={t('chat.header.delete_conversation_title')}
             >

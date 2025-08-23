@@ -496,48 +496,38 @@ class PeerService extends EventEmitter {
 
 
   private async handleSignalingMessage(message: any) {
-    if (message.from && this.blockList.has(message.from)) return;
+    if (message.from && this.blockList.has(message.from)) {
+        this.diagnosticService.log(`Ignoring signaling message from blocked peer: ${message.from}`);
+        return;
+    }
 
     this.diagnosticService.log('Received message from server', message);
     switch (message.type) {
       case 'nearby-peers': {
-  const { peers, roomId, roomLabel } = message;
-  this.emit('room-update', { roomId, roomLabel });
+        const { peers, roomId, roomLabel } = message;
+        this.emit('room-update', { roomId, roomLabel });
 
-  const switched = roomId !== this.publicRoomId;
-  if (switched) {
-    this.diagnosticService.log(`Switching public room: ${this.publicRoomId} -> ${roomId}`);
-    this.publicRoomId = roomId;
-    this.publicPeers.clear();
-    this.seenPublicMessages.clear();
-    // Ne pas fermer les canaux existants - ils seront réutilisés si les pairs restent les mêmes
-    // this.publicDataChannels.forEach((dc) => dc.close());
-    // this.publicCtrlChannels.forEach((dc) => dc.close());
-    // this.publicDataChannels.clear();
-    // this.publicCtrlChannels.clear();
-  }
+        const switched = roomId !== this.publicRoomId;
+        if (switched) {
+            this.diagnosticService.log(`Switching public room: ${this.publicRoomId} -> ${roomId}`);
+            this.publicRoomId = roomId;
+            this.publicPeers.clear();
+            this.seenPublicMessages.clear();
+        }
 
-  const now = Date.now();
-  this.lastSeen = new Map(peers.map((p:any) => [p.peerId, now]));
+        const now = Date.now();
+        const allPeers = (peers as Array<{ peerId: string }>).filter(p => !this.blockList.has(p.peerId));
+        this.lastSeen = new Map(allPeers.map((p:any) => [p.peerId, now]));
 
-  // Enregistrer les distances si fournies par le serveur
-  this.publicPeerDistance.clear();
-  (peers as Array<any>).forEach((p:any) => {
-    const d = p?.distanceKm;
-    if (typeof d === 'number' && isFinite(d)) {
-      this.publicPeerDistance.set(p.peerId, d);
-    }
-  });
+        const nextSet = new Set<string>(allPeers.map(p => p.peerId));
+        nextSet.add(this.myId);
+        this.publicPeers = nextSet;
 
-  const nextSet = new Set<string>((peers as Array<{ peerId: string }>).map(p => p.peerId));
-nextSet.add(this.myId);
-this.publicPeers = nextSet;
-
-  this.updatePublicNeighbors();
-  this.emit('public-peers-change', this.publicPeers);
-  this.emit('nearby-peers', peers);
-  break;
-}
+        this.updatePublicNeighbors();
+        this.emit('public-peers-change', this.publicPeers);
+        this.emit('nearby-peers', allPeers);
+        break;
+      }
 
       case 'offer':
         await this.handleOffer(message.from, message.payload);
@@ -747,6 +737,7 @@ private trimSeenPublic(limit = 2048) {
 }
 
 private setupPublicDataChannel(peerId: string, channel: RTCDataChannel) {
+  if (this.blockList.has(peerId)) return;
   this.publicDataChannels.set(peerId, channel);
   this.diagnosticService.log(`Setting up public data channel with ${peerId}`);
   
@@ -755,6 +746,7 @@ private setupPublicDataChannel(peerId: string, channel: RTCDataChannel) {
   };
 
   channel.onmessage = (event) => {
+    if (this.blockList.has(peerId)) return;
     this.diagnosticService.log(`Received public message from ${peerId}: ${event.data.substring(0, 100)}...`);
     try {
       const msg = JSON.parse(event.data);
@@ -833,6 +825,7 @@ private setupPublicDataChannel(peerId: string, channel: RTCDataChannel) {
 }
 
 private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
+  if (this.blockList.has(peerId)) return;
   this.publicCtrlChannels.set(peerId, channel);
   
   channel.onopen = async () => {
@@ -851,6 +844,7 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
   };
 
   channel.onmessage = (ev) => {
+    if (this.blockList.has(peerId)) return;
     try {
       const msg = JSON.parse(ev.data);
       if (msg?.t === 'p-lite') {
@@ -897,6 +891,7 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
 
 
   private setupDataChannel(peerId: string, channel: RTCDataChannel) {
+    if (this.blockList.has(peerId)) return;
     channel.binaryType = 'arraybuffer';
     this.diagnosticService.log(`Setting up data channel with ${peerId}`);
     this.dataChannels.set(peerId, channel);
@@ -908,6 +903,7 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
     };
 
     channel.onmessage = async (event) => {
+      if (this.blockList.has(peerId)) return;
       if (event.data instanceof ArrayBuffer) {
         try {
           const messageIdLength = 36; // UUID v4 length
@@ -1247,17 +1243,24 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
   private async loadBlockList() {
     const list = await this.dbService.getBlockList();
     this.blockList = new Set(list);
+    this.diagnosticService.log(`Block list loaded with ${this.blockList.size} entries.`);
   }
 
   public async blockPeer(peerId: string) {
+    if (this.blockList.has(peerId)) return;
     this.blockList.add(peerId);
     await this.dbService.addToBlockList(peerId);
+    this.diagnosticService.log(`Peer ${peerId} has been blocked.`);
     this.closePeerConnection(peerId);
+    this.emit('blocklist-updated', Array.from(this.blockList));
   }
 
   public async unblockPeer(peerId: string) {
+    if (!this.blockList.has(peerId)) return;
     this.blockList.delete(peerId);
     await this.dbService.removeFromBlockList(peerId);
+    this.diagnosticService.log(`Peer ${peerId} has been unblocked.`);
+    this.emit('blocklist-updated', Array.from(this.blockList));
   }
 
   private async handleOffer(from: string, offer: RTCSessionDescriptionInit) {

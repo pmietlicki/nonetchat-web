@@ -1,8 +1,9 @@
 // src/components/PeerList.tsx
 import React, { useMemo, useState } from 'react';
 import { User } from '../types';
-import { Users, Circle, Wifi, MessageSquare, Info, X, MapPin } from 'lucide-react';
+import { Users, Circle, Wifi, MessageSquare, Info, X, MapPin, Ban } from 'lucide-react';
 import { t } from '../i18n';
+import PeerService from '../services/PeerService';
 
 type GenderFilter = 'all' | 'male' | 'female' | 'other';
 type SortMode = 'distanceAsc' | 'distanceDesc' | 'ageAsc' | 'ageDesc';
@@ -241,6 +242,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ peer, isOpen, o
 };
 
 const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId, isConnected }) => {
+  const peerService = PeerService.getInstance();
   const [selectedProfilePeer, setSelectedProfilePeer] = useState<User | null>(null);
   const [genderFilter, setGenderFilter] = useState<GenderFilter>('all');
   const [sortMode, setSortMode] = useState<SortMode>('distanceAsc');
@@ -472,6 +474,19 @@ const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId
                         aria-label={t('peerList.start_conversation')}
                       >
                         <MessageSquare size={16} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm(t('peerList.block_user_confirm', { name: peer.name }))) {
+                                peerService.blockPeer(peer.id);
+                            }
+                        }}
+                        className="text-red-600 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors"
+                        title={t('peerList.block_user_title')}
+                        aria-label={t('peerList.block_user_title')}
+                      >
+                        <Ban size={16} />
                       </button>
                     </div>
                   </div>

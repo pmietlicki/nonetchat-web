@@ -311,6 +311,8 @@
         "offline": "Hors ligne",
         "busy": "Occupé"
     },
+    "block_user_title": "Bloquer cet utilisateur",
+    "block_user_confirm": "Êtes-vous sûr de vouloir bloquer {{name}} ? Vous ne recevrez plus ses messages.",
     "meta_separator": "•"
   },
   "profileModal": {

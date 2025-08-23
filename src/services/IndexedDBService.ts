@@ -92,7 +92,8 @@ class IndexedDBService {
   // v7 : avatars: nouveaux index (hash), width/height/type, compat pipeline par hash
   // v8 : ajout du store fileBlobs pour le stockage des fichiers reçus
   // v9 : ajout du store public_messages pour le cache éphémère des messages publics
-  private readonly version = 9;
+  // v10 : ajout du store blockList
+  private readonly version = 10;
 
   public static getInstance(): IndexedDBService {
     if (!IndexedDBService.instance) {
@@ -234,7 +235,7 @@ class IndexedDBService {
 
   async addToBlockList(peerId: string): Promise<void> {
     const db = this.ensureDb();
-    await new Promise<void>((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       const tx = db.transaction(['blockList'], 'readwrite');
       tx.objectStore('blockList').put({ peerId });
       tx.oncomplete = () => resolve();
@@ -244,7 +245,7 @@ class IndexedDBService {
 
   async removeFromBlockList(peerId: string): Promise<void> {
     const db = this.ensureDb();
-    await new Promise<void>((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       const tx = db.transaction(['blockList'], 'readwrite');
       tx.objectStore('blockList').delete(peerId);
       tx.oncomplete = () => resolve();
@@ -261,6 +262,7 @@ class IndexedDBService {
       req.onerror = () => reject(req.error);
     });
   }
+
 
   // -------------------- CRYPTO KEYS --------------------
 

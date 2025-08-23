@@ -13,7 +13,7 @@ import PeerService, { PeerMessage } from './services/PeerService';
 import IndexedDBService from './services/IndexedDBService';
 import ProfileService from './services/ProfileService';
 import NotificationService from './services/NotificationService';
-import { MessageSquare, Users, X, User as UserIcon, Bell, Cog, Globe, Home } from 'lucide-react'; // Ajout Globe, ArrowLeft, Home
+import { MessageSquare, Users, X, User as UserIcon, Bell, Cog, Globe, Home, Ban } from 'lucide-react'; // Ajout Globe, ArrowLeft, Home, Ban
 import CryptoService from './services/CryptoService';
 import { useState, useRef, useEffect } from 'react';
 import { t, detectBrowserLanguage, onLanguageChange } from './i18n';
@@ -50,6 +50,7 @@ function App() {
   const [totalUnreadCount, setTotalUnreadCount] = useState(0);
   const [unreadConversationsCount, setUnreadConversationsCount] = useState(0);
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
+  const [blockList, setBlockList] = useState<Set<string>>(new Set());
 
   // State pour la discussion publique
   const [publicRoomId, setPublicRoomId] = useState<string | null>(null);
@@ -209,6 +210,9 @@ useEffect(() => {
     const initialize = async () => {
       await dbService.initialize();
 
+      const initialBlockList = await dbService.getBlockList();
+      setBlockList(new Set(initialBlockList));
+
       // ProfileService garantit l’ID (deviceId)
       const profileAny = await profileService.getProfile();
       const normalized: Partial<User> & { avatarBlob?: Blob | null } = {
@@ -233,6 +237,9 @@ useEffect(() => {
     };
 
     initialize();
+
+    const onBlockListUpdated = (list: string[]) => setBlockList(new Set(list));
+    peerService.on('blocklist-updated', onBlockListUpdated);
 
     const onOpen = (id: string) => {
       setIsConnected(true);
@@ -348,6 +355,7 @@ useEffect(() => {
     setUnreadConversationsCount(notificationService.getUnreadConversationsCount());
 
     return () => {
+      peerService.removeListener('blocklist-updated', onBlockListUpdated);
       peerService.removeListener('room-update', onRoomUpdate);
       peerService.removeListener('public-message', onPublicMessage);
       peerService.removeListener('open', onOpen);
