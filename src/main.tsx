@@ -7,7 +7,7 @@ import { initI18n } from './i18n';
 const root = createRoot(document.getElementById('root')!);
 
 (async () => {
-  await initI18n('fr');
+  await initI18n();
   root.render(
     <StrictMode>
       <App />

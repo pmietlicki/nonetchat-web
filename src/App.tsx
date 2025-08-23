@@ -16,7 +16,8 @@ import NotificationService from './services/NotificationService';
 import { MessageSquare, Users, X, User as UserIcon, Bell, Cog, Globe, Home } from 'lucide-react'; // Ajout Globe, ArrowLeft, Home
 import CryptoService from './services/CryptoService';
 import { useState, useRef, useEffect } from 'react';
-import { t } from './i18n';
+import { t, detectBrowserLanguage, onLanguageChange } from './i18n';
+import LanguageSelector from './components/LanguageSelector';
 
 const DEFAULT_SIGNALING_URL = 'wss://chat.nonetchat.com';
 // Clé publique VAPID (base64url)
@@ -86,6 +87,23 @@ function App() {
     }
   );
   const [tempSearchRadius, setTempSearchRadius] = useState<number | 'country' | 'city'>(searchRadius);
+  const [currentLanguage, setCurrentLanguage] = useState(() => {
+    return localStorage.getItem('preferredLanguage') || detectBrowserLanguage();
+  });
+  const [, setForceUpdate] = useState(0);
+
+  // Écoute les changements de langue pour forcer le re-rendu
+  useEffect(() => {
+    const handleLanguageChange = () => {
+      setForceUpdate(prev => prev + 1);
+    };
+    
+    onLanguageChange(handleLanguageChange);
+    
+    return () => {
+      // Pas de cleanup nécessaire car onLanguageChange gère déjà la liste des listeners
+    };
+  }, []);
 
   const peerService = PeerService.getInstance();
   const profileService = ProfileService.getInstance();
@@ -967,6 +985,16 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                     </label>
                   </div>
                 </div>
+              </div>
+
+              {/* Sélecteur de langue */}
+              <div>
+                <LanguageSelector
+                  currentLanguage={currentLanguage}
+                  onLanguageChange={(newLang) => {
+                    setCurrentLanguage(newLang);
+                  }}
+                />
               </div>
             </div>
 
