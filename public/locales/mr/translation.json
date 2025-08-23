@@ -58,7 +58,8 @@
     "country": "संपूर्ण देश",
     "unavailable": "(अनुपलब्ध)",
     "cancel": "रद्द करा",
-    "save": "जतन करा"
+    "save": "जतन करा",
+    "manage": "Manage"
   },
   "header": {
     "logo_alt": "NoNetChat लोगो",
@@ -311,7 +312,9 @@
       "offline": "ऑफलाइन",
       "busy": "व्यस्त"
     },
-    "meta_separator": "•"
+    "meta_separator": "•",
+    "block_user_title": "Block user",
+    "block_user_confirm": "Are you sure you want to block {{name}}? You will no longer receive their messages."
   },
   "profileModal": {
     "title": "तुमची प्रोफाइल",
@@ -374,5 +377,21 @@
   "languageSelector": {
     "label": "भाषा",
     "description": "भाषा आपोआप सेव्ह होईल आणि तुमच्या पुढील भेटीत ओळखली जाईल."
+  },
+  "blockedUsers": {
+    "title": "Blocked Users",
+    "close": "Close",
+    "manage_blocked_users": "Manage Blocked Users",
+    "blocked_count": "{{count}} blocked user(s)",
+    "no_blocked_users": "No blocked users",
+    "unknown_user": "Unknown user",
+    "blocked_at": "Blocked on {{date}}",
+    "unblock_user": "Unblock user",
+    "unblock": "Unblock",
+    "unblock_confirm": "Are you sure you want to unblock this user?",
+    "unblock_confirm_title": "Unblock User",
+    "unblock_confirm_message": "Are you sure you want to unblock this user?",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
   }
 }

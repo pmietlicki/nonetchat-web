@@ -58,7 +58,8 @@
     "country": "Pays entier",
     "unavailable": "(indisponible)",
     "cancel": "Annuler",
-    "save": "Sauvegarder"
+    "save": "Sauvegarder",
+    "manage": "Gérer"
   },
   "header": {
     "logo_alt": "Logo NoNetChat",
@@ -307,13 +308,29 @@
       "connected_since": "Connecté depuis :"
     },
     "status": {
-        "online": "En ligne",
-        "offline": "Hors ligne",
-        "busy": "Occupé"
+      "online": "En ligne",
+      "offline": "Hors ligne",
+      "busy": "Occupé"
     },
-    "block_user_title": "Bloquer cet utilisateur",
-    "block_user_confirm": "Êtes-vous sûr de vouloir bloquer {{name}} ? Vous ne recevrez plus ses messages.",
+    "block_user_title": "Bloquer l'utilisateur",
+    "block_user_confirm": "Êtes-vous sûr de vouloir bloquer {{name}} ? Vous ne recevrez plus leurs messages.",
     "meta_separator": "•"
+  },
+  "blockedUsers": {
+    "title": "Utilisateurs bloqués",
+    "close": "Fermer",
+    "manage_blocked_users": "Gérer les utilisateurs bloqués",
+    "blocked_count": "{{count}} utilisateur(s) bloqué(s)",
+    "no_blocked_users": "Aucun utilisateur bloqué",
+    "unknown_user": "Utilisateur inconnu",
+    "blocked_at": "Bloqué le {{date}}",
+    "unblock_user": "Débloquer l'utilisateur",
+    "unblock": "Débloquer",
+    "unblock_confirm": "Êtes-vous sûr de vouloir débloquer cet utilisateur ?",
+    "unblock_confirm_title": "Débloquer l'utilisateur",
+    "unblock_confirm_message": "Êtes-vous sûr de vouloir débloquer cet utilisateur ?",
+    "confirm": "Confirmer",
+    "cancel": "Annuler"
   },
   "profileModal": {
     "title": "Votre Profil",

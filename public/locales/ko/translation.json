@@ -58,7 +58,8 @@
     "country": "전체 국가",
     "unavailable": "(사용 불가)",
     "cancel": "취소",
-    "save": "저장"
+    "save": "저장",
+    "manage": "Manage"
   },
   "header": {
     "logo_alt": "NoNetChat 로고",
@@ -311,7 +312,9 @@
       "offline": "오프라인",
       "busy": "바쁨"
     },
-    "meta_separator": "•"
+    "meta_separator": "•",
+    "block_user_title": "Block user",
+    "block_user_confirm": "Are you sure you want to block {{name}}? You will no longer receive their messages."
   },
   "profileModal": {
     "title": "내 프로필",
@@ -374,5 +377,21 @@
   "languageSelector": {
     "label": "언어",
     "description": "언어는 자동으로 저장되며 다음 방문 시 감지됩니다."
+  },
+  "blockedUsers": {
+    "title": "Blocked Users",
+    "close": "Close",
+    "manage_blocked_users": "Manage Blocked Users",
+    "blocked_count": "{{count}} blocked user(s)",
+    "no_blocked_users": "No blocked users",
+    "unknown_user": "Unknown user",
+    "blocked_at": "Blocked on {{date}}",
+    "unblock_user": "Unblock user",
+    "unblock": "Unblock",
+    "unblock_confirm": "Are you sure you want to unblock this user?",
+    "unblock_confirm_title": "Unblock User",
+    "unblock_confirm_message": "Are you sure you want to unblock this user?",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
   }
 }

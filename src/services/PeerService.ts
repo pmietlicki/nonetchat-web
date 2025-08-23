@@ -1263,6 +1263,27 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
     this.emit('blocklist-updated', Array.from(this.blockList));
   }
 
+  public getBlockList(): Set<string> {
+    return new Set(this.blockList);
+  }
+
+  public async getUserProfile(peerId: string): Promise<PublicProfile | null> {
+    try {
+      // Essayer de récupérer depuis le cache local
+      const cached = this.peersMeta.get(peerId);
+      if (cached?.profile) {
+        return cached.profile;
+      }
+      
+      // Pour l'instant, retourner null si pas en cache
+      // TODO: Implémenter la récupération depuis la base de données
+      return null;
+    } catch (error) {
+      this.diagnosticService.log(`Error getting user profile for ${peerId}: ${error}`);
+      return null;
+    }
+  }
+
   private async handleOffer(from: string, offer: RTCSessionDescriptionInit) {
   let pc = this.peerConnections.get(from);
   if (!pc) {

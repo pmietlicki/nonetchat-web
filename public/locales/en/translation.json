@@ -58,7 +58,8 @@
     "country": "Entire country",
     "unavailable": "(unavailable)",
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "manage": "Manage"
   },
   "header": {
     "logo_alt": "NoNetChat Logo",
@@ -311,9 +312,25 @@
       "offline": "Offline",
       "busy": "Busy"
     },
-    "block_user_title": "Block this user",
+    "block_user_title": "Block user",
     "block_user_confirm": "Are you sure you want to block {{name}}? You will no longer receive their messages.",
     "meta_separator": "•"
+  },
+  "blockedUsers": {
+    "title": "Blocked Users",
+    "close": "Close",
+    "manage_blocked_users": "Manage Blocked Users",
+    "blocked_count": "{{count}} blocked user(s)",
+    "no_blocked_users": "No blocked users",
+    "unknown_user": "Unknown user",
+    "blocked_at": "Blocked on {{date}}",
+    "unblock_user": "Unblock user",
+    "unblock": "Unblock",
+    "unblock_confirm": "Are you sure you want to unblock this user?",
+    "unblock_confirm_title": "Unblock User",
+    "unblock_confirm_message": "Are you sure you want to unblock this user?",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
   },
   "profileModal": {
     "title": "Your Profile",

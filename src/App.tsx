@@ -8,6 +8,7 @@ import ConnectionStatus from './components/ConnectionStatus';
 import ProfileModal from './components/ProfileModal';
 import DiagnosticPanel from './components/DiagnosticPanel';
 import NotificationSettings from './components/NotificationSettings';
+import BlockedUsersList from './components/BlockedUsersList';
 import { User } from './types';
 import PeerService, { PeerMessage } from './services/PeerService';
 import IndexedDBService from './services/IndexedDBService';
@@ -61,6 +62,7 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
+  const [isBlockedUsersOpen, setIsBlockedUsersOpen] = useState(false);
   const [locationInfo, setLocationInfo] = useState<{ city: string; country: string } | null>(null);
 
   const globalFileReceivers = useRef(
@@ -1004,6 +1006,30 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                   }}
                 />
               </div>
+
+              {/* Gestion des utilisateurs bloqués */}
+              <div className="rounded-lg border border-gray-200 p-3 flex items-center justify-between">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Ban className="text-red-600" size={20} />
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-gray-900">
+                      {t('blockedUsers.manage_blocked_users')}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {blockList.size > 0 
+                        ? t('blockedUsers.blocked_count', { count: blockList.size })
+                        : t('blockedUsers.no_blocked_users')
+                      }
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => { setIsSettingsOpen(false); setIsBlockedUsersOpen(true); }}
+                  className="px-3 py-1.5 bg-red-600 text-white text-sm rounded-md hover:bg-red-700"
+                >
+                  {t('settings.manage')}
+                </button>
+              </div>
             </div>
 
             <div className="mt-5 flex justify-end gap-3">
@@ -1359,6 +1385,12 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
       </div>
 
       <NotificationSettings isOpen={showNotificationSettings} onClose={() => setShowNotificationSettings(false)} />
+      
+      <BlockedUsersList 
+        isOpen={isBlockedUsersOpen} 
+        onClose={() => setIsBlockedUsersOpen(false)}
+        peerService={peerService}
+      />
     </div>
   );
 }
