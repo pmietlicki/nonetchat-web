@@ -59,7 +59,7 @@
     "unavailable": "(دستیاب نہیں)",
     "cancel": "منسوخ کریں",
     "save": "محفوظ کریں",
-    "manage": "Manage"
+    "manage": "انتظام کریں"
   },
   "header": {
     "logo_alt": "NoNetChat لوگو",
@@ -313,8 +313,8 @@
       "busy": "مصروف"
     },
     "meta_separator": "•",
-    "block_user_title": "Block user",
-    "block_user_confirm": "Are you sure you want to block {{name}}? You will no longer receive their messages."
+    "block_user_title": "صارف کو بلاک کریں",
+    "block_user_confirm": "کیا آپ واقعی {{name}} کو بلاک کرنا چاہتے ہیں؟ آپ کو اب ان کے پیغامات موصول نہیں ہوں گے۔"
   },
   "profileModal": {
     "title": "آپ کی پروفائل",
@@ -379,19 +379,19 @@
     "description": "زبان خودکار طور پر محفوظ ہو جائے گی اور آپ کی اگلی ملاقات میں پہچانی جائے گی۔"
   },
   "blockedUsers": {
-    "title": "Blocked Users",
-    "close": "Close",
-    "manage_blocked_users": "Manage Blocked Users",
-    "blocked_count": "{{count}} blocked user(s)",
-    "no_blocked_users": "No blocked users",
-    "unknown_user": "Unknown user",
-    "blocked_at": "Blocked on {{date}}",
-    "unblock_user": "Unblock user",
-    "unblock": "Unblock",
-    "unblock_confirm": "Are you sure you want to unblock this user?",
-    "unblock_confirm_title": "Unblock User",
-    "unblock_confirm_message": "Are you sure you want to unblock this user?",
-    "confirm": "Confirm",
-    "cancel": "Cancel"
+    "title": "بلاک شدہ صارفین",
+    "close": "بند کریں",
+    "manage_blocked_users": "بلاک شدہ صارفین کا نظم کریں",
+    "blocked_count": "{{count}} بلاک شدہ صارف",
+    "no_blocked_users": "کوئی بلاک شدہ صارف نہیں",
+    "unknown_user": "نامعلوم صارف",
+    "blocked_at": "{{date}} کو بلاک کر دیا گیا",
+    "unblock_user": "صارف کو ان بلاک کریں",
+    "unblock": "ان بلاک کریں",
+    "unblock_confirm": "کیا آپ واقعی اس صارف کو ان بلاک کرنا چاہتے ہیں؟",
+    "unblock_confirm_title": "صارف کو ان بلاک کریں",
+    "unblock_confirm_message": "کیا آپ واقعی اس صارف کو ان بلاک کرنا چاہتے ہیں؟",
+    "confirm": "تصدیق کریں",
+    "cancel": "منسوخ کریں"
   }
 }

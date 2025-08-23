@@ -59,7 +59,7 @@
     "unavailable": "(niedostępne)",
     "cancel": "Anuluj",
     "save": "Zapisz",
-    "manage": "Manage"
+    "manage": "Zarządzaj"
   },
   "header": {
     "logo_alt": "Logo NoNetChat",
@@ -313,8 +313,8 @@
       "busy": "Zajęty"
     },
     "meta_separator": "•",
-    "block_user_title": "Block user",
-    "block_user_confirm": "Are you sure you want to block {{name}}? You will no longer receive their messages."
+    "block_user_title": "Zablokuj użytkownika",
+    "block_user_confirm": "Czy na pewno chcesz zablokować {{name}}? Nie będziesz już otrzymywać od niego wiadomości."
   },
   "profileModal": {
     "title": "Twój profil",
@@ -379,19 +379,19 @@
     "description": "Język zostanie automatycznie zapisany i wykryty podczas następnej wizyty."
   },
   "blockedUsers": {
-    "title": "Blocked Users",
-    "close": "Close",
-    "manage_blocked_users": "Manage Blocked Users",
-    "blocked_count": "{{count}} blocked user(s)",
-    "no_blocked_users": "No blocked users",
-    "unknown_user": "Unknown user",
-    "blocked_at": "Blocked on {{date}}",
-    "unblock_user": "Unblock user",
-    "unblock": "Unblock",
-    "unblock_confirm": "Are you sure you want to unblock this user?",
-    "unblock_confirm_title": "Unblock User",
-    "unblock_confirm_message": "Are you sure you want to unblock this user?",
-    "confirm": "Confirm",
-    "cancel": "Cancel"
+    "title": "Zablokowani użytkownicy",
+    "close": "Zamknij",
+    "manage_blocked_users": "Zarządzaj zablokowanymi użytkownikami",
+    "blocked_count": "{{count}} zablokowanych użytkowników",
+    "no_blocked_users": "Brak zablokowanych użytkowników",
+    "unknown_user": "Nieznany użytkownik",
+    "blocked_at": "Zablokowano {{date}}",
+    "unblock_user": "Odblokuj użytkownika",
+    "unblock": "Odblokuj",
+    "unblock_confirm": "Czy na pewno chcesz odblokować tego użytkownika?",
+    "unblock_confirm_title": "Odblokuj użytkownika",
+    "unblock_confirm_message": "Czy na pewno chcesz odblokować tego użytkownika?",
+    "confirm": "Potwierdź",
+    "cancel": "Anuluj"
   }
 }

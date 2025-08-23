@@ -59,7 +59,7 @@
     "unavailable": "(nicht verfügbar)",
     "cancel": "Abbrechen",
     "save": "Speichern",
-    "manage": "Manage"
+    "manage": "Verwalten"
   },
   "header": {
     "logo_alt": "NoNetChat-Logo",
@@ -313,8 +313,8 @@
       "busy": "Beschäftigt"
     },
     "meta_separator": "•",
-    "block_user_title": "Block user",
-    "block_user_confirm": "Are you sure you want to block {{name}}? You will no longer receive their messages."
+    "block_user_title": "Benutzer blockieren",
+    "block_user_confirm": "Möchten Sie {{name}} wirklich blockieren? Sie werden ihre Nachrichten nicht mehr erhalten."
   },
   "profileModal": {
     "title": "Ihr Profil",
@@ -379,19 +379,19 @@
     "description": "Die Sprache wird automatisch gespeichert und bei Ihrem nächsten Besuch erkannt."
   },
   "blockedUsers": {
-    "title": "Blocked Users",
-    "close": "Close",
-    "manage_blocked_users": "Manage Blocked Users",
-    "blocked_count": "{{count}} blocked user(s)",
-    "no_blocked_users": "No blocked users",
-    "unknown_user": "Unknown user",
-    "blocked_at": "Blocked on {{date}}",
-    "unblock_user": "Unblock user",
-    "unblock": "Unblock",
-    "unblock_confirm": "Are you sure you want to unblock this user?",
-    "unblock_confirm_title": "Unblock User",
-    "unblock_confirm_message": "Are you sure you want to unblock this user?",
-    "confirm": "Confirm",
-    "cancel": "Cancel"
+    "title": "Blockierte Benutzer",
+    "close": "Schließen",
+    "manage_blocked_users": "Blockierte Benutzer verwalten",
+    "blocked_count": "{{count}} blockierte(r) Benutzer",
+    "no_blocked_users": "Keine blockierten Benutzer",
+    "unknown_user": "Unbekannter Benutzer",
+    "blocked_at": "Gesperrt am {{date}}",
+    "unblock_user": "Benutzer entsperren",
+    "unblock": "Entsperren",
+    "unblock_confirm": "Möchten Sie diesen Benutzer wirklich entsperren?",
+    "unblock_confirm_title": "Benutzer entsperren",
+    "unblock_confirm_message": "Möchten Sie diesen Benutzer wirklich entsperren?",
+    "confirm": "Bestätigen",
+    "cancel": "Abbrechen"
   }
 }

@@ -59,7 +59,7 @@
     "unavailable": "(अनुपलब्ध)",
     "cancel": "रद्द करें",
     "save": "सहेजें",
-    "manage": "Manage"
+    "manage": "प्रबंधित करें"
   },
   "header": {
     "logo_alt": "NoNetChat लोगो",
@@ -313,8 +313,8 @@
       "busy": "व्यस्त"
     },
     "meta_separator": "•",
-    "block_user_title": "Block user",
-    "block_user_confirm": "Are you sure you want to block {{name}}? You will no longer receive their messages."
+    "block_user_title": "उपयोगकर्ता को ब्लॉक करें",
+    "block_user_confirm": "क्या आप वाकई {{name}} को ब्लॉक करना चाहते हैं? अब आपको उनके संदेश प्राप्त नहीं होंगे।"
   },
   "profileModal": {
     "title": "आपकी प्रोफ़ाइल",
@@ -379,19 +379,19 @@
     "description": "भाषा स्वचालित रूप से सहेजी जाएगी और आपकी अगली यात्रा पर पहचानी जाएगी।"
   },
   "blockedUsers": {
-    "title": "Blocked Users",
-    "close": "Close",
-    "manage_blocked_users": "Manage Blocked Users",
-    "blocked_count": "{{count}} blocked user(s)",
-    "no_blocked_users": "No blocked users",
-    "unknown_user": "Unknown user",
-    "blocked_at": "Blocked on {{date}}",
-    "unblock_user": "Unblock user",
-    "unblock": "Unblock",
-    "unblock_confirm": "Are you sure you want to unblock this user?",
-    "unblock_confirm_title": "Unblock User",
-    "unblock_confirm_message": "Are you sure you want to unblock this user?",
-    "confirm": "Confirm",
-    "cancel": "Cancel"
+    "title": "ब्लॉक किए गए उपयोगकर्ता",
+    "close": "बंद करें",
+    "manage_blocked_users": "ब्लॉक किए गए उपयोगकर्ताओं को प्रबंधित करें",
+    "blocked_count": "{{count}} ब्लॉक किए गए उपयोगकर्ता",
+    "no_blocked_users": "कोई ब्लॉक किया गया उपयोगकर्ता नहीं",
+    "unknown_user": "अज्ञात उपयोगकर्ता",
+    "blocked_at": "{{date}} को ब्लॉक किया गया",
+    "unblock_user": "उपयोगकर्ता को अनब्लॉक करें",
+    "unblock": "अनब्लॉक करें",
+    "unblock_confirm": "क्या आप वाकई इस उपयोगकर्ता को अनब्लॉक करना चाहते हैं?",
+    "unblock_confirm_title": "उपयोगकर्ता को अनब्लॉक करें",
+    "unblock_confirm_message": "क्या आप वाकई इस उपयोगकर्ता को अनब्लॉक करना चाहते हैं?",
+    "confirm": "पुष्टि करें",
+    "cancel": "रद्द करें"
   }
 }

@@ -59,7 +59,7 @@
     "unavailable": "(kullanılamıyor)",
     "cancel": "İptal",
     "save": "Kaydet",
-    "manage": "Manage"
+    "manage": "Yönet"
   },
   "header": {
     "logo_alt": "NoNetChat Logosu",
@@ -313,8 +313,8 @@
       "busy": "Meşgul"
     },
     "meta_separator": "•",
-    "block_user_title": "Block user",
-    "block_user_confirm": "Are you sure you want to block {{name}}? You will no longer receive their messages."
+    "block_user_title": "Kullanıcıyı engelle",
+    "block_user_confirm": "{{name}} adlı kullanıcıyı engellemek istediğinizden emin misiniz? Artık mesajlarını almayacaksınız."
   },
   "profileModal": {
     "title": "Profiliniz",
@@ -379,19 +379,19 @@
     "description": "Dil otomatik olarak kaydedilecek ve bir sonraki ziyaretinizde algılanacaktır."
   },
   "blockedUsers": {
-    "title": "Blocked Users",
-    "close": "Close",
-    "manage_blocked_users": "Manage Blocked Users",
-    "blocked_count": "{{count}} blocked user(s)",
-    "no_blocked_users": "No blocked users",
-    "unknown_user": "Unknown user",
-    "blocked_at": "Blocked on {{date}}",
-    "unblock_user": "Unblock user",
-    "unblock": "Unblock",
-    "unblock_confirm": "Are you sure you want to unblock this user?",
-    "unblock_confirm_title": "Unblock User",
-    "unblock_confirm_message": "Are you sure you want to unblock this user?",
-    "confirm": "Confirm",
-    "cancel": "Cancel"
+    "title": "Engellenen Kullanıcılar",
+    "close": "Kapat",
+    "manage_blocked_users": "Engellenen Kullanıcıları Yönet",
+    "blocked_count": "{{count}} engellenen kullanıcı",
+    "no_blocked_users": "Engellenen kullanıcı yok",
+    "unknown_user": "Bilinmeyen kullanıcı",
+    "blocked_at": "{{date}} tarihinde engellendi",
+    "unblock_user": "Kullanıcının Engelini Kaldır",
+    "unblock": "Engeli kaldır",
+    "unblock_confirm": "Bu kullanıcının engelini kaldırmak istediğinizden emin misiniz?",
+    "unblock_confirm_title": "Kullanıcının Engelini Kaldır",
+    "unblock_confirm_message": "Bu kullanıcının engelini kaldırmak istediğinizden emin misiniz?",
+    "confirm": "Onayla",
+    "cancel": "İptal"
   }
 }

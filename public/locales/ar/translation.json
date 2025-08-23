@@ -59,7 +59,7 @@
     "unavailable": "(غير متوفر)",
     "cancel": "إلغاء",
     "save": "حفظ",
-    "manage": "Manage"
+    "manage": "إدارة"
   },
   "header": {
     "logo_alt": "شعار NoNetChat",
@@ -313,8 +313,8 @@
       "busy": "مشغول"
     },
     "meta_separator": "•",
-    "block_user_title": "Block user",
-    "block_user_confirm": "Are you sure you want to block {{name}}? You will no longer receive their messages."
+    "block_user_title": "حظر المستخدم",
+    "block_user_confirm": "هل أنت متأكد أنك تريد حظر {{name}}؟ لن تتلقى رسائلهم بعد الآن."
   },
   "profileModal": {
     "title": "ملفك الشخصي",
@@ -379,19 +379,19 @@
     "description": "سيتم حفظ اللغة تلقائياً واكتشافها في زيارتك القادمة."
   },
   "blockedUsers": {
-    "title": "Blocked Users",
-    "close": "Close",
-    "manage_blocked_users": "Manage Blocked Users",
-    "blocked_count": "{{count}} blocked user(s)",
-    "no_blocked_users": "No blocked users",
-    "unknown_user": "Unknown user",
-    "blocked_at": "Blocked on {{date}}",
-    "unblock_user": "Unblock user",
-    "unblock": "Unblock",
-    "unblock_confirm": "Are you sure you want to unblock this user?",
-    "unblock_confirm_title": "Unblock User",
-    "unblock_confirm_message": "Are you sure you want to unblock this user?",
-    "confirm": "Confirm",
-    "cancel": "Cancel"
+    "title": "المستخدمون المحظورون",
+    "close": "إغلاق",
+    "manage_blocked_users": "إدارة المستخدمين المحظورين",
+    "blocked_count": "{{count}} مستخدم محظور",
+    "no_blocked_users": "لا يوجد مستخدمون محظورون",
+    "unknown_user": "مستخدم غير معروف",
+    "blocked_at": "تم الحظر في {{date}}",
+    "unblock_user": "رفع الحظر عن المستخدم",
+    "unblock": "رفع الحظر",
+    "unblock_confirm": "هل أنت متأكد أنك تريد رفع الحظر عن هذا المستخدم؟",
+    "unblock_confirm_title": "رفع الحظر عن المستخدم",
+    "unblock_confirm_message": "هل أنت متأكد أنك تريد رفع الحظر عن هذا المستخدم؟",
+    "confirm": "تأكيد",
+    "cancel": "إلغاء"
   }
 }

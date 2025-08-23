@@ -59,7 +59,7 @@
     "unavailable": "(ਅਣਉਪਲਬਧ)",
     "cancel": "ਰੱਦ ਕਰੋ",
     "save": "ਸੁਰੱਖਿਅਤ ਕਰੋ",
-    "manage": "Manage"
+    "manage": "ਪ੍ਰਬੰਧਨ ਕਰੋ"
   },
   "header": {
     "logo_alt": "NoNetChat ਲੋਗੋ",
@@ -313,8 +313,8 @@
       "busy": "ਰੁੱਝੇ ਹੋਏ"
     },
     "meta_separator": "•",
-    "block_user_title": "Block user",
-    "block_user_confirm": "Are you sure you want to block {{name}}? You will no longer receive their messages."
+    "block_user_title": "ਉਪਭੋਗਤਾ ਨੂੰ ਬਲੌਕ ਕਰੋ",
+    "block_user_confirm": "ਕੀ ਤੁਸੀਂ ਯਕੀਨੀ ਤੌਰ 'ਤੇ {{name}} ਨੂੰ ਬਲੌਕ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ? ਤੁਸੀਂ ਹੁਣ ਉਹਨਾਂ ਦੇ ਸੁਨੇਹੇ ਪ੍ਰਾਪਤ ਨਹੀਂ ਕਰੋਗੇ।"
   },
   "profileModal": {
     "title": "ਤੁਹਾਡੀ ਪ੍ਰੋਫਾਈਲ",
@@ -379,19 +379,19 @@
     "description": "ਭਾਸ਼ਾ ਆਪਣੇ ਆਪ ਸੇਵ ਹੋ ਜਾਵੇਗੀ ਅਤੇ ਤੁਹਾਡੀ ਅਗਲੀ ਵਿਜ਼ਿਟ 'ਤੇ ਪਛਾਣੀ ਜਾਵੇਗੀ।"
   },
   "blockedUsers": {
-    "title": "Blocked Users",
-    "close": "Close",
-    "manage_blocked_users": "Manage Blocked Users",
-    "blocked_count": "{{count}} blocked user(s)",
-    "no_blocked_users": "No blocked users",
-    "unknown_user": "Unknown user",
-    "blocked_at": "Blocked on {{date}}",
-    "unblock_user": "Unblock user",
-    "unblock": "Unblock",
-    "unblock_confirm": "Are you sure you want to unblock this user?",
-    "unblock_confirm_title": "Unblock User",
-    "unblock_confirm_message": "Are you sure you want to unblock this user?",
-    "confirm": "Confirm",
-    "cancel": "Cancel"
+    "title": "ਬਲੌਕ ਕੀਤੇ ਉਪਭੋਗਤਾ",
+    "close": "ਬੰਦ ਕਰੋ",
+    "manage_blocked_users": "ਬਲੌਕ ਕੀਤੇ ਉਪਭੋਗਤਾਵਾਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ",
+    "blocked_count": "{{count}} ਬਲੌਕ ਕੀਤੇ ਉਪਭੋਗਤਾ",
+    "no_blocked_users": "ਕੋਈ ਬਲੌਕ ਕੀਤੇ ਉਪਭੋਗਤਾ ਨਹੀਂ",
+    "unknown_user": "ਅਣਜਾਣ ਉਪਭੋਗਤਾ",
+    "blocked_at": "{{date}} ਨੂੰ ਬਲੌਕ ਕੀਤਾ ਗਿਆ",
+    "unblock_user": "ਉਪਭੋਗਤਾ ਨੂੰ ਅਨਬਲੌਕ ਕਰੋ",
+    "unblock": "ਅਨਬਲੌਕ ਕਰੋ",
+    "unblock_confirm": "ਕੀ ਤੁਸੀਂ ਯਕੀਨੀ ਤੌਰ 'ਤੇ ਇਸ ਉਪਭੋਗਤਾ ਨੂੰ ਅਨਬਲੌਕ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?",
+    "unblock_confirm_title": "ਉਪਭੋਗਤਾ ਨੂੰ ਅਨਬਲੌਕ ਕਰੋ",
+    "unblock_confirm_message": "ਕੀ ਤੁਸੀਂ ਯਕੀਨੀ ਤੌਰ 'ਤੇ ਇਸ ਉਪਭੋਗਤਾ ਨੂੰ ਅਨਬਲੌਕ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?",
+    "confirm": "ਪੁਸ਼ਟੀ ਕਰੋ",
+    "cancel": "ਰੱਦ ਕਰੋ"
   }
 }

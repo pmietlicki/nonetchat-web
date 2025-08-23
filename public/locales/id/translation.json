@@ -59,7 +59,7 @@
     "unavailable": "(tidak tersedia)",
     "cancel": "Batal",
     "save": "Simpan",
-    "manage": "Manage"
+    "manage": "Kelola"
   },
   "header": {
     "logo_alt": "Logo NoNetChat",
@@ -313,8 +313,8 @@
       "busy": "Sibuk"
     },
     "meta_separator": "•",
-    "block_user_title": "Block user",
-    "block_user_confirm": "Are you sure you want to block {{name}}? You will no longer receive their messages."
+    "block_user_title": "Blokir pengguna",
+    "block_user_confirm": "Anda yakin ingin memblokir {{name}}? Anda tidak akan lagi menerima pesan mereka."
   },
   "profileModal": {
     "title": "Profil Anda",
@@ -379,19 +379,19 @@
     "description": "Bahasa akan disimpan secara otomatis dan terdeteksi pada kunjungan berikutnya."
   },
   "blockedUsers": {
-    "title": "Blocked Users",
-    "close": "Close",
-    "manage_blocked_users": "Manage Blocked Users",
-    "blocked_count": "{{count}} blocked user(s)",
-    "no_blocked_users": "No blocked users",
-    "unknown_user": "Unknown user",
-    "blocked_at": "Blocked on {{date}}",
-    "unblock_user": "Unblock user",
-    "unblock": "Unblock",
-    "unblock_confirm": "Are you sure you want to unblock this user?",
-    "unblock_confirm_title": "Unblock User",
-    "unblock_confirm_message": "Are you sure you want to unblock this user?",
-    "confirm": "Confirm",
-    "cancel": "Cancel"
+    "title": "Pengguna yang Diblokir",
+    "close": "Tutup",
+    "manage_blocked_users": "Kelola Pengguna yang Diblokir",
+    "blocked_count": "{{count}} pengguna diblokir",
+    "no_blocked_users": "Tidak ada pengguna yang diblokir",
+    "unknown_user": "Pengguna tidak dikenal",
+    "blocked_at": "Diblokir pada {{date}}",
+    "unblock_user": "Buka Blokir Pengguna",
+    "unblock": "Buka blokir",
+    "unblock_confirm": "Anda yakin ingin membuka blokir pengguna ini?",
+    "unblock_confirm_title": "Buka Blokir Pengguna",
+    "unblock_confirm_message": "Anda yakin ingin membuka blokir pengguna ini?",
+    "confirm": "Konfirmasi",
+    "cancel": "Batal"
   }
 }

@@ -59,7 +59,7 @@
     "unavailable": "(అందుబాటులో లేదు)",
     "cancel": "రద్దు చేయండి",
     "save": "సేవ్ చేయండి",
-    "manage": "Manage"
+    "manage": "నిర్వహించండి"
   },
   "header": {
     "logo_alt": "NoNetChat లోగో",
@@ -313,8 +313,8 @@
       "busy": "బిజీ"
     },
     "meta_separator": "•",
-    "block_user_title": "Block user",
-    "block_user_confirm": "Are you sure you want to block {{name}}? You will no longer receive their messages."
+    "block_user_title": "వినియోగదారుని బ్లాక్ చేయండి",
+    "block_user_confirm": "మీరు {{name}}ను బ్లాక్ చేయాలనుకుంటున్నారా? మీరు ఇకపై వారి సందేశాలను స్వీకరించరు."
   },
   "profileModal": {
     "title": "మీ ప్రొఫైల్",
@@ -379,19 +379,19 @@
     "description": "భాష స్వయంచాలకంగా సేవ్ చేయబడుతుంది మరియు మీ తదుపరి సందర్శనలో గుర్తించబడుతుంది."
   },
   "blockedUsers": {
-    "title": "Blocked Users",
-    "close": "Close",
-    "manage_blocked_users": "Manage Blocked Users",
-    "blocked_count": "{{count}} blocked user(s)",
-    "no_blocked_users": "No blocked users",
-    "unknown_user": "Unknown user",
-    "blocked_at": "Blocked on {{date}}",
-    "unblock_user": "Unblock user",
-    "unblock": "Unblock",
-    "unblock_confirm": "Are you sure you want to unblock this user?",
-    "unblock_confirm_title": "Unblock User",
-    "unblock_confirm_message": "Are you sure you want to unblock this user?",
-    "confirm": "Confirm",
-    "cancel": "Cancel"
+    "title": "బ్లాక్ చేయబడిన వినియోగదారులు",
+    "close": "మూసివేయండి",
+    "manage_blocked_users": "బ్లాక్ చేయబడిన వినియోగదారులను నిర్వహించండి",
+    "blocked_count": "{{count}} బ్లాక్ చేయబడిన వినియోగదారు(లు)",
+    "no_blocked_users": "బ్లాక్ చేయబడిన వినియోగదారులు ఎవరూ లేరు",
+    "unknown_user": "తెలియని వినియోగదారు",
+    "blocked_at": "{{date}}న బ్లాక్ చేయబడింది",
+    "unblock_user": "వినియోగదారుని అన్‌బ్లాక్ చేయండి",
+    "unblock": "అన్‌బ్లాక్ చేయండి",
+    "unblock_confirm": "మీరు ఈ వినియోగదారుని అన్‌బ్లాక్ చేయాలనుకుంటున్నారా?",
+    "unblock_confirm_title": "వినియోగదారుని అన్‌బ్లాక్ చేయండి",
+    "unblock_confirm_message": "మీరు ఈ వినియోగదారుని అన్‌బ్లాక్ చేయాలనుకుంటున్నారా?",
+    "confirm": "నిర్ధారించండి",
+    "cancel": "రద్దు చేయండి"
   }
 }

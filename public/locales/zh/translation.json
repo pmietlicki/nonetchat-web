@@ -59,7 +59,7 @@
     "unavailable": "(不可用)",
     "cancel": "取消",
     "save": "保存",
-    "manage": "Manage"
+    "manage": "管理"
   },
   "header": {
     "logo_alt": "NoNetChat徽标",
@@ -313,8 +313,8 @@
       "busy": "忙碌"
     },
     "meta_separator": "•",
-    "block_user_title": "Block user",
-    "block_user_confirm": "Are you sure you want to block {{name}}? You will no longer receive their messages."
+    "block_user_title": "封锁使用者",
+    "block_user_confirm": "您确定要封锁 {{name}} 吗？您将不再收到他们的讯息。"
   },
   "profileModal": {
     "title": "您的个人资料",
@@ -379,19 +379,19 @@
     "description": "语言将自动保存并在您下次访问时识别。"
   },
   "blockedUsers": {
-    "title": "Blocked Users",
-    "close": "Close",
-    "manage_blocked_users": "Manage Blocked Users",
-    "blocked_count": "{{count}} blocked user(s)",
-    "no_blocked_users": "No blocked users",
-    "unknown_user": "Unknown user",
-    "blocked_at": "Blocked on {{date}}",
-    "unblock_user": "Unblock user",
-    "unblock": "Unblock",
-    "unblock_confirm": "Are you sure you want to unblock this user?",
-    "unblock_confirm_title": "Unblock User",
-    "unblock_confirm_message": "Are you sure you want to unblock this user?",
-    "confirm": "Confirm",
-    "cancel": "Cancel"
+    "title": "被封锁的使用者",
+    "close": "关闭",
+    "manage_blocked_users": "管理被封锁的使用者",
+    "blocked_count": "{{count}} 位被封锁的使用者",
+    "no_blocked_users": "没有被封锁的使用者",
+    "unknown_user": "未知的使用者",
+    "blocked_at": "{{date}} 已封锁",
+    "unblock_user": "解除封锁使用者",
+    "unblock": "解除封锁",
+    "unblock_confirm": "您确定要解除封锁此使用者吗？",
+    "unblock_confirm_title": "解除封锁使用者",
+    "unblock_confirm_message": "您确定要解除封锁此使用者吗？",
+    "confirm": "确认",
+    "cancel": "取消"
   }
 }
