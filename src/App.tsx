@@ -586,10 +586,31 @@ const avatar = payload.avatar
 
   // --- Bouton "Installer l'app"
   useEffect(() => {
-    const onBip = (e: any) => { e.preventDefault(); setInstallEvent(e); };
-    const onInstalled = () => setInstallEvent(null);
+    const onBip = (e: any) => { 
+      console.log('beforeinstallprompt event triggered', e);
+      e.preventDefault(); 
+      setInstallEvent(e); 
+    };
+    const onInstalled = () => {
+      console.log('appinstalled event triggered');
+      setInstallEvent(null);
+    };
+    
+    // Debug PWA state
+    console.log('PWA Debug Info:');
+    console.log('- Service Worker supported:', 'serviceWorker' in navigator);
+    console.log('- Current URL:', window.location.href);
+    console.log('- Is HTTPS or localhost:', window.location.protocol === 'https:' || window.location.hostname === 'localhost');
+    console.log('- Manifest link present:', !!document.querySelector('link[rel="manifest"]'));
+    
     window.addEventListener('beforeinstallprompt', onBip);
     window.addEventListener('appinstalled', onInstalled);
+    
+    // Force check after a delay
+    setTimeout(() => {
+      console.log('Install event after delay:', !!installEvent);
+    }, 5000);
+    
     return () => {
       window.removeEventListener('beforeinstallprompt', onBip);
       window.removeEventListener('appinstalled', onInstalled);
