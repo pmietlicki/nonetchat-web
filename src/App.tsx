@@ -19,6 +19,9 @@ import CryptoService from './services/CryptoService';
 import { useState, useRef, useEffect } from 'react';
 import { t, detectBrowserLanguage, onLanguageChange } from './i18n';
 import LanguageSelector from './components/LanguageSelector';
+import ConsentBanner from './components/ConsentBanner';
+import LegalDocuments from './components/LegalDocuments';
+import PrivacySettings from './components/PrivacySettings';
 
 const DEFAULT_SIGNALING_URL = 'wss://chat.nonetchat.com';
 // Clé publique VAPID (base64url)
@@ -63,6 +66,9 @@ function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
   const [isBlockedUsersOpen, setIsBlockedUsersOpen] = useState(false);
+  const [showLegalDocuments, setShowLegalDocuments] = useState(false);
+  const [legalDocumentsTab, setLegalDocumentsTab] = useState<'privacy' | 'terms' | 'legal'>('privacy');
+  const [showPrivacySettings, setShowPrivacySettings] = useState(false);
   const [locationInfo, setLocationInfo] = useState<{ city: string; country: string } | null>(null);
 
   const globalFileReceivers = useRef(
@@ -1030,6 +1036,27 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                   {t('settings.manage')}
                 </button>
               </div>
+
+              {/* Paramètres de confidentialité */}
+              <div className="rounded-lg border border-gray-200 p-3 flex items-center justify-between">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="text-blue-600" style={{fontSize: '20px'}}>🔒</div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-gray-900">
+                      {t('privacy_settings.title')}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Gérer vos données et droits RGPD
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => { setIsSettingsOpen(false); setShowPrivacySettings(true); }}
+                  className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
+                >
+                  {t('settings.manage')}
+                </button>
+              </div>
             </div>
 
             <div className="mt-5 flex justify-end gap-3">
@@ -1391,6 +1418,39 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
         onClose={() => setIsBlockedUsersOpen(false)}
         peerService={peerService}
       />
+
+      <ConsentBanner
+        onAccept={() => {
+          localStorage.setItem('geolocation-consent', 'granted');
+        }}
+        onDecline={() => {
+          localStorage.setItem('geolocation-consent', 'denied');
+        }}
+        onShowPrivacyPolicy={() => {
+          setLegalDocumentsTab('privacy');
+          setShowLegalDocuments(true);
+        }}
+      />
+      
+      {showLegalDocuments && (
+        <LegalDocuments
+          isOpen={showLegalDocuments}
+          onClose={() => setShowLegalDocuments(false)}
+          initialTab={legalDocumentsTab}
+        />
+      )}
+      
+      {showPrivacySettings && (
+        <PrivacySettings
+          isOpen={showPrivacySettings}
+          onClose={() => setShowPrivacySettings(false)}
+          onShowLegalDocuments={(tab = 'privacy') => {
+            setLegalDocumentsTab(tab);
+            setShowLegalDocuments(true);
+            setShowPrivacySettings(false); // Fermer PrivacySettings quand on ouvre LegalDocuments
+          }}
+        />
+      )}
     </div>
   );
 }
