@@ -36,11 +36,11 @@ function readTranslationFile(filePath) {
 // Main function
 function checkTranslations() {
   const localesDir = path.join(__dirname, 'public', 'locales');
-  const englishFile = path.join(localesDir, 'en', 'translation.json');
+  const frenchFile = path.join(localesDir, 'fr', 'translation.json');
   
-  // Read the reference file (English)
-  console.log('📖 Reading reference file (English)...');
-  const englishData = readTranslationFile(englishFile);
+  // Read the reference file (French)
+  console.log('📖 Reading reference file (French)...');
+  const englishData = readTranslationFile(frenchFile);
   
   if (!englishData) {
     console.error('❌ Unable to read the English reference file');
@@ -49,13 +49,13 @@ function checkTranslations() {
   
   // Extract all keys from the English file
   const englishKeys = extractKeys(englishData).sort();
-  console.log(`✅ ${englishKeys.length} keys found in the English file\n`);
+  console.log(`✅ ${englishKeys.length} keys found in the French file\n`);
   
   // Read all language directories
   const languageDirs = fs.readdirSync(localesDir, { withFileTypes: true })
     .filter(dirent => dirent.isDirectory())
     .map(dirent => dirent.name)
-    .filter(lang => lang !== 'en'); // Exclude English
+    .filter(lang => lang !== 'fr'); // Exclude English
   
   console.log(`🌍 Languages to check: ${languageDirs.join(', ')}\n`);
   
