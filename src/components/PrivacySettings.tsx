@@ -390,22 +390,22 @@ const PrivacySettings: React.FC<PrivacySettingsProps> = ({ isOpen, onClose, onSh
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               {t('privacy_settings.legal_documents.title')}
             </h3>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-2">
               <button
                 onClick={() => onShowLegalDocuments('privacy')}
-                className="px-4 py-2 border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
+                className="w-full sm:w-auto px-4 py-3 sm:py-2 border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors text-center font-medium"
               >
                 {t('privacy_settings.legal_documents.privacy_policy')}
               </button>
               <button
                 onClick={() => onShowLegalDocuments('terms')}
-                className="px-4 py-2 border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
+                className="w-full sm:w-auto px-4 py-3 sm:py-2 border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors text-center font-medium"
               >
                 {t('privacy_settings.legal_documents.terms_of_service')}
               </button>
               <button
                 onClick={() => onShowLegalDocuments('legal')}
-                className="px-4 py-2 border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
+                className="w-full sm:w-auto px-4 py-3 sm:py-2 border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors text-center font-medium"
               >
                 {t('privacy_settings.legal_documents.legal_notices')}
               </button>

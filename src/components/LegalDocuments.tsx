@@ -314,13 +314,13 @@ const LegalDocuments: React.FC<LegalDocumentsProps> = ({ isOpen, onClose, initia
   );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div className="flex space-x-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-2 w-full sm:w-auto">
             <button
               onClick={() => setActiveTab('privacy')}
-              className={`px-4 py-2 rounded-lg transition-colors ${
+              className={`w-full sm:w-auto px-4 py-3 sm:py-2 rounded-lg transition-colors text-center font-medium ${
                 activeTab === 'privacy'
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-600 hover:bg-gray-100'
@@ -330,7 +330,7 @@ const LegalDocuments: React.FC<LegalDocumentsProps> = ({ isOpen, onClose, initia
             </button>
             <button
               onClick={() => setActiveTab('terms')}
-              className={`px-4 py-2 rounded-lg transition-colors ${
+              className={`w-full sm:w-auto px-4 py-3 sm:py-2 rounded-lg transition-colors text-center font-medium ${
                 activeTab === 'terms'
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-600 hover:bg-gray-100'
@@ -340,7 +340,7 @@ const LegalDocuments: React.FC<LegalDocumentsProps> = ({ isOpen, onClose, initia
             </button>
             <button
               onClick={() => setActiveTab('legal')}
-              className={`px-4 py-2 rounded-lg transition-colors ${
+              className={`w-full sm:w-auto px-4 py-3 sm:py-2 rounded-lg transition-colors text-center font-medium ${
                 activeTab === 'legal'
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-600 hover:bg-gray-100'
@@ -358,7 +358,7 @@ const LegalDocuments: React.FC<LegalDocumentsProps> = ({ isOpen, onClose, initia
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {activeTab === 'privacy' && <PrivacyPolicy />}
           {activeTab === 'terms' && <TermsOfService />}
           {activeTab === 'legal' && <LegalNotices />}

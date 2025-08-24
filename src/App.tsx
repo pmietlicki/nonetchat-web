@@ -1442,10 +1442,12 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
 
       <ConsentBanner
         onAccept={() => {
-          localStorage.setItem('geolocation-consent', 'granted');
+          localStorage.setItem('geolocation-consent', 'accepted');
+          localStorage.setItem('geolocation-consent-date', new Date().toISOString());
         }}
         onDecline={() => {
-          localStorage.setItem('geolocation-consent', 'denied');
+          localStorage.setItem('geolocation-consent', 'declined');
+          localStorage.setItem('geolocation-consent-date', new Date().toISOString());
         }}
         onShowPrivacyPolicy={() => {
           setLegalDocumentsTab('privacy');
