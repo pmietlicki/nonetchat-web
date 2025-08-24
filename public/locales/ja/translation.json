@@ -1,15 +1,15 @@
 {
   "app": {
     "initializing": "サービスを初期化しています...",
-    "tagline": "ダイレクトメッセージ",
-    "tagline_disconnected": "ダイレクトメッセージ (切断されました)",
+    "tagline": "ダイレクトメッセージング",
+    "tagline_disconnected": "ダイレクトメッセージング (切断されました)",
     "title": "NoNetChat Web",
     "status": {
       "connected": "接続済み",
       "disconnected": "切断されました"
     },
     "install": "インストール",
-    "install_aria": "アプリケーションをインストール",
+    "install_aria": "アプリケーションをインストールする",
     "aria": {
       "connected": "接続済み",
       "disconnected": "切断されました"
@@ -20,8 +20,8 @@
     "close_alert": "アラートを閉じる",
     "unavailable_location": "国/都市を特定できませんでした。拡張検索は無効になっています。",
     "gps_failed": "GPSに失敗しました。IPによるおおよその位置情報を使用しています。",
-    "permission_denied": "位置情報へのアクセスが拒否されました。アプリケーションは近くのピアを見つけることができません。",
-    "position_unavailable": "現在の位置情報を取得できませんでした。ネットワーク接続または位置情報の設定を確認してください。",
+    "permission_denied": "ジオロケーションへのアクセスが拒否されました。アプリケーションは近くのピアを見つけることができません。",
+    "position_unavailable": "現在の位置を取得できません。ネットワーク接続または位置情報の設定を確認してください。",
     "timeout": "位置情報の検索がタイムアウトしました。もう一度お試しください。",
     "unknown": "位置情報の取得中に不明なエラーが発生しました。"
   },
@@ -38,23 +38,23 @@
   },
   "publicChat": {
     "title": "公開チャット",
-    "description": "ここでのメッセージは一時的なものであり、現在のエリアの全員に表示されます。",
+    "description": "ここのメッセージは一時的なもので、現在のエリアの全員に表示されます。",
     "empty_placeholder": {
       "title": "{{roomName}}",
-      "body": "ここでのメッセージは一時的なものであり、現在のエリアの全員に表示されます。"
+      "body": "ここのメッセージは一時的なもので、現在のエリアの全員に表示されます。"
     }
   },
   "settings": {
     "title": "設定",
     "close_aria": "設定を閉じる",
-    "profile_shortcut_title": "プロフィールが未入力です",
-    "profile_shortcut_description": "名前/アバターを編集",
+    "profile_shortcut_title": "プロフィールが不完全です",
+    "profile_shortcut_description": "名前/アバターを編集する",
     "edit": "編集",
-    "signaling_url_label": "シグナリングサーバーURL",
+    "signaling_url_label": "シグナリングサーバーのURL",
     "signaling_url_placeholder": "wss://your-server.com",
     "discovery_mode_label": "検索モード",
-    "radius_km": "半径(km)",
-    "city": "都市",
+    "radius_km": "半径 (km)",
+    "city": "市",
     "country": "国全体",
     "unavailable": "(利用不可)",
     "cancel": "キャンセル",
@@ -62,21 +62,21 @@
     "manage": "管理"
   },
   "header": {
-    "logo_alt": "NoNetChatロゴ",
+    "logo_alt": "NoNetChatのロゴ",
     "notifications_aria": "通知設定",
     "settings_aria": "設定",
-    "profile_aria": "プロフィールを編集",
+    "profile_aria": "プロフィールを編集する",
     "home_aria": "ホームに戻る"
   },
   "main": {
     "connecting_to_peer": "接続中...",
     "establishing_connection": "選択したピアとの接続を確立しています。",
     "connecting_to_server": "シグナリングサーバーに接続しています...",
-    "select_peer_prompt": "ダイレクトで安全な会話を開始するには、ピアを選択してください。",
+    "select_peer_prompt": "直接的で安全な会話を開始するには、ピアを選択してください。",
     "cancel_button": "キャンセル",
     "welcome_title": "NoNetChat Web",
     "welcome_connecting": "シグナリングサーバーに接続しています...",
-    "welcome_select_peer": "ダイレクトで安全な会話を開始するには、ピアを選択してください。"
+    "welcome_select_peer": "直接的で安全な会話を開始するには、ピアを選択してください。"
   },
   "bottomNav": {
     "peers": "ピア",
@@ -100,7 +100,7 @@
     "sending_progress": "(送信中: {{progress}}%)",
     "sending_error": "(送信エラー)",
     "receiving_in_progress": "(受信中...)",
-    "file_size_error": "ファイルサイズが正しくありません: {{totalSize}} バイト受信、{{expectedSize}} バイトを想定 (差分: {{sizeDifference}})",
+    "file_size_error": "ファイルサイズが正しくありません: {{totalSize}}バイト受信しましたが、{{expectedSize}}バイトが期待されていました (差分: {{sizeDifference}})",
     "decryption_empty_error": "復号化されたファイルは空です",
     "decryption_error": "エラー: {{fileName}}を復号化できませんでした",
     "delete_message_confirm": "このメッセージを削除してもよろしいですか？",
@@ -131,7 +131,7 @@
       "sending_progress": "送信中: {{progress}}%",
       "cancel": "キャンセル",
       "warning_title": "警告:",
-      "warning_body": "キャンセルすると、転送は完全に中断されます。",
+      "warning_body": "キャンセルすると、転送が完全に停止します。",
       "cancelled_by_user": "(ユーザーによってキャンセルされました)"
     },
     "message_menu": {
@@ -140,7 +140,7 @@
       "delete": "削除"
     },
     "reactions": {
-      "title": "{{emoji}}でリアクション",
+      "title": "{{emoji}}でリアクションする",
       "title_one": "1件のリアクション",
       "title_other": "{{count}}件のリアクション"
     },
@@ -167,13 +167,13 @@
       "remove_file": "ファイルを削除",
       "file_disabled_offline": "ピアがオフラインです - ファイルの送信は利用できません",
       "attach_file": "ファイルを添付",
-      "file_too_large": "ファイルが大きすぎます。許可される最大サイズ: {{maxSize}} MB\n\n注: 転送を最適化するために、ファイルは送信前に自動的に圧縮されます。",
-      "selected_file": "選択したファイル: {{fileName}}",
+      "file_too_large": "ファイルが大きすぎます。許可される最大サイズ: {{maxSize}} MB\n\n注: ファイルは転送を最適化するために送信前に自動的に圧縮されます。",
+      "selected_file": "選択されたファイル: {{fileName}}",
       "placeholder": "メッセージを入力...",
       "placeholder_offline": "ユーザーがオフラインです - メッセージの送信は無効です",
       "aria_label": "メッセージ入力",
       "add_emoji": "絵文字を追加",
-      "record_voice": "音声メッセージを録音",
+      "record_voice": "音声メッセージを録音する",
       "peer_offline_warning": "{{peerName}}はオフラインです。メッセージの送信は無効になっています。",
       "compression_notice": "自動的に圧縮および暗号化されます"
     }
@@ -193,7 +193,7 @@
     "loading": "読み込み中...",
     "delete_confirm": "この会話を削除してもよろしいですか？",
     "last_message_none": "メッセージはありません",
-    "last_message_file": "📎 共有ファイル",
+    "last_message_file": "📎 ファイルが共有されました",
     "user_default_name": "ユーザー",
     "gender": {
       "male": "男性",
@@ -209,7 +209,7 @@
     "close": "閉じる",
     "resize": "サイズ変更",
     "connectivity_tests": "接続テスト",
-    "testing_in_progress": "テスト中...",
+    "testing_in_progress": "テスト進行中...",
     "test_connectivity": "接続をテスト",
     "signaling": "シグナリング",
     "ok": "OK",
@@ -222,18 +222,18 @@
     "export": "エクスポート",
     "no_logs": "利用可能なログはありません。ログはここにリアルタイムで表示されます。",
     "instructions_title": "手順:",
-    "instructions_body": "1) \"接続をテスト\"を実行します。2) ログを監視します。3) 共有するためにエクスポートします。"
+    "instructions_body": "1) 「接続をテスト」を実行します。2) ログを監視します。3) 共有するためにエクスポートします。"
   },
   "filePreview": {
     "unknown_size": "不明なサイズ",
     "file_not_found": "ローカルデータベースにファイルが見つかりません。",
-    "clipboard_error": "テキストをクリップボードにコピーできませんでした。",
+    "clipboard_error": "クリップボードにテキストをコピーできませんでした。",
     "audio_error": "このオーディオファイルを再生できませんでした。",
     "default_filename": "ファイル",
-    "unplayable_audio": "このオーディオ形式は、このブラウザでは再生できない可能性があります。上記からダウンロードできます。",
+    "unplayable_audio": "このオーディオ形式はこのブラウザでは再生できない可能性があります。上記からダウンロードできます。",
     "hide_preview": "プレビューを非表示",
     "show_preview": "プレビューを表示",
-    "loading": "読み込み中…",
+    "loading": "読み込み中...",
     "unknown_type": "不明なタイプ",
     "download": "ダウンロード",
     "open_in_new_tab": "新しいタブで開く",
@@ -258,18 +258,18 @@
     "sound_description": "メッセージ受信時に音を鳴らす",
     "system": "システム通知",
     "system_description": "ブラウザに通知を表示する",
-    "authorize": "承認",
+    "authorize": "承認する",
     "dnd": "おやすみモード",
     "dnd_description": "すべての通知を一時的に無効にする",
     "tips_title": "💡 ヒント:",
     "tip1": "• システム通知はタブが開いている場合にのみ機能します",
-    "tip2": "• \"おやすみモード\"はすべての通知を無効にします",
+    "tip2": "• 「おやすみモード」はすべての通知を無効にします",
     "tip3": "• 設定は自動的に保存されます",
     "close": "閉じる"
   },
   "peerList": {
     "title": "接続中のピア ({{count}})",
-    "filter_by_gender": "性別でフィルタ",
+    "filter_by_gender": "性別でフィルタリング",
     "all_genders": "すべての性別",
     "male": "男性",
     "female": "女性",
@@ -282,7 +282,7 @@
     "connection_required_title": "接続が必要です",
     "connection_required_body": "シグナリングサーバーに接続してください",
     "no_peers_title": "オンラインのピアがいません",
-    "no_peers_body": "上のフィルタを調整してください",
+    "no_peers_body": "上記のフィルターを調整してください",
     "user_default_name": "ユーザー",
     "estimated_distance": "推定距離",
     "gender_title": "性別: {{gender}}",
@@ -312,9 +312,25 @@
       "offline": "オフライン",
       "busy": "取り込み中"
     },
-    "meta_separator": "•",
     "block_user_title": "ユーザーをブロック",
-    "block_user_confirm": "{{name}}をブロックしてもよろしいですか？メッセージを受信できなくなります。"
+    "block_user_confirm": "{{name}}をブロックしてもよろしいですか？メッセージを受信できなくなります。",
+    "meta_separator": "•"
+  },
+  "blockedUsers": {
+    "title": "ブロックされたユーザー",
+    "close": "閉じる",
+    "manage_blocked_users": "ブロックされたユーザーを管理する",
+    "blocked_count": "{{count}}人のユーザーがブロックされています",
+    "no_blocked_users": "ブロックされたユーザーはいません",
+    "unknown_user": "不明なユーザー",
+    "blocked_at": "{{date}}にブロックされました",
+    "unblock_user": "ユーザーのブロックを解除",
+    "unblock": "ブロック解除",
+    "unblock_confirm": "このユーザーのブロックを解除してもよろしいですか？",
+    "unblock_confirm_title": "ユーザーのブロックを解除",
+    "unblock_confirm_message": "このユーザーのブロックを解除してもよろしいですか？",
+    "confirm": "確認",
+    "cancel": "キャンセル"
   },
   "profileModal": {
     "title": "あなたのプロフィール",
@@ -323,8 +339,8 @@
     "select_valid_image": "有効な画像を選択してください。",
     "avatar_alt": "アバター",
     "change_avatar_title": "アバターを変更",
-    "refresh_avatar_title": "新しいデフォルトのアバターを生成",
-    "optimizing_image": "画像を最適化しています…",
+    "refresh_avatar_title": "新しいデフォルトのアバターを生成する",
+    "optimizing_image": "画像を最適化しています...",
     "username_label": "ユーザー名",
     "age_label": "年齢",
     "gender_label": "性別",
@@ -343,11 +359,11 @@
     "gender_female_short": "女",
     "gender_other": "他",
     "age_suffix": "歳",
-    "meta_separator": " · "
+    "meta_separator": "·"
   },
   "statusBar": {
-    "peers_connected_aria_one": "{{count}}ピアが接続しました",
-    "peers_connected_aria_other": "{{count}}ピアが接続しました",
+    "peers_connected_aria_one": "{{count}}ピアが接続されています",
+    "peers_connected_aria_other": "{{count}}ピアが接続されています",
     "peers_connected_text": "ピア",
     "id": "ID:",
     "full_id_title": "完全なID: {{clientId}}",
@@ -359,11 +375,11 @@
   "voiceRecorder": {
     "voice_note": "ボイスノート",
     "mic_error": "マイクにアクセスできませんでした。ブラウザの権限を確認してください。",
-    "idle_title_click": "クリック: 録音(ロック) • Enter: 送信 • Esc: キャンセル",
-    "idle_title_hold": "長押しして録音 • ←にスライドしてキャンセル • ↑にスライドしてロック",
-    "record_aria": "音声メッセージを録音",
-    "hint_slide_cancel": "左にスライドしてキャンセル",
-    "hint_slide_lock": "上にスライドしてロック",
+    "idle_title_click": "クリック: 録音 (ロック) • Enter: 送信 • Esc: キャンセル",
+    "idle_title_hold": "長押しして録音 • ←にスワイプしてキャンセル • ↑にスワイプしてロック",
+    "record_aria": "音声メッセージを録音する",
+    "hint_slide_cancel": "左にスワイプしてキャンセル",
+    "hint_slide_lock": "上にスワイプしてロック",
     "cancel_aria": "録音をキャンセル",
     "cancel_title": "キャンセル",
     "lock_aria": "録音をロック",
@@ -372,26 +388,247 @@
     "send_title": "送信",
     "locked": "ロック済み",
     "mobile_hint_lock": "ロック",
-    "mobile_hint_cancel": "←にスライドしてキャンセル"
+    "mobile_hint_cancel": "←にスワイプしてキャンセル"
   },
   "languageSelector": {
     "label": "言語",
     "description": "言語は自動的に保存され、次回の訪問時に検出されます。"
   },
-  "blockedUsers": {
-    "title": "ブロックされたユーザー",
+  "consent": {
+    "geolocation": {
+      "title": "ジオロケーションの許可",
+      "description": "NoNetChatは、近くのユーザーとあなたを接続するためにあなたの地理的位置にアクセスしたいと考えています。あなたの位置データは安全に処理され、GDPRに準拠しています。",
+      "privacy_title": "あなたのプライバシーの尊重",
+      "privacy_point1": "エンドツーエンドで暗号化されたデータ",
+      "privacy_point2": "ローカルストレージのみ",
+      "privacy_point3": "サーバー座標の自動削除",
+      "privacy_point4": "中央データサーバーなし",
+      "show_details": "技術的な詳細を表示",
+      "hide_details": "詳細を非表示",
+      "technical_details": "技術的な詳細",
+      "data_collected": "収集されたデータ",
+      "data_collected_desc": "GPS座標 (緯度/経度)、おおよその都市と国",
+      "purpose": "目的",
+      "purpose_desc": "地理的に近いユーザーとのP2P接続",
+      "retention": "保持",
+      "retention_desc": "切断後、サーバーから座標が自動的に削除されます",
+      "legal_basis": "法的根拠",
+      "legal_basis_desc": "明示的な同意 (GDPR第6条1項a)",
+      "withdrawal_info": "プライバシー設定でいつでも同意を撤回できます。詳細については、当社の",
+      "privacy_policy_link": "プライバシーポリシー",
+      "accept": "同意する",
+      "decline": "拒否する"
+    }
+  },
+  "legal": {
+    "tabs": {
+      "privacy": "プライバシー",
+      "terms": "利用規約",
+      "legal_notices": "法的通知"
+    },
+    "privacy_policy": {
+      "title": "プライバシーポリシー",
+      "last_updated": "最終更新日",
+      "controller": {
+        "title": "データ管理者",
+        "name": "名前",
+        "contact": "連絡先",
+        "dpo": "データ保護責任者"
+      },
+      "data_collected": {
+        "title": "収集されたデータ",
+        "legal_basis": "法的根拠",
+        "geolocation": {
+          "title": "ジオロケーションデータ",
+          "coordinates": "GPS座標 (緯度、経度)",
+          "city_country": "都市と国 (IPジオロケーションAPI経由)",
+          "accuracy": "位置精度",
+          "legal_basis": "明示的な同意 (GDPR第6条1項a)"
+        },
+        "profile": {
+          "title": "プロフィールデータ",
+          "display_name": "表示名 (オプション)",
+          "age_gender": "年齢と性別 (オプション)",
+          "avatar": "プロフィール写真 (オプション)",
+          "device_id": "一意のデバイス識別子",
+          "legal_basis": "サービスの運用のための正当な利益 (GDPR第6条1項f)"
+        },
+        "messages": {
+          "title": "メッセージと会話",
+          "encrypted": "エンドツーエンドで暗号化されたメッセージ (AES-GCM)",
+          "local_only": "ローカルストレージのみ (IndexedDB)",
+          "metadata": "技術的なメタデータ (タイムスタンプ、ステータス)",
+          "legal_basis": "サービス契約の履行 (GDPR第6条1項b)"
+        }
+      },
+      "retention": {
+        "title": "保持期間",
+        "geolocation": "ジオロケーション",
+        "geolocation_duration": "切断時に自動削除 (最大24時間)",
+        "profile": "ユーザープロフィール",
+        "profile_duration": "手動で削除されるまでローカルに保持",
+        "messages": "メッセージ",
+        "messages_duration": "手動で削除されるまでローカルに保持"
+      },
+      "rights": {
+        "title": "あなたのGDPRの権利",
+        "access": "アクセス権",
+        "access_desc": "設定であなたのデータを表示する",
+        "rectification": "訂正権",
+        "rectification_desc": "いつでもあなたのプロフィールを編集する",
+        "erasure": "消去権",
+        "erasure_desc": "あなたのすべてのデータを削除する",
+        "portability": "データポータビリティ権",
+        "portability_desc": "あなたのデータをJSON形式でエクスポートする",
+        "withdraw_consent": "同意の撤回",
+        "withdraw_consent_desc": "ジオロケーションの許可を取り消す",
+        "complaint": "苦情を申し立てる権利",
+        "complaint_desc": "あなたのデータ保護当局に連絡する"
+      },
+      "security": {
+        "title": "セキュリティと保護",
+        "encryption": "一時的なECDHキーによるエンドツーエンド暗号化",
+        "local_storage": "排他的なローカルストレージ (中央サーバーなし)",
+        "p2p": "分散型P2Pアーキテクチャ",
+        "no_central_server": "中央サーバーによるデータ収集なし"
+      },
+      "contact": {
+        "title": "連絡先",
+        "description": "このプライバシーポリシーまたはあなたの権利の行使に関するご質問は、"
+      }
+    },
+    "terms": {
+      "title": "一般利用規約",
+      "last_updated": "最終更新日",
+      "acceptance": {
+        "title": "利用規約の承諾",
+        "content": "NoNetChatを使用することにより、これらの利用規約に同意したことになります。これらの規約に同意しない場合は、サービスを使用しないでください。"
+      },
+      "service_description": {
+        "title": "サービスの説明",
+        "content": "NoNetChatは、ユーザーが中央サーバーなしで安全に通信できる分散型ピアツーピアメッセージングアプリケーションです。このサービスは以下を提供します。",
+        "feature1": "エンドツーエンドで暗号化されたメッセージング",
+        "feature2": "直接P2P接続",
+        "feature3": "ローカルデータストレージ",
+        "feature4": "ジオロケーションによるピア検出"
+      },
+      "user_obligations": {
+        "title": "ユーザーの義務",
+        "respect_laws": "適用される法律および規制を遵守する",
+        "no_harassment": "他のユーザーを嫌がらせ、脅迫、または威嚇しない",
+        "no_illegal_content": "違法、不快、または不適切なコンテンツを共有しない",
+        "respect_others": "他者のプライバシーと権利を尊重する",
+        "accurate_info": "あなたのプロフィールに正確な情報を提供する"
+      },
+      "prohibited_uses": {
+        "title": "禁止されている使用法",
+        "spam": "スパムまたは迷惑メッセージの送信",
+        "malware": "マルウェアまたはウイルスの配布",
+        "impersonation": "なりすましまたは不正な表現",
+        "copyright": "著作権または知的財産権の侵害",
+        "reverse_engineering": "リバースエンジニアリングまたはサービスの侵害の試み"
+      },
+      "liability": {
+        "title": "責任の制限",
+        "content": "NoNetChatは、いかなる種類の保証もなく「現状有姿」で提供されます。当社は、本サービスの利用に起因する直接的、間接的、または結果的な損害について一切責任を負いません。",
+        "disclaimer": "ユーザーは、共有するコンテンツおよび他のユーザーとのやり取りについて単独で責任を負います。"
+      },
+      "modifications": {
+        "title": "利用規約の変更",
+        "content": "当社は、いつでもこれらの利用規約を変更する権利を留保します。変更は、公開された時点で有効になります。本サービスの継続的な使用は、新しい利用規約への同意を構成します。"
+      },
+      "termination": {
+        "title": "終了",
+        "content": "いつでも本サービスの利用を中止できます。当社は、これらの利用規約に違反した場合、本サービスへのアクセスを一時停止する権利を留保します。"
+      },
+      "governing_law": {
+        "title": "準拠法",
+        "content": "これらの利用規約は、フランス法に準拠します。いかなる紛争も、管轄権を有するフランスの裁判所の管轄に服するものとします。"
+      }
+    },
+    "notices": {
+      "title": "法的通知",
+      "publisher": {
+        "title": "発行者",
+        "name": "名前",
+        "type": "タイプ",
+        "type_value": "オープンソースのWebアプリケーション",
+        "contact": "連絡先",
+        "website": "ウェブサイト"
+      },
+      "hosting": {
+        "title": "ホスティング",
+        "provider": "プロバイダー",
+        "provider_value": "分散型アーキテクチャ - 中央ホスティングなし",
+        "note": "注",
+        "note_value": "データはユーザーのデバイスにローカルに保存されます"
+      },
+      "intellectual_property": {
+        "title": "知的財産",
+        "content": "NoNetChatは、オープンソースライセンスの下で配布されるフリーソフトウェアです。ソースコードは公開されており、ライセンスの条件に従って変更できます。"
+      },
+      "open_source": {
+        "title": "オープンソース",
+        "content": "このプロジェクトはオープンソースであり、コミュニティからの貢献を歓迎します。",
+        "repository": "リポジトリ"
+      }
+    }
+  },
+  "privacy_settings": {
+    "title": "プライバシー設定",
+    "consent_withdrawn": "同意が正常に撤回されました",
+    "consent_granted": "同意が正常に付与されました",
+    "export_success": "データが正常にエクスポートされました",
+    "export_error": "データのエクスポート中にエラーが発生しました",
+    "delete_success": "すべてのデータが正常に削除されました",
+    "delete_error": "データの削除中にエラーが発生しました",
+    "delete_confirm_error": "確認するには「DELETE」と入力してください",
+    "never": "なし",
+    "geolocation_consent": {
+      "title": "ジオロケーションの同意",
+      "status": "ステータス",
+      "granted": "付与済み",
+      "declined": "拒否されました",
+      "not_set": "設定されていません",
+      "date": "日付",
+      "grant": "付与",
+      "withdraw": "撤回"
+    },
+    "data_overview": {
+      "title": "データの概要",
+      "messages": "メッセージ",
+      "conversations": "会話",
+      "avatars": "アバター",
+      "profile_size": "プロファイルのサイズ"
+    },
+    "data_actions": {
+      "title": "データアクション",
+      "export": {
+        "title": "私のデータをエクスポート",
+        "description": "すべての個人データをJSON形式でダウンロードする",
+        "button": "エクスポート",
+        "exporting": "エクスポート中..."
+      },
+      "delete": {
+        "title": "すべての私のデータを削除",
+        "description": "すべての個人データの永久的な削除",
+        "button": "削除",
+        "confirm_title": "削除の確認",
+        "confirm_description": "この操作は元に戻せません。すべてのデータが完全に削除されます。",
+        "type_delete": "確認するには「DELETE」と入力してください:",
+        "confirm_button": "削除の確認",
+        "deleting": "削除中..."
+      }
+    },
+    "legal_documents": {
+      "title": "法的文書",
+      "privacy_policy": "プライバシーポリシー",
+      "terms_of_service": "利用規約",
+      "legal_notices": "法的通知"
+    }
+  },
+  "common": {
     "close": "閉じる",
-    "manage_blocked_users": "ブロックされたユーザーを管理",
-    "blocked_count": "{{count}}人のブロックされたユーザー",
-    "no_blocked_users": "ブロックされたユーザーはいません",
-    "unknown_user": "不明なユーザー",
-    "blocked_at": "{{date}}にブロック",
-    "unblock_user": "ユーザーのブロックを解除",
-    "unblock": "ブロック解除",
-    "unblock_confirm": "このユーザーのブロックを解除してもよろしいですか？",
-    "unblock_confirm_title": "ユーザーのブロックを解除",
-    "unblock_confirm_message": "このユーザーのブロックを解除してもよろしいですか？",
-    "confirm": "確認",
     "cancel": "キャンセル"
   }
 }

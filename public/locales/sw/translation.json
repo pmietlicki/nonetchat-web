@@ -2,24 +2,24 @@
   "app": {
     "initializing": "Inaanzisha huduma...",
     "tagline": "Ujumbe wa moja kwa moja",
-    "tagline_disconnected": "Ujumbe wa moja kwa moja (Imekatika)",
+    "tagline_disconnected": "Ujumbe wa moja kwa moja (Umeondolewa)",
     "title": "NoNetChat Web",
     "status": {
       "connected": "Imeunganishwa",
-      "disconnected": "Imekatika"
+      "disconnected": "Imeondolewa"
     },
     "install": "Sakinisha",
     "install_aria": "Sakinisha programu",
     "aria": {
       "connected": "Imeunganishwa",
-      "disconnected": "Imekatika"
+      "disconnected": "Imeondolewa"
     }
   },
   "geolocationError": {
     "activate": "Washa eneo",
     "close_alert": "Funga arifa",
-    "unavailable_location": "Imeshindwa kubaini nchi/jiji lako. Utafutaji uliopanuliwa umezimwa.",
-    "gps_failed": "GPS imeshindwa. Inatumia eneo la takriban kupitia IP.",
+    "unavailable_location": "Haikuweza kubaini nchi/jiji lako. Utafutaji uliopanuliwa umezimwa.",
+    "gps_failed": "GPS imeshindwa. Inatumia eneo takriban kwa IP.",
     "permission_denied": "Ufikiaji wa eneo la kijiografia umekataliwa. Programu haiwezi kupata wenzao walio karibu.",
     "position_unavailable": "Imeshindwa kupata nafasi yako ya sasa. Angalia muunganisho wa mtandao au mipangilio ya eneo.",
     "timeout": "Muda wa kutafuta nafasi umeisha. Tafadhali jaribu tena.",
@@ -37,18 +37,18 @@
     "conversations": "Ujumbe"
   },
   "publicChat": {
-    "title": "Soga ya Umma",
-    "description": "Ujumbe hapa ni wa muda mfupi na unaonekana kwa kila mtu katika eneo lako la sasa.",
+    "title": "Gumzo la umma",
+    "description": "Ujumbe hapa ni wa muda mfupi na unaonekana na kila mtu katika eneo lako la sasa.",
     "empty_placeholder": {
       "title": "{{roomName}}",
-      "body": "Ujumbe hapa ni wa muda mfupi na unaonekana kwa kila mtu katika eneo lako la sasa."
+      "body": "Ujumbe hapa ni wa muda mfupi na unaonekana na kila mtu katika eneo lako la sasa."
     }
   },
   "settings": {
     "title": "Mipangilio",
     "close_aria": "Funga mipangilio",
     "profile_shortcut_title": "Wasifu haujakamilika",
-    "profile_shortcut_description": "Hariri jina / avatar yako",
+    "profile_shortcut_description": "Hariri jina/avatar yako",
     "edit": "Hariri",
     "signaling_url_label": "URL ya seva ya kuashiria",
     "signaling_url_placeholder": "wss://your-server.com",
@@ -80,7 +80,7 @@
   },
   "bottomNav": {
     "peers": "Wenza",
-    "public_chat": "Soga ya Umma",
+    "public_chat": "Gumzo la umma",
     "public_chat_short": "Umma",
     "messages": "Ujumbe",
     "settings": "Mipangilio",
@@ -88,7 +88,7 @@
     "notifications_short": "Arifa",
     "aria": {
       "peers": "Wenza",
-      "public_chat": "Soga ya Umma",
+      "public_chat": "Gumzo la umma",
       "messages": "Ujumbe",
       "settings": "Mipangilio",
       "notifications": "Arifa"
@@ -100,19 +100,19 @@
     "sending_progress": "(Inatuma: {{progress}}%)",
     "sending_error": "(Hitilafu ya kutuma)",
     "receiving_in_progress": "(Inapokea...)",
-    "file_size_error": "Ukubwa wa faili si sahihi: p字节okelewa, {{expectedSize}} baiti zinatarajiwa (tofauti: {{sizeDifference}})",
-    "decryption_empty_error": "Faili iliyofunguliwa haina kitu",
-    "decryption_error": "Hitilafu: Imeshindwa kufungua {{fileName}}",
+    "file_size_error": "Ukubwa wa faili usio sahihi: {{totalSize}} baiti zimepokelewa, {{expectedSize}} baiti zilitarajiwa (tofauti: {{sizeDifference}})",
+    "decryption_empty_error": "Faili iliyosimbuliwa haina kitu",
+    "decryption_error": "Hitilafu: Imeshindwa kusimbua {{fileName}}",
     "delete_message_confirm": "Una uhakika unataka kufuta ujumbe huu?",
     "delete_conversation_confirm": "Una uhakika unataka kufuta mazungumzo haya yote?",
     "message_info_title": "Taarifa",
-    "message_info_content": "Kitambulisho: {{id}}\nAIina: {{type}}\nImetumwa: {{timestamp}}\nHali: {{status}}",
+    "message_info_content": "Kitambulisho: {{id}}\nAina: {{type}}\nImetumwa: {{timestamp}}\nHali: {{status}}",
     "message_status_sent": "Imetumwa",
     "send_aria_label_offline": "Mtumiaji hayuko mtandaoni - kutuma kumezimwa",
     "send_aria_label_file": "Tuma faili",
     "send_aria_label_message": "Tuma ujumbe",
     "download_link": {
-      "not_found": "Faili haipatikani kwenye hifadhidata ya ndani.",
+      "not_found": "Faili haikupatikana katika hifadhidata ya ndani.",
       "error": "Hitilafu ilitokea wakati wa kupakua.",
       "loading": "Inapakia...",
       "download": "📥 Pakua",
@@ -131,7 +131,7 @@
       "sending_progress": "Inatuma: {{progress}}%",
       "cancel": "Ghairi",
       "warning_title": "Onyo:",
-      "warning_body": "Kughairi kunakatiza uhamishaji kabisa.",
+      "warning_body": "Kughairi kutasimamisha uhamishaji kabisa.",
       "cancelled_by_user": "(Imeghairiwa na mtumiaji)"
     },
     "message_menu": {
@@ -141,8 +141,8 @@
     },
     "reactions": {
       "title": "Jibu na {{emoji}}",
-      "title_one": "1 jibu",
-      "title_other": "{{count}} majibu"
+      "title_one": "Mwitikio 1",
+      "title_other": "Mwitikio {{count}}"
     },
     "file_message": {
       "size": "Ukubwa:",
@@ -160,27 +160,27 @@
     },
     "new_messages_button": {
       "aria_label": "Nenda kwenye ujumbe mpya",
-      "text_one": "{{count}} ujumbe mpya",
-      "text_other": "{{count}} ujumbe mpya"
+      "text_one": "Ujumbe mpya {{count}}",
+      "text_other": "Ujumbe mpya {{count}}"
     },
     "input": {
       "remove_file": "Ondoa faili",
       "file_disabled_offline": "Mwenza hayuko mtandaoni - kutuma faili hakupatikani",
       "attach_file": "Ambatisha faili",
-      "file_too_large": "Faili ni kubwa mno. Ukubwa wa juu unaoruhusiwa: {{maxSize}} MB\n\nKumbuka: Faili hubanwa kiotomatiki kabla ya kutumwa ili kuboresha uhamishaji.",
+      "file_too_large": "Faili ni kubwa sana. Ukubwa wa juu unaoruhusiwa: {{maxSize}} MB\n\nKumbuka: faili hubanwa kiotomatiki kabla ya kutumwa ili kuboresha uhamishaji.",
       "selected_file": "Faili iliyochaguliwa: {{fileName}}",
       "placeholder": "Andika ujumbe wako...",
       "placeholder_offline": "Mtumiaji hayuko mtandaoni - kutuma ujumbe kumezimwa",
-      "aria_label": "Ingizo la ujumbe",
+      "aria_label": "Uingizaji wa ujumbe",
       "add_emoji": "Ongeza emoji",
       "record_voice": "Rekodi ujumbe wa sauti",
       "peer_offline_warning": "{{peerName}} hayuko mtandaoni. Kutuma ujumbe kumezimwa.",
-      "compression_notice": "Itabanwa na kusimbwa kwa njia fiche kiotomatiki"
+      "compression_notice": "Itabanwa na kusimbwa kiotomatiki"
     }
   },
   "connectionStatus": {
     "reconnecting": "Inaunganisha tena...",
-    "disconnected": "Imekatika",
+    "disconnected": "Imeondolewa",
     "reconnect": "Unganisha tena"
   },
   "conversationList": {
@@ -193,10 +193,10 @@
     "loading": "Inapakia...",
     "delete_confirm": "Una uhakika unataka kufuta mazungumzo haya?",
     "last_message_none": "Hakuna ujumbe",
-    "last_message_file": "📎 Faili iliyoshirikiwa",
+    "last_message_file": "📎 Faili imeshirikiwa",
     "user_default_name": "Mtumiaji",
     "gender": {
-      "male": "Mwanamume",
+      "male": "Mwanaume",
       "female": "Mwanamke",
       "other": "Nyingine"
     },
@@ -208,33 +208,33 @@
     "title": "Uchunguzi wa NoNetChat",
     "close": "Funga",
     "resize": "Badilisha ukubwa",
-    "connectivity_tests": "Majaribio ya Muunganisho",
-    "testing_in_progress": "Inajaribu...",
-    "test_connectivity": "Jaribu Muunganisho",
+    "connectivity_tests": "Majaribio ya muunganisho",
+    "testing_in_progress": "Jaribio linaendelea...",
+    "test_connectivity": "Jaribu muunganisho",
     "signaling": "Kuashiria",
     "ok": "Sawa",
-    "fail": "IMESHINDWA",
+    "fail": "Imeshindwa",
     "stun_servers": "Seva za STUN:",
-    "network_info": "Maelezo ya Mtandao:",
-    "logs_title": "Kumbukumbu za Wakati Halisi",
+    "network_info": "Maelezo ya mtandao:",
+    "logs_title": "Kumbukumbu za wakati halisi",
     "auto_scroll": "Kusogeza kiotomatiki",
     "clear": "Futa",
     "export": "Hamisha",
     "no_logs": "Hakuna kumbukumbu zinazopatikana. Kumbukumbu zitaonekana hapa kwa wakati halisi.",
     "instructions_title": "Maagizo:",
-    "instructions_body": "1) Endesha \"Jaribu Muunganisho\". 2) Fuatilia kumbukumbu. 3) Hamisha ili kushiriki."
+    "instructions_body": "1) Endesha 'Jaribu muunganisho'. 2) Fuatilia kumbukumbu. 3) Hamisha ili kushiriki."
   },
   "filePreview": {
     "unknown_size": "ukubwa haujulikani",
-    "file_not_found": "Faili haipatikani kwenye hifadhidata ya ndani.",
-    "clipboard_error": "Imeshindwa kunakili maandishi kwenye ubao wa kunakili.",
-    "audio_error": "Imeshindwa kucheza faili hii ya sauti.",
+    "file_not_found": "Faili haikupatikana katika hifadhidata ya ndani.",
+    "clipboard_error": "Haikuweza kunakili maandishi kwenye ubao wa kunakili.",
+    "audio_error": "Haikuweza kucheza faili hii ya sauti.",
     "default_filename": "faili",
-    "unplayable_audio": "Umbizo hili la sauti huenda lisiweze kuchezwa kwenye kivinjari hiki. Unaweza kulipakua hapo juu.",
+    "unplayable_audio": "Umbizo hili la sauti huenda lisiweze kuchezwa katika kivinjari hiki. Unaweza kulipakua hapo juu.",
     "hide_preview": "Ficha onyesho la kukagua",
     "show_preview": "Onyesha onyesho la kukagua",
-    "loading": "Inapakia…",
-    "unknown_type": "aina isiyojulikana",
+    "loading": "Inapakia...",
+    "unknown_type": "aina haijulikani",
     "download": "Pakua",
     "open_in_new_tab": "Fungua kwenye kichupo kipya",
     "copy_text": "Nakili maandishi",
@@ -250,8 +250,8 @@
     "error": "Hitilafu"
   },
   "notificationSettings": {
-    "title": "Mipangilio ya Arifa",
-    "general": "Arifa za Jumla",
+    "title": "Mipangilio ya arifa",
+    "general": "Arifa za jumla",
     "enable_notifications": "Washa arifa",
     "enable_notifications_description": "Pokea arifa za ujumbe mpya",
     "sound": "Sauti za arifa",
@@ -262,19 +262,19 @@
     "dnd": "Hali ya Usinisumbue",
     "dnd_description": "Zima arifa zote kwa muda",
     "tips_title": "💡 Vidokezo:",
-    "tip1": "• Arifa za mfumo hufanya kazi tu ikiwa kichupo kiko wazi",
-    "tip2": "• Hali ya \"Usinisumbue\" huzima arifa zote",
+    "tip1": "• Arifa za mfumo hufanya kazi tu ikiwa kichupo kimefunguliwa",
+    "tip2": "• Hali ya 'Usisumbue' inazima arifa zote",
     "tip3": "• Mipangilio huhifadhiwa kiotomatiki",
     "close": "Funga"
   },
   "peerList": {
-    "title": "Wenza Waliojiunga ({{count}})",
+    "title": "Wenza waliounganishwa ({{count}})",
     "filter_by_gender": "Chuja kwa jinsia",
     "all_genders": "Jinsia zote",
     "male": "Wanaume",
     "female": "Wanawake",
     "other_gender": "Nyingine / Haijabainishwa",
-    "sort_by": "Panga kwa",
+    "sort_by": "Panga",
     "distance_asc": "Umbali (↑)",
     "distance_desc": "Umbali (↓)",
     "age_asc": "Umri (↑)",
@@ -284,7 +284,7 @@
     "no_peers_title": "Hakuna wenza mtandaoni",
     "no_peers_body": "Rekebisha vichujio hapo juu",
     "user_default_name": "Mtumiaji",
-    "estimated_distance": "Umbali wa makadirio",
+    "estimated_distance": "Umbali uliokadiriwa",
     "gender_title": "Jinsia: {{gender}}",
     "age_suffix": "miaka",
     "view_profile": "Tazama wasifu",
@@ -292,8 +292,8 @@
     "join_time": {
       "unknown": "Haijulikani",
       "now": "Sasa hivi",
-      "minutes_ago": "dakika {{count}} zilizopita",
-      "hours_ago": "saa {{count}} zilizopita"
+      "minutes_ago": "{{count}} min iliyopita",
+      "hours_ago": "{{count}} h iliyopita"
     },
     "tooltip": {
       "status": "Hali:",
@@ -312,24 +312,40 @@
       "offline": "Nje ya mtandao",
       "busy": "Inashughulika"
     },
-    "meta_separator": "•",
-    "block_user_title": "Mzuie mtumiaji",
-    "block_user_confirm": "Una uhakika unataka kumzuia {{name}}? Hutapokea tena ujumbe wake."
+    "block_user_title": "Zuia mtumiaji",
+    "block_user_confirm": "Una uhakika unataka kumzuia {{name}}? Hutapokea tena ujumbe wao.",
+    "meta_separator": "•"
+  },
+  "blockedUsers": {
+    "title": "Watumiaji waliozuiwa",
+    "close": "Funga",
+    "manage_blocked_users": "Dhibiti watumiaji waliozuiwa",
+    "blocked_count": "Mtumiaji {{count}} amezuiwa",
+    "no_blocked_users": "Hakuna watumiaji waliozuiwa",
+    "unknown_user": "Mtumiaji asiyejulikana",
+    "blocked_at": "Imezuiwa mnamo {{date}}",
+    "unblock_user": "Ondoa kizuizi kwa mtumiaji",
+    "unblock": "Ondoa kizuizi",
+    "unblock_confirm": "Una uhakika unataka kumwondolea kizuizi mtumiaji huyu?",
+    "unblock_confirm_title": "Ondoa kizuizi kwa mtumiaji",
+    "unblock_confirm_message": "Una uhakika unataka kumwondolea kizuizi mtumiaji huyu?",
+    "confirm": "Thibitisha",
+    "cancel": "Ghairi"
   },
   "profileModal": {
-    "title": "Wasifu Wako",
+    "title": "Wasifu wako",
     "close_aria": "Funga",
     "username_cannot_be_empty": "Jina la mtumiaji haliwezi kuwa tupu.",
     "select_valid_image": "Tafadhali chagua picha halali.",
     "avatar_alt": "Avatar",
     "change_avatar_title": "Badilisha avatar",
-    "refresh_avatar_title": "Tengeneza avatar mpya ya msingi",
-    "optimizing_image": "Inaboresha picha…",
+    "refresh_avatar_title": "Tengeneza avatar mpya ya chaguo-msingi",
+    "optimizing_image": "Inaboresha picha...",
     "username_label": "Jina la mtumiaji",
     "age_label": "Umri",
     "gender_label": "Jinsia",
     "gender_unspecified": "Haijabainishwa",
-    "gender_male": "Mwanamume",
+    "gender_male": "Mwanaume",
     "gender_female": "Mwanamke",
     "gender_other": "Nyingine",
     "cancel": "Ghairi",
@@ -343,24 +359,24 @@
     "gender_female_short": "Mke",
     "gender_other": "Nyingine",
     "age_suffix": "miaka",
-    "meta_separator": " · "
+    "meta_separator": "·"
   },
   "statusBar": {
-    "peers_connected_aria_one": "{{count}} mwenza ameunganishwa",
-    "peers_connected_aria_other": "{{count}} wenza wameunganishwa",
-    "peers_connected_text": "mwenza(o)",
+    "peers_connected_aria_one": "Mwenza {{count}} ameunganishwa",
+    "peers_connected_aria_other": "Wenza {{count}} wameunganishwa",
+    "peers_connected_text": "mwenza",
     "id": "Kitambulisho:",
-    "full_id_title": "Kitambulisho Kamili: {{clientId}}",
+    "full_id_title": "Kitambulisho kamili: {{clientId}}",
     "connected": "Imeunganishwa",
-    "disconnected": "Imekatika",
+    "disconnected": "Imeondolewa",
     "open_diagnostic_panel": "Fungua paneli ya uchunguzi",
     "change_signaling_server": "Badilisha seva ya kuashiria"
   },
   "voiceRecorder": {
     "voice_note": "Ujumbe wa sauti",
-    "mic_error": "Imeshindwa kufikia maikrofoni. Angalia ruhusa za kivinjari.",
+    "mic_error": "Haikuweza kufikia maikrofoni. Angalia ruhusa za kivinjari.",
     "idle_title_click": "Bofya: rekodi (imefungwa) • Ingiza: tuma • Esc: ghairi",
-    "idle_title_hold": "Bonyeza kwa muda mrefu kurekodi • Telezesha ← ili kughairi • Telezesha ↑ ili kufunga",
+    "idle_title_hold": "Bonyeza kwa muda mrefu ili kurekodi • Telezesha ← ili kughairi • Telezesha ↑ ili kufunga",
     "record_aria": "Rekodi ujumbe wa sauti",
     "hint_slide_cancel": "Telezesha kushoto ili kughairi",
     "hint_slide_lock": "Telezesha juu ili kufunga",
@@ -376,22 +392,243 @@
   },
   "languageSelector": {
     "label": "Lugha",
-    "description": "Lugha itahifadhiwa kiotomatiki na kutambuliwa katika ziara yako ijayo."
+    "description": "Lugha itahifadhiwa na kugunduliwa kiotomatiki kwenye ziara yako inayofuata."
   },
-  "blockedUsers": {
-    "title": "Watumiaji Waliozuiwa",
+  "consent": {
+    "geolocation": {
+      "title": "Ruhusa ya eneo la kijiografia",
+      "description": "NoNetChat inataka kufikia eneo lako la kijiografia ili kukuunganisha na watumiaji walio karibu. Data yako ya eneo inachakatwa kwa usalama na kwa kufuata GDPR.",
+      "privacy_title": "Heshima kwa faragha yako",
+      "privacy_point1": "Data iliyosimbwa kwa njia fiche kutoka mwanzo hadi mwisho",
+      "privacy_point2": "Hifadhi ya ndani pekee",
+      "privacy_point3": "Ufutaji wa kiotomatiki wa viwianishi vya seva",
+      "privacy_point4": "Hakuna seva kuu ya data",
+      "show_details": "Onyesha maelezo ya kiufundi",
+      "hide_details": "Ficha maelezo",
+      "technical_details": "Maelezo ya kiufundi",
+      "data_collected": "Data iliyokusanywa",
+      "data_collected_desc": "Viwianishi vya GPS (latitudo/longitudo), jiji na nchi takriban",
+      "purpose": "Kusudi",
+      "purpose_desc": "Muunganisho wa P2P na watumiaji walio karibu kijiografia",
+      "retention": "Uhifadhi",
+      "retention_desc": "Viwianishi hufutwa kiotomatiki kutoka kwa seva baada ya kukatwa",
+      "legal_basis": "Msingi wa kisheria",
+      "legal_basis_desc": "Idhini ya wazi (Kifungu cha 6.1.a GDPR)",
+      "withdrawal_info": "Unaweza kuondoa idhini yako wakati wowote katika mipangilio ya faragha. Kwa habari zaidi, angalia yetu",
+      "privacy_policy_link": "sera ya faragha",
+      "accept": "Kubali",
+      "decline": "Kataa"
+    }
+  },
+  "legal": {
+    "tabs": {
+      "privacy": "Faragha",
+      "terms": "Masharti",
+      "legal_notices": "Notisi za kisheria"
+    },
+    "privacy_policy": {
+      "title": "Sera ya Faragha",
+      "last_updated": "Ilisasishwa mwisho",
+      "controller": {
+        "title": "Mdhibiti wa Data",
+        "name": "Jina",
+        "contact": "Mawasiliano",
+        "dpo": "Afisa Ulinzi wa Data"
+      },
+      "data_collected": {
+        "title": "Data iliyokusanywa",
+        "legal_basis": "Msingi wa kisheria",
+        "geolocation": {
+          "title": "Data ya eneo la kijiografia",
+          "coordinates": "Viwianishi vya GPS (latitudo, longitudo)",
+          "city_country": "Jiji na nchi (kupitia API ya eneo la kijiografia ya IP)",
+          "accuracy": "Usahihi wa eneo",
+          "legal_basis": "Idhini ya wazi (Kifungu cha 6.1.a GDPR)"
+        },
+        "profile": {
+          "title": "Data ya wasifu",
+          "display_name": "Jina la kuonyesha (si lazima)",
+          "age_gender": "Umri na jinsia (si lazima)",
+          "avatar": "Picha ya wasifu (si lazima)",
+          "device_id": "Kitambulisho cha kipekee cha kifaa",
+          "legal_basis": "Maslahi halali kwa uendeshaji wa huduma (Kifungu cha 6.1.f GDPR)"
+        },
+        "messages": {
+          "title": "Ujumbe na mazungumzo",
+          "encrypted": "Ujumbe uliosimbwa kwa njia fiche kutoka mwanzo hadi mwisho (AES-GCM)",
+          "local_only": "Hifadhi ya ndani pekee (IndexedDB)",
+          "metadata": "Metadata ya kiufundi (muhuri wa muda, hali)",
+          "legal_basis": "Utekelezaji wa mkataba wa huduma (Kifungu cha 6.1.b GDPR)"
+        }
+      },
+      "retention": {
+        "title": "Kipindi cha uhifadhi",
+        "geolocation": "Eneo la kijiografia",
+        "geolocation_duration": "Ufutaji wa kiotomatiki unapokatwa (upeo wa saa 24)",
+        "profile": "Wasifu wa mtumiaji",
+        "profile_duration": "Huhifadhiwa ndani ya nchi hadi kufutwa kwa mikono",
+        "messages": "Ujumbe",
+        "messages_duration": "Huhifadhiwa ndani ya nchi hadi kufutwa kwa mikono"
+      },
+      "rights": {
+        "title": "Haki zako za GDPR",
+        "access": "Haki ya kufikia",
+        "access_desc": "Tazama data yako katika mipangilio",
+        "rectification": "Haki ya kusahihisha",
+        "rectification_desc": "Hariri wasifu wako wakati wowote",
+        "erasure": "Haki ya kufuta",
+        "erasure_desc": "Futa data yako yote",
+        "portability": "Haki ya kuhamisha data",
+        "portability_desc": "Hamisha data yako katika umbizo la JSON",
+        "withdraw_consent": "Ondoa idhini",
+        "withdraw_consent_desc": "Batilisha ruhusa ya eneo la kijiografia",
+        "complaint": "Haki ya kulalamika",
+        "complaint_desc": "Wasiliana na mamlaka yako ya ulinzi wa data"
+      },
+      "security": {
+        "title": "Usalama na ulinzi",
+        "encryption": "Usimbaji fiche wa mwisho hadi mwisho na funguo za ECDH za muda mfupi",
+        "local_storage": "Hifadhi ya ndani ya kipekee (hakuna seva kuu)",
+        "p2p": "Usanifu wa P2P uliogatuliwa",
+        "no_central_server": "Hakuna ukusanyaji wa data na seva kuu"
+      },
+      "contact": {
+        "title": "Mawasiliano",
+        "description": "Kwa maswali yoyote kuhusu sera hii ya faragha au utekelezaji wa haki zako:"
+      }
+    },
+    "terms": {
+      "title": "Masharti ya Jumla ya Matumizi",
+      "last_updated": "Ilisasishwa mwisho",
+      "acceptance": {
+        "title": "Kukubalika kwa masharti",
+        "content": "Kwa kutumia NoNetChat, unakubali masharti haya ya matumizi. Ikiwa hukubaliani na masharti haya, tafadhali usitumie huduma."
+      },
+      "service_description": {
+        "title": "Maelezo ya huduma",
+        "content": "NoNetChat ni programu ya ujumbe iliyogatuliwa ya rika-kwa-rika ambayo inaruhusu watumiaji kuwasiliana kwa usalama bila seva kuu. Huduma inatoa:",
+        "feature1": "Ujumbe uliosimbwa kwa njia fiche kutoka mwanzo hadi mwisho",
+        "feature2": "Miunganisho ya moja kwa moja ya P2P",
+        "feature3": "Hifadhi ya data ya ndani",
+        "feature4": "Ugunduzi wa wenza kwa eneo la kijiografia"
+      },
+      "user_obligations": {
+        "title": "Wajibu wa mtumiaji",
+        "respect_laws": "Tii sheria na kanuni zinazotumika",
+        "no_harassment": "Usiwanyanyase, kuwatishia, au kuwatisha watumiaji wengine",
+        "no_illegal_content": "Usishiriki maudhui haramu, ya kuudhi, au yasiyofaa",
+        "respect_others": "Heshimu faragha na haki za wengine",
+        "accurate_info": "Toa taarifa sahihi katika wasifu wako"
+      },
+      "prohibited_uses": {
+        "title": "Matumizi yaliyokatazwa",
+        "spam": "Kutuma barua taka au ujumbe usioombwa",
+        "malware": "Kusambaza programu hasidi au virusi",
+        "impersonation": "Kujifanya mtu mwingine au uwakilishi wa ulaghai",
+        "copyright": "Ukiukaji wa hakimiliki au haki miliki",
+        "reverse_engineering": "Uhandisi wa kinyume au kujaribu kuathiri huduma"
+      },
+      "liability": {
+        "title": "Ukomo wa dhima",
+        "content": "NoNetChat hutolewa 'kama ilivyo' bila udhamini wa aina yoyote. Hatuwajibiki kwa uharibifu wowote wa moja kwa moja, usio wa moja kwa moja, au wa matokeo unaotokana na matumizi ya huduma.",
+        "disclaimer": "Mtumiaji anawajibika kikamilifu kwa maudhui anayoshiriki na mwingiliano anaokuwa nao na watumiaji wengine."
+      },
+      "modifications": {
+        "title": "Marekebisho ya masharti",
+        "content": "Tunahifadhi haki ya kurekebisha masharti haya wakati wowote. Marekebisho yataanza kutumika baada ya kuchapishwa. Kuendelea kutumia huduma kunajumuisha kukubali masharti mapya."
+      },
+      "termination": {
+        "title": "Kusitisha",
+        "content": "Unaweza kuacha kutumia huduma wakati wowote. Tunahifadhi haki ya kusitisha ufikiaji wa huduma ikiwa kuna ukiukaji wa masharti haya."
+      },
+      "governing_law": {
+        "title": "Sheria inayoongoza",
+        "content": "Masharti haya yanasimamiwa na sheria ya Ufaransa. Mzozo wowote utawasilishwa kwa mamlaka ya mahakama husika za Ufaransa."
+      }
+    },
+    "notices": {
+      "title": "Notisi za kisheria",
+      "publisher": {
+        "title": "Mchapishaji",
+        "name": "Jina",
+        "type": "Aina",
+        "type_value": "Programu ya wavuti ya chanzo wazi",
+        "contact": "Mawasiliano",
+        "website": "Tovuti"
+      },
+      "hosting": {
+        "title": "Upangishaji",
+        "provider": "Mtoa huduma",
+        "provider_value": "Usanifu uliogatuliwa - hakuna upangishaji wa kati",
+        "note": "Kumbuka",
+        "note_value": "Data huhifadhiwa ndani ya kifaa cha mtumiaji"
+      },
+      "intellectual_property": {
+        "title": "Mali miliki",
+        "content": "NoNetChat ni programu huria inayosambazwa chini ya leseni ya chanzo wazi. Msimbo wa chanzo unapatikana kwa umma na unaweza kurekebishwa kulingana na masharti ya leseni."
+      },
+      "open_source": {
+        "title": "Chanzo wazi",
+        "content": "Mradi huu ni wa chanzo wazi na michango ya jamii inakaribishwa.",
+        "repository": "Hifadhi"
+      }
+    }
+  },
+  "privacy_settings": {
+    "title": "Mipangilio ya faragha",
+    "consent_withdrawn": "Idhini imeondolewa kwa mafanikio",
+    "consent_granted": "Idhini imetolewa kwa mafanikio",
+    "export_success": "Data imesafirishwa kwa mafanikio",
+    "export_error": "Hitilafu wakati wa kusafirisha data",
+    "delete_success": "Data yote imefutwa kwa mafanikio",
+    "delete_error": "Hitilafu wakati wa kufuta data",
+    "delete_confirm_error": "Tafadhali andika 'DELETE' ili kuthibitisha",
+    "never": "Kamwe",
+    "geolocation_consent": {
+      "title": "Idhini ya eneo la kijiografia",
+      "status": "Hali",
+      "granted": "Imetolewa",
+      "declined": "Imekataliwa",
+      "not_set": "Haijawekwa",
+      "date": "Tarehe",
+      "grant": "Toa",
+      "withdraw": "Ondoa"
+    },
+    "data_overview": {
+      "title": "Muhtasari wa data",
+      "messages": "Ujumbe",
+      "conversations": "Mazungumzo",
+      "avatars": "Avatari",
+      "profile_size": "Ukubwa wa wasifu"
+    },
+    "data_actions": {
+      "title": "Vitendo vya data",
+      "export": {
+        "title": "Hamisha data yangu",
+        "description": "Pakua data yako yote ya kibinafsi katika umbizo la JSON",
+        "button": "Hamisha",
+        "exporting": "Inahamisha..."
+      },
+      "delete": {
+        "title": "Futa data yangu yote",
+        "description": "Ufutaji wa kudumu wa data yako yote ya kibinafsi",
+        "button": "Futa",
+        "confirm_title": "Thibitisha ufutaji",
+        "confirm_description": "Kitendo hiki hakiwezi kutenduliwa. Data yako yote itafutwa kabisa.",
+        "type_delete": "Andika 'DELETE' ili kuthibitisha:",
+        "confirm_button": "Thibitisha ufutaji",
+        "deleting": "Inafuta..."
+      }
+    },
+    "legal_documents": {
+      "title": "Nyaraka za kisheria",
+      "privacy_policy": "Sera ya Faragha",
+      "terms_of_service": "Masharti ya Matumizi",
+      "legal_notices": "Notisi za Kisheria"
+    }
+  },
+  "common": {
     "close": "Funga",
-    "manage_blocked_users": "Dhibiti Watumiaji Waliozuiwa",
-    "blocked_count": "Mtumiaji {{count}} amezuiliwa",
-    "no_blocked_users": "Hakuna watumiaji waliozuiwa",
-    "unknown_user": "Mtumiaji asiyejulikana",
-    "blocked_at": "Imezuiliwa mnamo {{date}}",
-    "unblock_user": "Ondoa Kizuizi kwa Mtumiaji",
-    "unblock": "Ondoa kizuizi",
-    "unblock_confirm": "Una uhakika unataka kumwondolea kizuizi mtumiaji huyu?",
-    "unblock_confirm_title": "Ondoa Kizuizi kwa Mtumiaji",
-    "unblock_confirm_message": "Una uhakika unataka kumwondolea kizuizi mtumiaji huyu?",
-    "confirm": "Thibitisha",
     "cancel": "Ghairi"
   }
 }

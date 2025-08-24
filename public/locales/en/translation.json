@@ -1,27 +1,27 @@
 {
   "app": {
     "initializing": "Initializing services...",
-    "tagline": "Direct messaging",
-    "tagline_disconnected": "Direct messaging (Disconnected)",
+    "tagline": "Direct Messaging",
+    "tagline_disconnected": "Direct Messaging (Disconnected)",
     "title": "NoNetChat Web",
     "status": {
       "connected": "Connected",
       "disconnected": "Disconnected"
     },
     "install": "Install",
-    "install_aria": "Install application",
+    "install_aria": "Install the application",
     "aria": {
       "connected": "Connected",
       "disconnected": "Disconnected"
     }
   },
   "geolocationError": {
-    "activate": "Enable location",
+    "activate": "Activate location",
     "close_alert": "Close alert",
     "unavailable_location": "Could not determine your country/city. Extended search is disabled.",
-    "gps_failed": "GPS failed. Using approximate location via IP.",
-    "permission_denied": "Access to geolocation was denied. The application cannot find nearby peers.",
-    "position_unavailable": "Could not get your current position. Check network connection or location settings.",
+    "gps_failed": "GPS failed. Using approximate location by IP.",
+    "permission_denied": "Access to geolocation has been denied. The application cannot find nearby peers.",
+    "position_unavailable": "Unable to get your current position. Check network connection or location settings.",
     "timeout": "Position search timed out. Please try again.",
     "unknown": "Unknown error while retrieving your position."
   },
@@ -47,7 +47,7 @@
   "settings": {
     "title": "Settings",
     "close_aria": "Close settings",
-    "profile_shortcut_title": "Profile not completed",
+    "profile_shortcut_title": "Profile incomplete",
     "profile_shortcut_description": "Edit your name / avatar",
     "edit": "Edit",
     "signaling_url_label": "Signaling server URL",
@@ -71,11 +71,11 @@
   "main": {
     "connecting_to_peer": "Connecting...",
     "establishing_connection": "Establishing connection with the selected peer.",
-    "connecting_to_server": "Connecting to signaling server...",
+    "connecting_to_server": "Connecting to the signaling server...",
     "select_peer_prompt": "Select a peer to start a direct and secure conversation.",
     "cancel_button": "Cancel",
     "welcome_title": "NoNetChat Web",
-    "welcome_connecting": "Connecting to signaling server...",
+    "welcome_connecting": "Connecting to the signaling server...",
     "welcome_select_peer": "Select a peer to start a direct and secure conversation."
   },
   "bottomNav": {
@@ -131,8 +131,8 @@
       "sending_progress": "Sending: {{progress}}%",
       "cancel": "Cancel",
       "warning_title": "Warning:",
-      "warning_body": "Cancellation permanently interrupts the transfer.",
-      "cancelled_by_user": "(Cancelled by user)"
+      "warning_body": "Canceling will permanently stop the transfer.",
+      "cancelled_by_user": "(Canceled by user)"
     },
     "message_menu": {
       "title": "Message options",
@@ -167,7 +167,7 @@
       "remove_file": "Remove file",
       "file_disabled_offline": "Peer offline - file sending unavailable",
       "attach_file": "Attach file",
-      "file_too_large": "The file is too large. Maximum allowed size: {{maxSize}} MB\n\nNote: Files are automatically compressed before sending to optimize the transfer.",
+      "file_too_large": "The file is too large. Maximum size allowed: {{maxSize}} MB\n\nNote: Files are automatically compressed before sending to optimize transfer.",
       "selected_file": "Selected file: {{fileName}}",
       "placeholder": "Type your message...",
       "placeholder_offline": "User offline - message sending disabled",
@@ -175,7 +175,7 @@
       "add_emoji": "Add emoji",
       "record_voice": "Record a voice message",
       "peer_offline_warning": "{{peerName}} is offline. Sending messages is disabled.",
-      "compression_notice": "Will be compressed and encrypted automatically"
+      "compression_notice": "Will be automatically compressed and encrypted"
     }
   },
   "connectionStatus": {
@@ -193,7 +193,7 @@
     "loading": "Loading...",
     "delete_confirm": "Are you sure you want to delete this conversation?",
     "last_message_none": "No messages",
-    "last_message_file": "📎 Shared file",
+    "last_message_file": "📎 File shared",
     "user_default_name": "User",
     "gender": {
       "male": "Male",
@@ -205,24 +205,24 @@
     "delete_button_aria": "Delete"
   },
   "diagnosticPanel": {
-    "title": "NoNetChat Diagnostics",
+    "title": "NoNetChat Diagnostic",
     "close": "Close",
     "resize": "Resize",
-    "connectivity_tests": "Connectivity Tests",
-    "testing_in_progress": "Testing...",
-    "test_connectivity": "Test Connectivity",
+    "connectivity_tests": "Connectivity tests",
+    "testing_in_progress": "Test in progress...",
+    "test_connectivity": "Test connectivity",
     "signaling": "Signaling",
     "ok": "OK",
-    "fail": "FAIL",
-    "stun_servers": "STUN Servers:",
-    "network_info": "Network Info:",
-    "logs_title": "Real-time Logs",
+    "fail": "Fail",
+    "stun_servers": "STUN servers:",
+    "network_info": "Network info:",
+    "logs_title": "Real-time logs",
     "auto_scroll": "Auto-scroll",
     "clear": "Clear",
     "export": "Export",
-    "no_logs": "No logs available. Logs will appear here in real-time.",
+    "no_logs": "No logs available. Logs will appear here in real time.",
     "instructions_title": "Instructions:",
-    "instructions_body": "1) Run \"Test Connectivity\". 2) Monitor the logs. 3) Export to share."
+    "instructions_body": "1) Run 'Test connectivity'. 2) Monitor the logs. 3) Export to share."
   },
   "filePreview": {
     "unknown_size": "unknown size",
@@ -233,7 +233,7 @@
     "unplayable_audio": "This audio format may not be playable in this browser. You can download it above.",
     "hide_preview": "Hide preview",
     "show_preview": "Show preview",
-    "loading": "Loading…",
+    "loading": "Loading...",
     "unknown_type": "unknown type",
     "download": "Download",
     "open_in_new_tab": "Open in new tab",
@@ -250,8 +250,8 @@
     "error": "Error"
   },
   "notificationSettings": {
-    "title": "Notification Settings",
-    "general": "General Notifications",
+    "title": "Notification settings",
+    "general": "General notifications",
     "enable_notifications": "Enable notifications",
     "enable_notifications_description": "Receive notifications for new messages",
     "sound": "Notification sounds",
@@ -263,18 +263,18 @@
     "dnd_description": "Temporarily disable all notifications",
     "tips_title": "💡 Tips:",
     "tip1": "• System notifications only work if the tab is open",
-    "tip2": "• \"Do Not Disturb\" mode disables all notifications",
+    "tip2": "• 'Do Not Disturb' mode disables all notifications",
     "tip3": "• Settings are saved automatically",
     "close": "Close"
   },
   "peerList": {
-    "title": "Connected Peers ({{count}})",
+    "title": "Connected peers ({{count}})",
     "filter_by_gender": "Filter by gender",
     "all_genders": "All genders",
     "male": "Men",
     "female": "Women",
-    "other_gender": "Other / Not specified",
-    "sort_by": "Sort by",
+    "other_gender": "Other / Unspecified",
+    "sort_by": "Sort",
     "distance_asc": "Distance (↑)",
     "distance_desc": "Distance (↓)",
     "age_asc": "Age (↑)",
@@ -288,12 +288,12 @@
     "gender_title": "Gender: {{gender}}",
     "age_suffix": "yo",
     "view_profile": "View profile",
-    "start_conversation": "Start a conversation",
+    "start_conversation": "Start conversation",
     "join_time": {
       "unknown": "Unknown",
       "now": "Just now",
       "minutes_ago": "{{count}} min ago",
-      "hours_ago": "{{count}}h ago"
+      "hours_ago": "{{count}} h ago"
     },
     "tooltip": {
       "status": "Status:",
@@ -303,7 +303,7 @@
       "connected": "Connected:"
     },
     "modal": {
-      "title": "{{name}}'s Profile",
+      "title": "Profile of {{name}}",
       "close": "Close",
       "connected_since": "Connected since:"
     },
@@ -317,17 +317,17 @@
     "meta_separator": "•"
   },
   "blockedUsers": {
-    "title": "Blocked Users",
+    "title": "Blocked users",
     "close": "Close",
-    "manage_blocked_users": "Manage Blocked Users",
-    "blocked_count": "{{count}} blocked user(s)",
+    "manage_blocked_users": "Manage blocked users",
+    "blocked_count": "{{count}} user(s) blocked",
     "no_blocked_users": "No blocked users",
     "unknown_user": "Unknown user",
     "blocked_at": "Blocked on {{date}}",
     "unblock_user": "Unblock user",
     "unblock": "Unblock",
     "unblock_confirm": "Are you sure you want to unblock this user?",
-    "unblock_confirm_title": "Unblock User",
+    "unblock_confirm_title": "Unblock user",
     "unblock_confirm_message": "Are you sure you want to unblock this user?",
     "confirm": "Confirm",
     "cancel": "Cancel"
@@ -340,11 +340,11 @@
     "avatar_alt": "Avatar",
     "change_avatar_title": "Change avatar",
     "refresh_avatar_title": "Generate a new default avatar",
-    "optimizing_image": "Optimizing image…",
+    "optimizing_image": "Optimizing image...",
     "username_label": "Username",
     "age_label": "Age",
     "gender_label": "Gender",
-    "gender_unspecified": "Not specified",
+    "gender_unspecified": "Unspecified",
     "gender_male": "Male",
     "gender_female": "Female",
     "gender_other": "Other",
@@ -359,7 +359,7 @@
     "gender_female_short": "F",
     "gender_other": "Other",
     "age_suffix": "yo",
-    "meta_separator": " · "
+    "meta_separator": "·"
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} peer connected",
@@ -374,9 +374,9 @@
   },
   "voiceRecorder": {
     "voice_note": "Voice note",
-    "mic_error": "Could not access the microphone. Check browser permissions.",
+    "mic_error": "Could not access microphone. Check browser permissions.",
     "idle_title_click": "Click: record (locked) • Enter: send • Esc: cancel",
-    "idle_title_hold": "Long press to record • Slide ← to cancel • Slide ↑ to lock",
+    "idle_title_hold": "Long press to record • Swipe ← to cancel • Swipe ↑ to lock",
     "record_aria": "Record a voice message",
     "hint_slide_cancel": "Slide left to cancel",
     "hint_slide_lock": "Slide up to lock",
@@ -388,10 +388,247 @@
     "send_title": "Send",
     "locked": "locked",
     "mobile_hint_lock": "Lock",
-    "mobile_hint_cancel": "Slide ← to cancel"
+    "mobile_hint_cancel": "Swipe ← to cancel"
   },
   "languageSelector": {
     "label": "Language",
-    "description": "Language will be automatically saved and detected on your next visit."
+    "description": "The language will be automatically saved and detected on your next visit."
+  },
+  "consent": {
+    "geolocation": {
+      "title": "Geolocation Permission",
+      "description": "NoNetChat wants to access your geographical location to connect you with nearby users. Your location data is processed securely and in compliance with GDPR.",
+      "privacy_title": "Respect for your privacy",
+      "privacy_point1": "End-to-end encrypted data",
+      "privacy_point2": "Local storage only",
+      "privacy_point3": "Automatic deletion of server coordinates",
+      "privacy_point4": "No central data server",
+      "show_details": "Show technical details",
+      "hide_details": "Hide details",
+      "technical_details": "Technical details",
+      "data_collected": "Data collected",
+      "data_collected_desc": "GPS coordinates (latitude/longitude), approximate city and country",
+      "purpose": "Purpose",
+      "purpose_desc": "P2P connection with geographically close users",
+      "retention": "Retention",
+      "retention_desc": "Coordinates are automatically deleted from the server after disconnection",
+      "legal_basis": "Legal basis",
+      "legal_basis_desc": "Explicit consent (Art. 6.1.a GDPR)",
+      "withdrawal_info": "You can withdraw your consent at any time in the privacy settings. For more information, see our",
+      "privacy_policy_link": "privacy policy",
+      "accept": "Accept",
+      "decline": "Decline"
+    }
+  },
+  "legal": {
+    "tabs": {
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "legal_notices": "Legal notices"
+    },
+    "privacy_policy": {
+      "title": "Privacy Policy",
+      "last_updated": "Last updated",
+      "controller": {
+        "title": "Data Controller",
+        "name": "Name",
+        "contact": "Contact",
+        "dpo": "Data Protection Officer"
+      },
+      "data_collected": {
+        "title": "Data collected",
+        "legal_basis": "Legal basis",
+        "geolocation": {
+          "title": "Geolocation data",
+          "coordinates": "GPS coordinates (latitude, longitude)",
+          "city_country": "City and country (via IP geolocation API)",
+          "accuracy": "Location accuracy",
+          "legal_basis": "Explicit consent (Art. 6.1.a GDPR)"
+        },
+        "profile": {
+          "title": "Profile data",
+          "display_name": "Display name (optional)",
+          "age_gender": "Age and gender (optional)",
+          "avatar": "Profile picture (optional)",
+          "device_id": "Unique device identifier",
+          "legal_basis": "Legitimate interest for the operation of the service (Art. 6.1.f GDPR)"
+        },
+        "messages": {
+          "title": "Messages and conversations",
+          "encrypted": "End-to-end encrypted messages (AES-GCM)",
+          "local_only": "Local storage only (IndexedDB)",
+          "metadata": "Technical metadata (timestamp, status)",
+          "legal_basis": "Performance of the service contract (Art. 6.1.b GDPR)"
+        }
+      },
+      "retention": {
+        "title": "Retention period",
+        "geolocation": "Geolocation",
+        "geolocation_duration": "Automatic deletion on disconnection (max. 24h)",
+        "profile": "User profile",
+        "profile_duration": "Kept locally until manual deletion",
+        "messages": "Messages",
+        "messages_duration": "Kept locally until manual deletion"
+      },
+      "rights": {
+        "title": "Your GDPR rights",
+        "access": "Right of access",
+        "access_desc": "View your data in the settings",
+        "rectification": "Right to rectification",
+        "rectification_desc": "Edit your profile at any time",
+        "erasure": "Right to erasure",
+        "erasure_desc": "Delete all your data",
+        "portability": "Right to data portability",
+        "portability_desc": "Export your data in JSON format",
+        "withdraw_consent": "Withdraw consent",
+        "withdraw_consent_desc": "Revoke geolocation permission",
+        "complaint": "Right to complain",
+        "complaint_desc": "Contact your data protection authority"
+      },
+      "security": {
+        "title": "Security and protection",
+        "encryption": "End-to-end encryption with ephemeral ECDH keys",
+        "local_storage": "Exclusive local storage (no central server)",
+        "p2p": "Decentralized P2P architecture",
+        "no_central_server": "No data collection by a central server"
+      },
+      "contact": {
+        "title": "Contact",
+        "description": "For any questions regarding this privacy policy or the exercise of your rights:"
+      }
+    },
+    "terms": {
+      "title": "General Terms of Use",
+      "last_updated": "Last updated",
+      "acceptance": {
+        "title": "Acceptance of terms",
+        "content": "By using NoNetChat, you agree to these terms of use. If you do not agree to these terms, please do not use the service."
+      },
+      "service_description": {
+        "title": "Service description",
+        "content": "NoNetChat is a decentralized, peer-to-peer messaging application that allows users to communicate securely without a central server. The service offers:",
+        "feature1": "End-to-end encrypted messaging",
+        "feature2": "Direct P2P connections",
+        "feature3": "Local data storage",
+        "feature4": "Peer discovery by geolocation"
+      },
+      "user_obligations": {
+        "title": "User obligations",
+        "respect_laws": "Comply with applicable laws and regulations",
+        "no_harassment": "Do not harass, threaten, or intimidate other users",
+        "no_illegal_content": "Do not share illegal, offensive, or inappropriate content",
+        "respect_others": "Respect the privacy and rights of others",
+        "accurate_info": "Provide accurate information in your profile"
+      },
+      "prohibited_uses": {
+        "title": "Prohibited uses",
+        "spam": "Sending spam or unsolicited messages",
+        "malware": "Distributing malware or viruses",
+        "impersonation": "Impersonation or fraudulent representation",
+        "copyright": "Violation of copyright or intellectual property rights",
+        "reverse_engineering": "Reverse engineering or attempting to compromise the service"
+      },
+      "liability": {
+        "title": "Limitation of liability",
+        "content": "NoNetChat is provided 'as is' without warranty of any kind. We are not liable for any direct, indirect, or consequential damages resulting from the use of the service.",
+        "disclaimer": "The user is solely responsible for the content they share and the interactions they have with other users."
+      },
+      "modifications": {
+        "title": "Modifications to the terms",
+        "content": "We reserve the right to modify these terms at any time. The modifications will take effect upon their publication. Continued use of the service constitutes acceptance of the new terms."
+      },
+      "termination": {
+        "title": "Termination",
+        "content": "You may stop using the service at any time. We reserve the right to suspend access to the service in case of violation of these terms."
+      },
+      "governing_law": {
+        "title": "Governing law",
+        "content": "These terms are governed by French law. Any dispute will be submitted to the jurisdiction of the competent French courts."
+      }
+    },
+    "notices": {
+      "title": "Legal notices",
+      "publisher": {
+        "title": "Publisher",
+        "name": "Name",
+        "type": "Type",
+        "type_value": "Open source web application",
+        "contact": "Contact",
+        "website": "Website"
+      },
+      "hosting": {
+        "title": "Hosting",
+        "provider": "Provider",
+        "provider_value": "Decentralized architecture - no central hosting",
+        "note": "Note",
+        "note_value": "Data is stored locally on the user's device"
+      },
+      "intellectual_property": {
+        "title": "Intellectual property",
+        "content": "NoNetChat is a free software distributed under an open source license. The source code is publicly available and can be modified according to the terms of the license."
+      },
+      "open_source": {
+        "title": "Open Source",
+        "content": "This project is open source and community contributions are welcome.",
+        "repository": "Repository"
+      }
+    }
+  },
+  "privacy_settings": {
+    "title": "Privacy settings",
+    "consent_withdrawn": "Consent successfully withdrawn",
+    "consent_granted": "Consent successfully granted",
+    "export_success": "Data successfully exported",
+    "export_error": "Error while exporting data",
+    "delete_success": "All data successfully deleted",
+    "delete_error": "Error while deleting data",
+    "delete_confirm_error": "Please type 'DELETE' to confirm",
+    "never": "Never",
+    "geolocation_consent": {
+      "title": "Geolocation consent",
+      "status": "Status",
+      "granted": "Granted",
+      "declined": "Declined",
+      "not_set": "Not set",
+      "date": "Date",
+      "grant": "Grant",
+      "withdraw": "Withdraw"
+    },
+    "data_overview": {
+      "title": "Data overview",
+      "messages": "Messages",
+      "conversations": "Conversations",
+      "avatars": "Avatars",
+      "profile_size": "Profile size"
+    },
+    "data_actions": {
+      "title": "Data actions",
+      "export": {
+        "title": "Export my data",
+        "description": "Download all your personal data in JSON format",
+        "button": "Export",
+        "exporting": "Exporting..."
+      },
+      "delete": {
+        "title": "Delete all my data",
+        "description": "Permanent deletion of all your personal data",
+        "button": "Delete",
+        "confirm_title": "Confirm deletion",
+        "confirm_description": "This action is irreversible. All your data will be permanently deleted.",
+        "type_delete": "Type 'DELETE' to confirm:",
+        "confirm_button": "Confirm deletion",
+        "deleting": "Deleting..."
+      }
+    },
+    "legal_documents": {
+      "title": "Legal documents",
+      "privacy_policy": "Privacy Policy",
+      "terms_of_service": "Terms of Use",
+      "legal_notices": "Legal Notices"
+    }
+  },
+  "common": {
+    "close": "Close",
+    "cancel": "Cancel"
   }
 }

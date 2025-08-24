@@ -2,8 +2,8 @@
   "app": {
     "initializing": "서비스 초기화 중...",
     "tagline": "직접 메시징",
-    "tagline_disconnected": "직접 메시징 (연결 끊김)",
-    "title": "NoNetChat Web",
+    "tagline_disconnected": "직접 메시징(연결 끊김)",
+    "title": "NoNetChat 웹",
     "status": {
       "connected": "연결됨",
       "disconnected": "연결 끊김"
@@ -38,16 +38,16 @@
   },
   "publicChat": {
     "title": "공개 채팅",
-    "description": "여기 메시지는 일시적이며 현재 지역의 모든 사람에게 표시됩니다.",
+    "description": "여기의 메시지는 일시적이며 현재 지역의 모든 사람에게 표시됩니다.",
     "empty_placeholder": {
       "title": "{{roomName}}",
-      "body": "여기 메시지는 일시적이며 현재 지역의 모든 사람에게 표시됩니다."
+      "body": "여기의 메시지는 일시적이며 현재 지역의 모든 사람에게 표시됩니다."
     }
   },
   "settings": {
     "title": "설정",
     "close_aria": "설정 닫기",
-    "profile_shortcut_title": "프로필이 완료되지 않았습니다.",
+    "profile_shortcut_title": "프로필이 불완전합니다.",
     "profile_shortcut_description": "이름/아바타 편집",
     "edit": "편집",
     "signaling_url_label": "신호 서버 URL",
@@ -70,11 +70,11 @@
   },
   "main": {
     "connecting_to_peer": "연결 중...",
-    "establishing_connection": "선택한 피어와 연결을 설정하는 중입니다.",
+    "establishing_connection": "선택한 피어와 연결을 설정하고 있습니다.",
     "connecting_to_server": "신호 서버에 연결 중...",
     "select_peer_prompt": "직접적이고 안전한 대화를 시작하려면 피어를 선택하십시오.",
     "cancel_button": "취소",
-    "welcome_title": "NoNetChat Web",
+    "welcome_title": "NoNetChat 웹",
     "welcome_connecting": "신호 서버에 연결 중...",
     "welcome_select_peer": "직접적이고 안전한 대화를 시작하려면 피어를 선택하십시오."
   },
@@ -96,24 +96,24 @@
   },
   "chat": {
     "voice_note": "음성 메모",
-    "sending_in_progress": "(전송 중...)",
-    "sending_progress": "(전송 중: {{progress}}%)",
+    "sending_in_progress": "(보내는 중...)",
+    "sending_progress": "(보내는 중: {{progress}}%)",
     "sending_error": "(전송 오류)",
     "receiving_in_progress": "(수신 중...)",
-    "file_size_error": "잘못된 파일 크기: {{totalSize}}바이트 수신, {{expectedSize}}바이트 예상 (차이: {{sizeDifference}})",
+    "file_size_error": "잘못된 파일 크기: {{totalSize}}바이트를 받았지만 {{expectedSize}}바이트가 예상되었습니다(차이: {{sizeDifference}})",
     "decryption_empty_error": "해독된 파일이 비어 있습니다.",
     "decryption_error": "오류: {{fileName}}을(를) 해독할 수 없습니다.",
     "delete_message_confirm": "이 메시지를 삭제하시겠습니까?",
     "delete_conversation_confirm": "이 전체 대화를 삭제하시겠습니까?",
     "message_info_title": "정보",
     "message_info_content": "ID: {{id}}\n유형: {{type}}\n보낸 시간: {{timestamp}}\n상태: {{status}}",
-    "message_status_sent": "전송됨",
-    "send_aria_label_offline": "사용자 오프라인 - 전송 비활성화됨",
+    "message_status_sent": "보냄",
+    "send_aria_label_offline": "사용자가 오프라인 상태입니다 - 보내기 비활성화됨",
     "send_aria_label_file": "파일 보내기",
     "send_aria_label_message": "메시지 보내기",
     "download_link": {
       "not_found": "로컬 데이터베이스에서 파일을 찾을 수 없습니다.",
-      "error": "다운로드 중 오류가 발생했습니다.",
+      "error": "다운로드 중에 오류가 발생했습니다.",
       "loading": "로드 중...",
       "download": "📥 다운로드",
       "title": "파일 다운로드"
@@ -128,10 +128,10 @@
     "cancel_transfers": {
       "title": "진행 중인 전송",
       "receiving_progress": "수신 중: {{progress}}%",
-      "sending_progress": "전송 중: {{progress}}%",
+      "sending_progress": "보내는 중: {{progress}}%",
       "cancel": "취소",
       "warning_title": "경고:",
-      "warning_body": "취소하면 전송이 영구적으로 중단됩니다.",
+      "warning_body": "취소하면 전송이 영구적으로 중지됩니다.",
       "cancelled_by_user": "(사용자가 취소함)"
     },
     "message_menu": {
@@ -147,11 +147,11 @@
     "file_message": {
       "size": "크기:",
       "unknown_size": "알 수 없음",
-      "status_sending": "전송 중...",
-      "status_sent": "전송됨",
+      "status_sending": "보내는 중...",
+      "status_sent": "보냄",
       "status_receiving": "수신 중...",
       "status_pending": "대기 중",
-      "sending": "전송 중",
+      "sending": "보내는 중",
       "receiving": "수신 중",
       "kb_unit": "KB",
       "seek_forward": "⟳ 10초",
@@ -165,17 +165,17 @@
     },
     "input": {
       "remove_file": "파일 제거",
-      "file_disabled_offline": "피어 오프라인 - 파일 전송 불가",
+      "file_disabled_offline": "피어가 오프라인 상태입니다 - 파일 전송을 사용할 수 없습니다.",
       "attach_file": "파일 첨부",
-      "file_too_large": "파일이 너무 큽니다. 허용되는 최대 크기: {{maxSize}}MB\n\n참고: 전송을 최적화하기 위해 보내기 전에 파일이 자동으로 압축됩니다.",
+      "file_too_large": "파일이 너무 큽니다. 허용되는 최대 크기: {{maxSize}}MB\n\n참고: 전송을 최적화하기 위해 파일을 보내기 전에 자동으로 압축됩니다.",
       "selected_file": "선택한 파일: {{fileName}}",
       "placeholder": "메시지를 입력하세요...",
-      "placeholder_offline": "사용자 오프라인 - 메시지 전송 비활성화됨",
+      "placeholder_offline": "사용자가 오프라인 상태입니다 - 메시지 보내기 비활성화됨",
       "aria_label": "메시지 입력",
       "add_emoji": "이모티콘 추가",
       "record_voice": "음성 메시지 녹음",
-      "peer_offline_warning": "{{peerName}}이(가) 오프라인입니다. 메시지 전송이 비활성화되었습니다.",
-      "compression_notice": "자동으로 압축 및 암호화됩니다"
+      "peer_offline_warning": "{{peerName}}님이 오프라인 상태입니다. 메시지 전송이 비활성화되었습니다.",
+      "compression_notice": "자동으로 압축 및 암호화됩니다."
     }
   },
   "connectionStatus": {
@@ -184,16 +184,16 @@
     "reconnect": "다시 연결"
   },
   "conversationList": {
-    "title": "대화 ({{count}})",
+    "title": "대화({{count}})",
     "search_placeholder": "이름 또는 메시지로 검색...",
     "clear_search_aria": "검색 지우기",
     "clear_search_title": "지우기",
     "no_conversations_title": "대화 없음",
-    "no_conversations_prompt": "시작하려면 피어를 선택하세요.",
+    "no_conversations_prompt": "시작하려면 피어를 선택하십시오.",
     "loading": "로드 중...",
     "delete_confirm": "이 대화를 삭제하시겠습니까?",
     "last_message_none": "메시지 없음",
-    "last_message_file": "📎 공유 파일",
+    "last_message_file": "📎 파일 공유됨",
     "user_default_name": "사용자",
     "gender": {
       "male": "남성",
@@ -209,7 +209,7 @@
     "close": "닫기",
     "resize": "크기 조정",
     "connectivity_tests": "연결 테스트",
-    "testing_in_progress": "테스트 중...",
+    "testing_in_progress": "테스트 진행 중...",
     "test_connectivity": "연결 테스트",
     "signaling": "신호",
     "ok": "확인",
@@ -222,7 +222,7 @@
     "export": "내보내기",
     "no_logs": "사용 가능한 로그가 없습니다. 로그는 여기에 실시간으로 표시됩니다.",
     "instructions_title": "지침:",
-    "instructions_body": "1) \"연결 테스트\"를 실행합니다. 2) 로그를 모니터링합니다. 3) 공유하려면 내보냅니다."
+    "instructions_body": "1) '연결 테스트'를 실행합니다. 2) 로그를 모니터링합니다. 3) 공유하려면 내보냅니다."
   },
   "filePreview": {
     "unknown_size": "알 수 없는 크기",
@@ -233,18 +233,18 @@
     "unplayable_audio": "이 오디오 형식은 이 브라우저에서 재생할 수 없을 수 있습니다. 위에서 다운로드할 수 있습니다.",
     "hide_preview": "미리보기 숨기기",
     "show_preview": "미리보기 표시",
-    "loading": "로드 중…",
+    "loading": "로드 중...",
     "unknown_type": "알 수 없는 유형",
     "download": "다운로드",
     "open_in_new_tab": "새 탭에서 열기",
     "copy_text": "텍스트 복사",
-    "preview_unavailable": "이 파일 형식에 대해 미리보기를 사용할 수 없습니다.",
+    "preview_unavailable": "이 파일 형식에 대한 미리보기를 사용할 수 없습니다.",
     "change_speed": "속도 변경",
     "media_album": "첨부 파일"
   },
   "messageStatus": {
-    "sending": "전송 중...",
-    "sent": "전송됨",
+    "sending": "보내는 중...",
+    "sent": "보냄",
     "delivered": "전달됨",
     "read": "읽음",
     "error": "오류"
@@ -260,27 +260,27 @@
     "system_description": "브라우저에 알림 표시",
     "authorize": "승인",
     "dnd": "방해 금지 모드",
-    "dnd_description": "일시적으로 모든 알림 비활성화",
+    "dnd_description": "모든 알림을 일시적으로 비활성화",
     "tips_title": "💡 팁:",
     "tip1": "• 시스템 알림은 탭이 열려 있는 경우에만 작동합니다.",
-    "tip2": "• \"방해 금지\" 모드는 모든 알림을 비활성화합니다.",
+    "tip2": "• '방해 금지' 모드는 모든 알림을 비활성화합니다.",
     "tip3": "• 설정은 자동으로 저장됩니다.",
     "close": "닫기"
   },
   "peerList": {
-    "title": "연결된 피어 ({{count}})",
+    "title": "연결된 피어({{count}})",
     "filter_by_gender": "성별로 필터링",
     "all_genders": "모든 성별",
     "male": "남성",
     "female": "여성",
-    "other_gender": "기타 / 지정되지 않음",
-    "sort_by": "정렬 기준",
-    "distance_asc": "거리 (↑)",
-    "distance_desc": "거리 (↓)",
-    "age_asc": "나이 (↑)",
-    "age_desc": "나이 (↓)",
+    "other_gender": "기타/지정되지 않음",
+    "sort_by": "정렬",
+    "distance_asc": "거리(↑)",
+    "distance_desc": "거리(↓)",
+    "age_asc": "나이(↑)",
+    "age_desc": "나이(↓)",
     "connection_required_title": "연결 필요",
-    "connection_required_body": "신호 서버에 연결",
+    "connection_required_body": "신호 서버에 연결하십시오.",
     "no_peers_title": "온라인 피어 없음",
     "no_peers_body": "위의 필터를 조정하십시오.",
     "user_default_name": "사용자",
@@ -312,9 +312,25 @@
       "offline": "오프라인",
       "busy": "바쁨"
     },
-    "meta_separator": "•",
     "block_user_title": "사용자 차단",
-    "block_user_confirm": "{{name}}님을 차단하시겠습니까? 더 이상 메시지를 받지 않습니다."
+    "block_user_confirm": "{{name}}님을 차단하시겠습니까? 더 이상 메시지를 받지 않습니다.",
+    "meta_separator": "•"
+  },
+  "blockedUsers": {
+    "title": "차단된 사용자",
+    "close": "닫기",
+    "manage_blocked_users": "차단된 사용자 관리",
+    "blocked_count": "{{count}}명의 사용자가 차단되었습니다.",
+    "no_blocked_users": "차단된 사용자가 없습니다.",
+    "unknown_user": "알 수 없는 사용자",
+    "blocked_at": "{{date}}에 차단됨",
+    "unblock_user": "사용자 차단 해제",
+    "unblock": "차단 해제",
+    "unblock_confirm": "이 사용자를 차단 해제하시겠습니까?",
+    "unblock_confirm_title": "사용자 차단 해제",
+    "unblock_confirm_message": "이 사용자를 차단 해제하시겠습니까?",
+    "confirm": "확인",
+    "cancel": "취소"
   },
   "profileModal": {
     "title": "내 프로필",
@@ -324,7 +340,7 @@
     "avatar_alt": "아바타",
     "change_avatar_title": "아바타 변경",
     "refresh_avatar_title": "새 기본 아바타 생성",
-    "optimizing_image": "이미지 최적화 중…",
+    "optimizing_image": "이미지 최적화 중...",
     "username_label": "사용자 이름",
     "age_label": "나이",
     "gender_label": "성별",
@@ -343,7 +359,7 @@
     "gender_female_short": "여",
     "gender_other": "기타",
     "age_suffix": "세",
-    "meta_separator": " · "
+    "meta_separator": "·"
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}}개의 피어가 연결되었습니다.",
@@ -360,10 +376,10 @@
     "voice_note": "음성 메모",
     "mic_error": "마이크에 액세스할 수 없습니다. 브라우저 권한을 확인하십시오.",
     "idle_title_click": "클릭: 녹음(잠김) • Enter: 보내기 • Esc: 취소",
-    "idle_title_hold": "길게 눌러 녹음 • ←로 슬라이드하여 취소 • ↑로 슬라이드하여 잠금",
+    "idle_title_hold": "길게 눌러 녹음 • ←로 스와이프하여 취소 • ↑로 스와이프하여 잠금",
     "record_aria": "음성 메시지 녹음",
-    "hint_slide_cancel": "취소하려면 왼쪽으로 슬라이드",
-    "hint_slide_lock": "잠그려면 위로 슬라이드",
+    "hint_slide_cancel": "취소하려면 왼쪽으로 스와이프",
+    "hint_slide_lock": "잠그려면 위로 스와이프",
     "cancel_aria": "녹음 취소",
     "cancel_title": "취소",
     "lock_aria": "녹음 잠금",
@@ -372,26 +388,247 @@
     "send_title": "보내기",
     "locked": "잠김",
     "mobile_hint_lock": "잠금",
-    "mobile_hint_cancel": "취소하려면 ←로 슬라이드"
+    "mobile_hint_cancel": "취소하려면 ←로 스와이프"
   },
   "languageSelector": {
     "label": "언어",
     "description": "언어는 자동으로 저장되며 다음 방문 시 감지됩니다."
   },
-  "blockedUsers": {
-    "title": "차단된 사용자",
+  "consent": {
+    "geolocation": {
+      "title": "지리적 위치 권한",
+      "description": "NoNetChat은 근처 사용자와 연결하기 위해 귀하의 지리적 위치에 액세스하려고 합니다. 귀하의 위치 데이터는 안전하게 처리되며 GDPR을 준수합니다.",
+      "privacy_title": "개인 정보 보호 존중",
+      "privacy_point1": "종단 간 암호화된 데이터",
+      "privacy_point2": "로컬 저장소만",
+      "privacy_point3": "서버 좌표 자동 삭제",
+      "privacy_point4": "중앙 데이터 서버 없음",
+      "show_details": "기술적 세부 정보 표시",
+      "hide_details": "세부 정보 숨기기",
+      "technical_details": "기술적 세부 정보",
+      "data_collected": "수집된 데이터",
+      "data_collected_desc": "GPS 좌표(위도/경도), 대략적인 도시 및 국가",
+      "purpose": "목적",
+      "purpose_desc": "지리적으로 가까운 사용자와의 P2P 연결",
+      "retention": "보유",
+      "retention_desc": "연결이 끊어지면 서버에서 좌표가 자동으로 삭제됩니다.",
+      "legal_basis": "법적 근거",
+      "legal_basis_desc": "명시적 동의(GDPR 제6조 1항 a)",
+      "withdrawal_info": "개인 정보 설정에서 언제든지 동의를 철회할 수 있습니다. 자세한 내용은 당사의",
+      "privacy_policy_link": "개인 정보 보호 정책",
+      "accept": "수락",
+      "decline": "거부"
+    }
+  },
+  "legal": {
+    "tabs": {
+      "privacy": "개인 정보 보호",
+      "terms": "약관",
+      "legal_notices": "법적 고지"
+    },
+    "privacy_policy": {
+      "title": "개인 정보 보호 정책",
+      "last_updated": "최종 업데이트",
+      "controller": {
+        "title": "데이터 컨트롤러",
+        "name": "이름",
+        "contact": "연락처",
+        "dpo": "데이터 보호 책임자"
+      },
+      "data_collected": {
+        "title": "수집된 데이터",
+        "legal_basis": "법적 근거",
+        "geolocation": {
+          "title": "지리적 위치 데이터",
+          "coordinates": "GPS 좌표(위도, 경도)",
+          "city_country": "도시 및 국가(IP 지리적 위치 API를 통해)",
+          "accuracy": "위치 정확도",
+          "legal_basis": "명시적 동의(GDPR 제6조 1항 a)"
+        },
+        "profile": {
+          "title": "프로필 데이터",
+          "display_name": "표시 이름(선택 사항)",
+          "age_gender": "나이 및 성별(선택 사항)",
+          "avatar": "프로필 사진(선택 사항)",
+          "device_id": "고유 장치 식별자",
+          "legal_basis": "서비스 운영에 대한 정당한 이익(GDPR 제6조 1항 f)"
+        },
+        "messages": {
+          "title": "메시지 및 대화",
+          "encrypted": "종단 간 암호화된 메시지(AES-GCM)",
+          "local_only": "로컬 저장소만(IndexedDB)",
+          "metadata": "기술적 메타데이터(타임스탬프, 상태)",
+          "legal_basis": "서비스 계약 이행(GDPR 제6조 1항 b)"
+        }
+      },
+      "retention": {
+        "title": "보유 기간",
+        "geolocation": "지리적 위치",
+        "geolocation_duration": "연결 끊김 시 자동 삭제(최대 24시간)",
+        "profile": "사용자 프로필",
+        "profile_duration": "수동으로 삭제할 때까지 로컬에 보관",
+        "messages": "메시지",
+        "messages_duration": "수동으로 삭제할 때까지 로컬에 보관"
+      },
+      "rights": {
+        "title": "귀하의 GDPR 권리",
+        "access": "액세스 권한",
+        "access_desc": "설정에서 데이터 보기",
+        "rectification": "수정 권한",
+        "rectification_desc": "언제든지 프로필 편집",
+        "erasure": "삭제 권한",
+        "erasure_desc": "모든 데이터 삭제",
+        "portability": "데이터 이동성 권한",
+        "portability_desc": "데이터를 JSON 형식으로 내보내기",
+        "withdraw_consent": "동의 철회",
+        "withdraw_consent_desc": "지리적 위치 권한 취소",
+        "complaint": "불만 제기 권한",
+        "complaint_desc": "데이터 보호 기관에 문의"
+      },
+      "security": {
+        "title": "보안 및 보호",
+        "encryption": "임시 ECDH 키를 사용한 종단 간 암호화",
+        "local_storage": "독점적인 로컬 저장소(중앙 서버 없음)",
+        "p2p": "분산형 P2P 아키텍처",
+        "no_central_server": "중앙 서버에 의한 데이터 수집 없음"
+      },
+      "contact": {
+        "title": "연락처",
+        "description": "이 개인 정보 보호 정책 또는 귀하의 권리 행사에 관한 질문은 다음으로 문의하십시오."
+      }
+    },
+    "terms": {
+      "title": "일반 이용 약관",
+      "last_updated": "최종 업데이트",
+      "acceptance": {
+        "title": "약관 동의",
+        "content": "NoNetChat을 사용함으로써 귀하는 본 이용 약관에 동의하게 됩니다. 본 약관에 동의하지 않으시면 서비스를 이용하지 마십시오."
+      },
+      "service_description": {
+        "title": "서비스 설명",
+        "content": "NoNetChat은 사용자가 중앙 서버 없이 안전하게 통신할 수 있도록 하는 분산형 피어투피어 메시징 애플리케이션입니다. 이 서비스는 다음을 제공합니다.",
+        "feature1": "종단 간 암호화된 메시징",
+        "feature2": "직접 P2P 연결",
+        "feature3": "로컬 데이터 저장소",
+        "feature4": "지리적 위치에 의한 피어 검색"
+      },
+      "user_obligations": {
+        "title": "사용자 의무",
+        "respect_laws": "관련 법률 및 규정 준수",
+        "no_harassment": "다른 사용자를 괴롭히거나 위협하거나 협박하지 마십시오.",
+        "no_illegal_content": "불법적이거나 불쾌하거나 부적절한 콘텐츠를 공유하지 마십시오.",
+        "respect_others": "다른 사람의 개인 정보와 권리를 존중하십시오.",
+        "accurate_info": "프로필에 정확한 정보를 제공하십시오."
+      },
+      "prohibited_uses": {
+        "title": "금지된 사용",
+        "spam": "스팸 또는 원치 않는 메시지 보내기",
+        "malware": "맬웨어 또는 바이러스 배포",
+        "impersonation": "사칭 또는 사기성 표현",
+        "copyright": "저작권 또는 지적 재산권 위반",
+        "reverse_engineering": "리버스 엔지니어링 또는 서비스 손상 시도"
+      },
+      "liability": {
+        "title": "책임의 제한",
+        "content": "NoNetChat은 어떠한 종류의 보증도 없이 '있는 그대로' 제공됩니다. 당사는 서비스 사용으로 인해 발생하는 직접적, 간접적 또는 결과적 손해에 대해 책임을 지지 않습니다.",
+        "disclaimer": "사용자는 공유하는 콘텐츠와 다른 사용자와의 상호 작용에 대해 전적으로 책임을 집니다."
+      },
+      "modifications": {
+        "title": "약관 수정",
+        "content": "당사는 언제든지 본 약관을 수정할 권리가 있습니다. 수정 사항은 게시 즉시 효력이 발생합니다. 서비스를 계속 사용하면 새로운 약관에 동의하는 것으로 간주됩니다."
+      },
+      "termination": {
+        "title": "종료",
+        "content": "언제든지 서비스 사용을 중단할 수 있습니다. 당사는 본 약관 위반 시 서비스에 대한 액세스를 중단할 권리가 있습니다."
+      },
+      "governing_law": {
+        "title": "준거법",
+        "content": "본 약관은 프랑스 법의 적용을 받습니다. 모든 분쟁은 관할 프랑스 법원의 관할에 따릅니다."
+      }
+    },
+    "notices": {
+      "title": "법적 고지",
+      "publisher": {
+        "title": "게시자",
+        "name": "이름",
+        "type": "유형",
+        "type_value": "오픈 소스 웹 애플리케이션",
+        "contact": "연락처",
+        "website": "웹사이트"
+      },
+      "hosting": {
+        "title": "호스팅",
+        "provider": "제공업체",
+        "provider_value": "분산형 아키텍처 - 중앙 호스팅 없음",
+        "note": "참고",
+        "note_value": "데이터는 사용자의 장치에 로컬로 저장됩니다."
+      },
+      "intellectual_property": {
+        "title": "지적 재산",
+        "content": "NoNetChat은 오픈 소스 라이선스에 따라 배포되는 무료 소프트웨어입니다. 소스 코드는 공개적으로 사용 가능하며 라이선스 조건에 따라 수정할 수 있습니다."
+      },
+      "open_source": {
+        "title": "오픈 소스",
+        "content": "이 프로젝트는 오픈 소스이며 커뮤니티의 기여를 환영합니다.",
+        "repository": "리포지토리"
+      }
+    }
+  },
+  "privacy_settings": {
+    "title": "개인 정보 설정",
+    "consent_withdrawn": "동의가 성공적으로 철회되었습니다.",
+    "consent_granted": "동의가 성공적으로 부여되었습니다.",
+    "export_success": "데이터를 성공적으로 내보냈습니다.",
+    "export_error": "데이터를 내보내는 동안 오류가 발생했습니다.",
+    "delete_success": "모든 데이터가 성공적으로 삭제되었습니다.",
+    "delete_error": "데이터를 삭제하는 동안 오류가 발생했습니다.",
+    "delete_confirm_error": "확인하려면 'DELETE'를 입력하십시오.",
+    "never": "없음",
+    "geolocation_consent": {
+      "title": "지리적 위치 동의",
+      "status": "상태",
+      "granted": "부여됨",
+      "declined": "거부됨",
+      "not_set": "설정되지 않음",
+      "date": "날짜",
+      "grant": "부여",
+      "withdraw": "철회"
+    },
+    "data_overview": {
+      "title": "데이터 개요",
+      "messages": "메시지",
+      "conversations": "대화",
+      "avatars": "아바타",
+      "profile_size": "프로필 크기"
+    },
+    "data_actions": {
+      "title": "데이터 작업",
+      "export": {
+        "title": "내 데이터 내보내기",
+        "description": "모든 개인 데이터를 JSON 형식으로 다운로드",
+        "button": "내보내기",
+        "exporting": "내보내는 중..."
+      },
+      "delete": {
+        "title": "내 모든 데이터 삭제",
+        "description": "모든 개인 데이터의 영구 삭제",
+        "button": "삭제",
+        "confirm_title": "삭제 확인",
+        "confirm_description": "이 작업은 되돌릴 수 없습니다. 모든 데이터가 영구적으로 삭제됩니다.",
+        "type_delete": "확인하려면 'DELETE'를 입력하십시오.",
+        "confirm_button": "삭제 확인",
+        "deleting": "삭제 중..."
+      }
+    },
+    "legal_documents": {
+      "title": "법적 문서",
+      "privacy_policy": "개인 정보 보호 정책",
+      "terms_of_service": "이용 약관",
+      "legal_notices": "법적 고지"
+    }
+  },
+  "common": {
     "close": "닫기",
-    "manage_blocked_users": "차단된 사용자 관리",
-    "blocked_count": "{{count}}명의 차단된 사용자",
-    "no_blocked_users": "차단된 사용자 없음",
-    "unknown_user": "알 수 없는 사용자",
-    "blocked_at": "{{date}}에 차단됨",
-    "unblock_user": "사용자 차단 해제",
-    "unblock": "차단 해제",
-    "unblock_confirm": "이 사용자를 차단 해제하시겠습니까?",
-    "unblock_confirm_title": "사용자 차단 해제",
-    "unblock_confirm_message": "이 사용자를 차단 해제하시겠습니까?",
-    "confirm": "확인",
     "cancel": "취소"
   }
 }

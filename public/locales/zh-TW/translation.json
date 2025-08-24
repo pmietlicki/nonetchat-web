@@ -1,8 +1,8 @@
 {
   "app": {
     "initializing": "正在初始化服務...",
-    "tagline": "即時訊息",
-    "tagline_disconnected": "即時訊息 (已斷線)",
+    "tagline": "直接訊息",
+    "tagline_disconnected": "直接訊息 (已斷線)",
     "title": "NoNetChat Web",
     "status": {
       "connected": "已連線",
@@ -18,18 +18,18 @@
   "geolocationError": {
     "activate": "啟用位置",
     "close_alert": "關閉警示",
-    "unavailable_location": "無法確定您所在的國家/地區。擴充搜尋已停用。",
-    "gps_failed": "GPS失敗。透過IP使用近似位置。",
-    "permission_denied": "對地理位置的存取被拒絕。該應用程式找不到附近的對等點。",
-    "position_unavailable": "無法取得您目前的位置。請檢查網路連線或位置設定。",
-    "timeout": "位置搜尋逾時。請再試一次。",
+    "unavailable_location": "無法確定您的國家/城市。擴充搜尋已停用。",
+    "gps_failed": "GPS 失敗。使用 IP 的約略位置。",
+    "permission_denied": "對地理位置的存取已被拒絕。應用程式無法找到附近的對等點。",
+    "position_unavailable": "無法取得您的目前位置。檢查網路連線或位置設定。",
+    "timeout": "位置搜尋逾時。請重試。",
     "unknown": "擷取您的位置時發生未知錯誤。"
   },
   "user": {
     "default_name": "使用者"
   },
   "file": {
-    "receiving": "(接收中...)"
+    "receiving": "(正在接收...)"
   },
   "tabs": {
     "peers": "對等點",
@@ -38,22 +38,22 @@
   },
   "publicChat": {
     "title": "公開聊天",
-    "description": "此處的留言是短暫的，並且對您目前區域中的每個人都可見。",
+    "description": "此處的留言是短暫的，您目前區域中的每個人都可以看到。",
     "empty_placeholder": {
       "title": "{{roomName}}",
-      "body": "此處的留言是短暫的，並且對您目前區域中的每個人都可見。"
+      "body": "此处的留言是短暂的，您当前区域中的每个人都可以看到。"
     }
   },
   "settings": {
     "title": "設定",
     "close_aria": "關閉設定",
-    "profile_shortcut_title": "個人資料未完成",
+    "profile_shortcut_title": "個人資料不完整",
     "profile_shortcut_description": "編輯您的姓名/頭像",
     "edit": "編輯",
-    "signaling_url_label": "信令伺服器URL",
+    "signaling_url_label": "信令伺服器 URL",
     "signaling_url_placeholder": "wss://your-server.com",
     "discovery_mode_label": "搜尋模式",
-    "radius_km": "半徑(公里)",
+    "radius_km": "半徑 (公里)",
     "city": "城市",
     "country": "整個國家",
     "unavailable": "(不可用)",
@@ -62,7 +62,7 @@
     "manage": "管理"
   },
   "header": {
-    "logo_alt": "NoNetChat徽標",
+    "logo_alt": "NoNetChat 標誌",
     "notifications_aria": "通知設定",
     "settings_aria": "設定",
     "profile_aria": "編輯您的個人資料",
@@ -95,43 +95,43 @@
     }
   },
   "chat": {
-    "voice_note": "語音留言",
-    "sending_in_progress": "(傳送中...)",
-    "sending_progress": "(傳送中: {{progress}}%)",
+    "voice_note": "語音便箋",
+    "sending_in_progress": "(正在傳送...)",
+    "sending_progress": "(正在傳送: {{progress}}%)",
     "sending_error": "(傳送錯誤)",
-    "receiving_in_progress": "(接收中...)",
-    "file_size_error": "檔案大小不正確: 收到{{totalSize}}位元組，應為{{expectedSize}}位元組 (相差: {{sizeDifference}})",
-    "decryption_empty_error": "解密後的檔案為空",
-    "decryption_error": "錯誤: 無法解密{{fileName}}",
+    "receiving_in_progress": "(正在接收...)",
+    "file_size_error": "檔案大小不正確: 收到 {{totalSize}} 位元組，預期 {{expectedSize}} 位元組 (差異: {{sizeDifference}})",
+    "decryption_empty_error": "解密的檔案為空",
+    "decryption_error": "錯誤: 無法解密 {{fileName}}",
     "delete_message_confirm": "您確定要刪除此訊息嗎？",
-    "delete_conversation_confirm": "您確定要刪除此整個對話嗎？",
+    "delete_conversation_confirm": "您確定要刪除整個對話嗎？",
     "message_info_title": "資訊",
-    "message_info_content": "ID: {{id}}\n類型: {{type}}\n傳送時間: {{timestamp}}\n狀態: {{status}}",
+    "message_info_content": "ID: {{id}}\n類型: {{type}}\n已傳送: {{timestamp}}\n狀態: {{status}}",
     "message_status_sent": "已傳送",
     "send_aria_label_offline": "使用者離線 - 傳送已停用",
     "send_aria_label_file": "傳送檔案",
     "send_aria_label_message": "傳送訊息",
     "download_link": {
       "not_found": "在本地資料庫中找不到檔案。",
-      "error": "下載過程中發生錯誤。",
-      "loading": "載入中...",
+      "error": "下載期間發生錯誤。",
+      "loading": "正在載入...",
       "download": "📥 下載",
       "title": "下載檔案"
     },
     "header": {
       "back": "返回",
-      "online": "在線",
+      "online": "線上",
       "offline": "離線",
       "delete_conversation_title": "刪除對話",
       "cancel_transfers_title": "取消正在進行的傳輸"
     },
     "cancel_transfers": {
       "title": "正在進行的傳輸",
-      "receiving_progress": "接收中: {{progress}}%",
-      "sending_progress": "傳送中: {{progress}}%",
+      "receiving_progress": "正在接收: {{progress}}%",
+      "sending_progress": "正在傳送: {{progress}}%",
       "cancel": "取消",
       "warning_title": "警告:",
-      "warning_body": "取消會永久中斷傳輸。",
+      "warning_body": "取消將永久停止傳輸。",
       "cancelled_by_user": "(使用者已取消)"
     },
     "message_menu": {
@@ -140,19 +140,19 @@
       "delete": "刪除"
     },
     "reactions": {
-      "title": "使用{{emoji}}作出反應",
-      "title_one": "1則反應",
-      "title_other": "{{count}}則反應"
+      "title": "用 {{emoji}} 回應",
+      "title_one": "1 個回應",
+      "title_other": "{{count}} 個回應"
     },
     "file_message": {
       "size": "大小:",
       "unknown_size": "未知",
-      "status_sending": "傳送中...",
+      "status_sending": "正在傳送...",
       "status_sent": "已傳送",
-      "status_receiving": "接收中...",
+      "status_receiving": "正在接收...",
       "status_pending": "待定",
-      "sending": "傳送中",
-      "receiving": "接收中",
+      "sending": "正在傳送",
+      "receiving": "正在接收",
       "kb_unit": "KB",
       "seek_forward": "⟳ 10秒",
       "seek_backward": "⟲ 10秒",
@@ -160,26 +160,26 @@
     },
     "new_messages_button": {
       "aria_label": "轉到新訊息",
-      "text_one": "{{count}}則新訊息",
-      "text_other": "{{count}}則新訊息"
+      "text_one": "{{count}} 則新訊息",
+      "text_other": "{{count}} 則新訊息"
     },
     "input": {
       "remove_file": "刪除檔案",
       "file_disabled_offline": "對等點離線 - 檔案傳送不可用",
       "attach_file": "附加檔案",
-      "file_too_large": "檔案太大。允許的最大大小: {{maxSize}} MB\n\n注意: 檔案在傳送前會自動壓縮以優化傳輸。",
+      "file_too_large": "檔案太大。允許的最大大小: {{maxSize}} MB\n\n注意: 檔案在傳送前會自動壓縮以最佳化傳輸。",
       "selected_file": "選定的檔案: {{fileName}}",
       "placeholder": "輸入您的訊息...",
       "placeholder_offline": "使用者離線 - 訊息傳送已停用",
       "aria_label": "訊息輸入",
       "add_emoji": "新增表情符號",
       "record_voice": "錄製語音訊息",
-      "peer_offline_warning": "{{peerName}}已離線。訊息傳送已停用。",
+      "peer_offline_warning": "{{peerName}} 離線。訊息傳送已停用。",
       "compression_notice": "將自動壓縮和加密"
     }
   },
   "connectionStatus": {
-    "reconnecting": "重新連線中...",
+    "reconnecting": "正在重新連線...",
     "disconnected": "已斷線",
     "reconnect": "重新連線"
   },
@@ -188,12 +188,12 @@
     "search_placeholder": "按姓名或訊息搜尋...",
     "clear_search_aria": "清除搜尋",
     "clear_search_title": "清除",
-    "no_conversations_title": "無對話",
+    "no_conversations_title": "沒有對話",
     "no_conversations_prompt": "選擇一個對等點開始",
-    "loading": "載入中...",
+    "loading": "正在載入...",
     "delete_confirm": "您確定要刪除此對話嗎？",
-    "last_message_none": "無訊息",
-    "last_message_file": "📎 共享檔案",
+    "last_message_none": "沒有訊息",
+    "last_message_file": "📎 檔案已共用",
     "user_default_name": "使用者",
     "gender": {
       "male": "男性",
@@ -205,27 +205,45 @@
     "delete_button_aria": "刪除"
   },
   "diagnosticPanel": {
-    "title": "NoNetChat診斷",
+    "title": "NoNetChat 診斷",
     "close": "關閉",
     "resize": "調整大小",
     "connectivity_tests": "連線測試",
-    "testing_in_progress": "測試中...",
+    "testing_in_progress": "測試正在進行中...",
     "test_connectivity": "測試連線",
     "signaling": "信令",
     "ok": "確定",
     "fail": "失敗",
-    "stun_servers": "STUN伺服器:",
+    "stun_servers": "STUN 伺服器:",
     "network_info": "網路資訊:",
     "logs_title": "即時日誌",
     "auto_scroll": "自動捲動",
     "clear": "清除",
     "export": "匯出",
-    "no_logs": "無可用日誌。日誌將在此處即時顯示。",
+    "no_logs": "沒有可用的日誌。日誌將在此處即時顯示。",
     "instructions_title": "說明:",
-    "instructions_body": "1) 執行\"測試連線\". 2) 監視日誌。 3) 匯出以共用。"
+    "instructions_body": "1) 執行「測試連線」。2) 監視日誌。3) 匯出以共用。"
+  },
+  "filePreview": {
+    "unknown_size": "未知大小",
+    "file_not_found": "在本地資料庫中找不到檔案。",
+    "clipboard_error": "無法將文字複製到剪貼簿。",
+    "audio_error": "無法播放此音訊檔案。",
+    "default_filename": "檔案",
+    "unplayable_audio": "此音訊格式可能無法在此瀏覽器中播放。您可以從上面下載。",
+    "hide_preview": "隱藏預覽",
+    "show_preview": "顯示預覽",
+    "loading": "正在載入...",
+    "unknown_type": "未知類型",
+    "download": "下載",
+    "open_in_new_tab": "在新分頁中開啟",
+    "copy_text": "複製文字",
+    "preview_unavailable": "此檔案類型沒有可用的預覽。",
+    "change_speed": "變更速度",
+    "media_album": "附件"
   },
   "messageStatus": {
-    "sending": "傳送中...",
+    "sending": "正在傳送...",
     "sent": "已傳送",
     "delivered": "已送達",
     "read": "已讀",
@@ -233,7 +251,7 @@
   },
   "notificationSettings": {
     "title": "通知設定",
-    "general": "常規通知",
+    "general": "一般通知",
     "enable_notifications": "啟用通知",
     "enable_notifications_description": "接收新訊息的通知",
     "sound": "通知聲音",
@@ -245,7 +263,7 @@
     "dnd_description": "暫時停用所有通知",
     "tips_title": "💡 提示:",
     "tip1": "• 系統通知僅在分頁開啟時有效",
-    "tip2": "• \"請勿打擾\"模式會停用所有通知",
+    "tip2": "• 「請勿打擾」模式會停用所有通知",
     "tip3": "• 設定會自動儲存",
     "close": "關閉"
   },
@@ -256,26 +274,26 @@
     "male": "男性",
     "female": "女性",
     "other_gender": "其他/未指定",
-    "sort_by": "排序方式",
+    "sort_by": "排序",
     "distance_asc": "距離 (↑)",
     "distance_desc": "距離 (↓)",
     "age_asc": "年齡 (↑)",
     "age_desc": "年齡 (↓)",
     "connection_required_title": "需要連線",
     "connection_required_body": "連線到信令伺服器",
-    "no_peers_title": "沒有在線的對等點",
+    "no_peers_title": "沒有線上的對等點",
     "no_peers_body": "調整上面的篩選器",
     "user_default_name": "使用者",
     "estimated_distance": "估計距離",
     "gender_title": "性別: {{gender}}",
     "age_suffix": "歲",
-    "view_profile": "查看個人資料",
+    "view_profile": "檢視個人資料",
     "start_conversation": "開始對話",
     "join_time": {
       "unknown": "未知",
       "now": "剛才",
-      "minutes_ago": "{{count}}分鐘前",
-      "hours_ago": "{{count}}小時前"
+      "minutes_ago": "{{count}} 分鐘前",
+      "hours_ago": "{{count}} 小時前"
     },
     "tooltip": {
       "status": "狀態:",
@@ -285,18 +303,34 @@
       "connected": "已連線:"
     },
     "modal": {
-      "title": "{{name}}的個人資料",
+      "title": "{{name}} 的個人資料",
       "close": "關閉",
       "connected_since": "連線時間:"
     },
     "status": {
-      "online": "在線",
+      "online": "線上",
       "offline": "離線",
       "busy": "忙碌"
     },
-    "meta_separator": "•",
     "block_user_title": "封鎖使用者",
-    "block_user_confirm": "您確定要封鎖 {{name}} 嗎？您將不再收到他們的訊息。"
+    "block_user_confirm": "您確定要封鎖 {{name}} 嗎？您將不再收到他們的訊息。",
+    "meta_separator": "•"
+  },
+  "blockedUsers": {
+    "title": "已封鎖的使用者",
+    "close": "關閉",
+    "manage_blocked_users": "管理已封鎖的使用者",
+    "blocked_count": "{{count}} 個使用者已封鎖",
+    "no_blocked_users": "沒有已封鎖的使用者",
+    "unknown_user": "未知使用者",
+    "blocked_at": "於 {{date}} 封鎖",
+    "unblock_user": "取消封鎖使用者",
+    "unblock": "取消封鎖",
+    "unblock_confirm": "您確定要取消封鎖此使用者嗎？",
+    "unblock_confirm_title": "取消封鎖使用者",
+    "unblock_confirm_message": "您確定要取消封鎖此使用者嗎？",
+    "confirm": "確認",
+    "cancel": "取消"
   },
   "profileModal": {
     "title": "您的個人資料",
@@ -304,9 +338,9 @@
     "username_cannot_be_empty": "使用者名稱不能為空。",
     "select_valid_image": "請選擇有效的圖片。",
     "avatar_alt": "頭像",
-    "change_avatar_title": "更換頭像",
+    "change_avatar_title": "變更頭像",
     "refresh_avatar_title": "產生新的預設頭像",
-    "optimizing_image": "正在優化圖片…",
+    "optimizing_image": "正在最佳化圖片...",
     "username_label": "使用者名稱",
     "age_label": "年齡",
     "gender_label": "性別",
@@ -325,24 +359,24 @@
     "gender_female_short": "女",
     "gender_other": "其他",
     "age_suffix": "歲",
-    "meta_separator": " · "
+    "meta_separator": "·"
   },
   "statusBar": {
-    "peers_connected_aria_one": "{{count}}個對等點已連線",
-    "peers_connected_aria_other": "{{count}}個對等點已連線",
-    "peers_connected_text": "對等點",
+    "peers_connected_aria_one": "{{count}} 個對等點已連線",
+    "peers_connected_aria_other": "{{count}} 個對等點已連線",
+    "peers_connected_text": "個對等點",
     "id": "ID:",
-    "full_id_title": "完整ID: {{clientId}}",
+    "full_id_title": "完整 ID: {{clientId}}",
     "connected": "已連線",
     "disconnected": "已斷線",
     "open_diagnostic_panel": "開啟診斷面板",
     "change_signaling_server": "變更信令伺服器"
   },
   "voiceRecorder": {
-    "voice_note": "語音留言",
-    "mic_error": "無法存取麥克風。請檢查瀏覽器權限。",
-    "idle_title_click": "單擊: 錄製(鎖定) • Enter: 傳送 • Esc: 取消",
-    "idle_title_hold": "長按錄製 • ←滑動取消 • ↑滑動鎖定",
+    "voice_note": "語音便箋",
+    "mic_error": "無法存取麥克風。檢查瀏覽器權限。",
+    "idle_title_click": "按一下: 錄製 (已鎖定) • Enter: 傳送 • Esc: 取消",
+    "idle_title_hold": "長按錄製 • 滑動 ← 取消 • 滑動 ↑ 鎖定",
     "record_aria": "錄製語音訊息",
     "hint_slide_cancel": "向左滑動取消",
     "hint_slide_lock": "向上滑動鎖定",
@@ -350,48 +384,251 @@
     "cancel_title": "取消",
     "lock_aria": "鎖定錄製",
     "lock_title": "鎖定",
-    "send_aria": "傳送語音留言",
+    "send_aria": "傳送語音便箋",
     "send_title": "傳送",
     "locked": "已鎖定",
     "mobile_hint_lock": "鎖定",
-    "mobile_hint_cancel": "←滑動取消"
-  },
-  "filePreview": {
-    "audio_error": "無法播放此音訊檔案。",
-    "change_speed": "變更速度",
-    "clipboard_error": "無法將文字複製到剪貼簿。",
-    "copy_text": "複製文字",
-    "default_filename": "檔案",
-    "download": "下載",
-    "file_not_found": "在本地資料庫中找不到檔案。",
-    "hide_preview": "隱藏預覽",
-    "loading": "載入中…",
-    "media_album": "附件",
-    "open_in_new_tab": "在新分頁中開啟",
-    "preview_unavailable": "此檔案類型無可用預覽。",
-    "show_preview": "顯示預覽",
-    "unknown_size": "未知大小",
-    "unknown_type": "未知類型",
-    "unplayable_audio": "此音訊格式可能無法在此瀏覽器中播放。您可以從上方下載。"
+    "mobile_hint_cancel": "滑動 ← 取消"
   },
   "languageSelector": {
     "label": "語言",
-    "description": "語言將自動儲存並在您下次造訪時偵測。"
+    "description": "下次造訪時，語言將自動儲存和偵測。"
   },
-  "blockedUsers": {
-    "title": "被封鎖的使用者",
+  "consent": {
+    "geolocation": {
+      "title": "地理位置權限",
+      "description": "NoNetChat 希望存取您的地理位置，以便將您與附近的使用者連線起來。您的位置資料會得到安全處理，並符合 GDPR。",
+      "privacy_title": "尊重您的隱私",
+      "privacy_point1": "端對端加密資料",
+      "privacy_point2": "僅本地儲存",
+      "privacy_point3": "自動刪除伺服器座標",
+      "privacy_point4": "沒有中央資料伺服器",
+      "show_details": "顯示技術細節",
+      "hide_details": "隱藏細節",
+      "technical_details": "技術細節",
+      "data_collected": "收集的資料",
+      "data_collected_desc": "GPS 座標 (緯度/經度)、約略城市和國家",
+      "purpose": "目的",
+      "purpose_desc": "與地理位置相近的使用者建立 P2P 連線",
+      "retention": "保留",
+      "retention_desc": "斷線後，座標會自動從伺服器中刪除",
+      "legal_basis": "法律依據",
+      "legal_basis_desc": "明確同意 (GDPR 第 6.1.a 條)",
+      "withdrawal_info": "您可以隨時在隱私設定中撤回您的同意。有關更多資訊，請參閱我們的",
+      "privacy_policy_link": "隱私政策",
+      "accept": "接受",
+      "decline": "拒絕"
+    }
+  },
+  "legal": {
+    "tabs": {
+      "privacy": "隱私",
+      "terms": "條款",
+      "legal_notices": "法律聲明"
+    },
+    "privacy_policy": {
+      "title": "隱私政策",
+      "last_updated": "最後更新",
+      "controller": {
+        "title": "資料控制者",
+        "name": "姓名",
+        "contact": "聯絡方式",
+        "dpo": "資料保護官"
+      },
+      "data_collected": {
+        "title": "收集的資料",
+        "legal_basis": "法律依據",
+        "geolocation": {
+          "title": "地理位置資料",
+          "coordinates": "GPS 座標 (緯度、經度)",
+          "city_country": "城市和國家 (透過 IP 地理位置 API)",
+          "accuracy": "位置精度",
+          "legal_basis": "明確同意 (GDPR 第 6.1.a 條)"
+        },
+        "profile": {
+          "title": "個人資料資料",
+          "display_name": "顯示名稱 (可選)",
+          "age_gender": "年齡和性別 (可選)",
+          "avatar": "個人資料圖片 (可選)",
+          "device_id": "唯一裝置識別碼",
+          "legal_basis": "服務營運的合法權益 (GDPR 第 6.1.f 條)"
+        },
+        "messages": {
+          "title": "訊息和對話",
+          "encrypted": "端對端加密訊息 (AES-GCM)",
+          "local_only": "僅本地儲存 (IndexedDB)",
+          "metadata": "技術元資料 (時間戳、狀態)",
+          "legal_basis": "履行服務合約 (GDPR 第 6.1.b 條)"
+        }
+      },
+      "retention": {
+        "title": "保留期限",
+        "geolocation": "地理位置",
+        "geolocation_duration": "斷線時自動刪除 (最長 24 小時)",
+        "profile": "使用者個人資料",
+        "profile_duration": "本地儲存，直到手動刪除",
+        "messages": "訊息",
+        "messages_duration": "本地儲存，直到手動刪除"
+      },
+      "rights": {
+        "title": "您的 GDPR 權利",
+        "access": "存取權",
+        "access_desc": "在設定中檢視您的資料",
+        "rectification": "更正權",
+        "rectification_desc": "隨時編輯您的個人資料",
+        "erasure": "刪除權",
+        "erasure_desc": "刪除您的所有資料",
+        "portability": "資料可攜性權利",
+        "portability_desc": "以 JSON 格式匯出您的資料",
+        "withdraw_consent": "撤回同意",
+        "withdraw_consent_desc": "撤銷地理位置權限",
+        "complaint": "投訴權",
+        "complaint_desc": "聯絡您的資料保護機構"
+      },
+      "security": {
+        "title": "安全與保護",
+        "encryption": "使用臨時 ECDH 金鑰進行端對端加密",
+        "local_storage": "獨佔本地儲存 (無中央伺服器)",
+        "p2p": "去中心化 P2P 架構",
+        "no_central_server": "中央伺服器不收集資料"
+      },
+      "contact": {
+        "title": "聯絡方式",
+        "description": "有關本隱私政策或行使您的權利的任何問題，請聯絡:"
+      }
+    },
+    "terms": {
+      "title": "一般使用條款",
+      "last_updated": "最後更新",
+      "acceptance": {
+        "title": "接受條款",
+        "content": "使用 NoNetChat，即表示您同意這些使用條款。如果您不同意這些條款，請不要使用本服務。"
+      },
+      "service_description": {
+        "title": "服務說明",
+        "content": "NoNetChat 是一款去中心化的點對點訊息應用程式，允許使用者在沒有中央伺服器的情況下安全地進行通訊。該服務提供:",
+        "feature1": "端對端加密訊息",
+        "feature2": "直接 P2P 連線",
+        "feature3": "本地資料儲存",
+        "feature4": "透過地理位置發現對等點"
+      },
+      "user_obligations": {
+        "title": "使用者義務",
+        "respect_laws": "遵守適用的法律法規",
+        "no_harassment": "不得騷擾、威脅或恐嚇其他使用者",
+        "no_illegal_content": "不得分享非法、冒犯性或不當內容",
+        "respect_others": "尊重他人的隱私和權利",
+        "accurate_info": "在您的個人資料中提供準確的資訊"
+      },
+      "prohibited_uses": {
+        "title": "禁止使用",
+        "spam": "傳送垃圾郵件或未經請求的訊息",
+        "malware": "分發惡意軟體或病毒",
+        "impersonation": "冒充或詐欺性陳述",
+        "copyright": "侵犯版權或智慧財產權",
+        "reverse_engineering": "逆向工程或試圖破壞服務"
+      },
+      "liability": {
+        "title": "責任限制",
+        "content": "NoNetChat 按「原樣」提供，不作任何形式的保證。對於因使用本服務而導致的任何直接、間接或後果性損害，我們概不負責。",
+        "disclaimer": "使用者對其分享的內容以及與其他使用者的互動負全部責任。"
+      },
+      "modifications": {
+        "title": "條款修改",
+        "content": "我們保留隨時修改這些條款的權利。修改將在發布後生效。繼續使用本服務即表示接受新條款。"
+      },
+      "termination": {
+        "title": "終止",
+        "content": "您可以隨時停止使用本服務。如果違反這些條款，我們保留暫停存取本服務的權利。"
+      },
+      "governing_law": {
+        "title": "適用法律",
+        "content": "這些條款受法國法律管轄。任何爭議將提交給有管轄權的法國法院。"
+      }
+    },
+    "notices": {
+      "title": "法律聲明",
+      "publisher": {
+        "title": "發布者",
+        "name": "姓名",
+        "type": "類型",
+        "type_value": "開源 Web 應用程式",
+        "contact": "聯絡方式",
+        "website": "網站"
+      },
+      "hosting": {
+        "title": "託管",
+        "provider": "提供商",
+        "provider_value": "去中心化架構 - 無中央託管",
+        "note": "注意",
+        "note_value": "資料本地儲存在使用者的裝置上"
+      },
+      "intellectual_property": {
+        "title": "智慧財產權",
+        "content": "NoNetChat 是根據開源授權分發的免費軟體。原始碼是公開的，可以根據授權的條款進行修改。"
+      },
+      "open_source": {
+        "title": "開源",
+        "content": "該專案是開源的，歡迎社群貢獻。",
+        "repository": "儲存庫"
+      }
+    }
+  },
+  "privacy_settings": {
+    "title": "隱私設定",
+    "consent_withdrawn": "同意已成功撤回",
+    "consent_granted": "同意已成功授予",
+    "export_success": "資料已成功匯出",
+    "export_error": "匯出資料時出錯",
+    "delete_success": "所有資料已成功刪除",
+    "delete_error": "刪除資料時出錯",
+    "delete_confirm_error": "請鍵入「DELETE」以確認",
+    "never": "從不",
+    "geolocation_consent": {
+      "title": "地理位置同意",
+      "status": "狀態",
+      "granted": "已授予",
+      "declined": "已拒絕",
+      "not_set": "未設定",
+      "date": "日期",
+      "grant": "授予",
+      "withdraw": "撤回"
+    },
+    "data_overview": {
+      "title": "資料概覽",
+      "messages": "訊息",
+      "conversations": "對話",
+      "avatars": "頭像",
+      "profile_size": "個人資料大小"
+    },
+    "data_actions": {
+      "title": "資料操作",
+      "export": {
+        "title": "匯出我的資料",
+        "description": "以 JSON 格式下載您的所有個人資料",
+        "button": "匯出",
+        "exporting": "正在匯出..."
+      },
+      "delete": {
+        "title": "刪除我的所有資料",
+        "description": "永久刪除您的所有個人資料",
+        "button": "刪除",
+        "confirm_title": "確認刪除",
+        "confirm_description": "此操作不可逆。您的所有資料將被永久刪除。",
+        "type_delete": "鍵入「DELETE」以確認:",
+        "confirm_button": "確認刪除",
+        "deleting": "正在刪除..."
+      }
+    },
+    "legal_documents": {
+      "title": "法律文件",
+      "privacy_policy": "隱私政策",
+      "terms_of_service": "使用條款",
+      "legal_notices": "法律聲明"
+    }
+  },
+  "common": {
     "close": "關閉",
-    "manage_blocked_users": "管理被封鎖的使用者",
-    "blocked_count": "{{count}} 位被封鎖的使用者",
-    "no_blocked_users": "沒有被封鎖的使用者",
-    "unknown_user": "未知的使用者",
-    "blocked_at": "{{date}} 已封鎖",
-    "unblock_user": "解除封鎖使用者",
-    "unblock": "解除封鎖",
-    "unblock_confirm": "您確定要解除封鎖此使用者嗎？",
-    "unblock_confirm_title": "解除封鎖使用者",
-    "unblock_confirm_message": "您確定要解除封鎖此使用者嗎？",
-    "confirm": "確認",
     "cancel": "取消"
   }
 }

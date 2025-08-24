@@ -2,7 +2,7 @@
   "app": {
     "initializing": "Services initialiseren...",
     "tagline": "Directe berichten",
-    "tagline_disconnected": "Directe berichten (Verbinding verbroken)",
+    "tagline_disconnected": "Directe berichten (verbinding verbroken)",
     "title": "NoNetChat Web",
     "status": {
       "connected": "Verbonden",
@@ -16,12 +16,12 @@
     }
   },
   "geolocationError": {
-    "activate": "Locatie inschakelen",
+    "activate": "Locatie activeren",
     "close_alert": "Melding sluiten",
     "unavailable_location": "Kon uw land/stad niet bepalen. Uitgebreid zoeken is uitgeschakeld.",
-    "gps_failed": "GPS mislukt. Geschatte locatie via IP wordt gebruikt.",
+    "gps_failed": "GPS mislukt. Geschatte locatie op basis van IP wordt gebruikt.",
     "permission_denied": "Toegang tot geolocatie is geweigerd. De applicatie kan geen peers in de buurt vinden.",
-    "position_unavailable": "Kon uw huidige positie niet ophalen. Controleer de netwerkverbinding of locatie-instellingen.",
+    "position_unavailable": "Kan uw huidige positie niet ophalen. Controleer de netwerkverbinding of locatie-instellingen.",
     "timeout": "Time-out bij het zoeken naar positie. Probeer het opnieuw.",
     "unknown": "Onbekende fout bij het ophalen van uw positie."
   },
@@ -38,16 +38,16 @@
   },
   "publicChat": {
     "title": "Openbare chat",
-    "description": "Berichten hier zijn kortstondig en zichtbaar voor iedereen in uw huidige gebied.",
+    "description": "Berichten hier zijn van voorbijgaande aard en zichtbaar voor iedereen in uw huidige gebied.",
     "empty_placeholder": {
       "title": "{{roomName}}",
-      "body": "Berichten hier zijn kortstondig en zichtbaar voor iedereen in uw huidige gebied."
+      "body": "Berichten hier zijn van voorbijgaande aard en zichtbaar voor iedereen in uw huidige gebied."
     }
   },
   "settings": {
     "title": "Instellingen",
     "close_aria": "Instellingen sluiten",
-    "profile_shortcut_title": "Profiel niet voltooid",
+    "profile_shortcut_title": "Profiel onvolledig",
     "profile_shortcut_description": "Bewerk uw naam / avatar",
     "edit": "Bewerken",
     "signaling_url_label": "Signaleringsserver-URL",
@@ -66,17 +66,17 @@
     "notifications_aria": "Meldingsinstellingen",
     "settings_aria": "Instellingen",
     "profile_aria": "Bewerk uw profiel",
-    "home_aria": "Terug naar startpagina"
+    "home_aria": "Terug naar start"
   },
   "main": {
-    "connecting_to_peer": "Bezig met verbinden...",
+    "connecting_to_peer": "Verbinden...",
     "establishing_connection": "Verbinding maken met de geselecteerde peer.",
-    "connecting_to_server": "Verbinding maken met signaleringsserver...",
-    "select_peer_prompt": "Selecteer een peer om een directe en veilige conversatie te starten.",
+    "connecting_to_server": "Verbinding maken met de signaleringsserver...",
+    "select_peer_prompt": "Selecteer een peer om een direct en veilig gesprek te starten.",
     "cancel_button": "Annuleren",
     "welcome_title": "NoNetChat Web",
-    "welcome_connecting": "Verbinding maken met signaleringsserver...",
-    "welcome_select_peer": "Selecteer een peer om een directe en veilige conversatie te starten."
+    "welcome_connecting": "Verbinding maken met de signaleringsserver...",
+    "welcome_select_peer": "Selecteer een peer om een direct en veilig gesprek te starten."
   },
   "bottomNav": {
     "peers": "Peers",
@@ -85,7 +85,7 @@
     "messages": "Berichten",
     "settings": "Instellingen",
     "notifications": "Meldingen",
-    "notifications_short": "Meld.",
+    "notifications_short": "Meldingen",
     "aria": {
       "peers": "Peers",
       "public_chat": "Openbare chat",
@@ -102,7 +102,7 @@
     "receiving_in_progress": "(Ontvangen...)",
     "file_size_error": "Onjuiste bestandsgrootte: {{totalSize}} bytes ontvangen, {{expectedSize}} bytes verwacht (verschil: {{sizeDifference}})",
     "decryption_empty_error": "Gedecrypteerd bestand is leeg",
-    "decryption_error": "Fout: Kan {{fileName}} niet décrypteren",
+    "decryption_error": "Fout: Kan {{fileName}} niet decrypteren",
     "delete_message_confirm": "Weet u zeker dat u dit bericht wilt verwijderen?",
     "delete_conversation_confirm": "Weet u zeker dat u dit hele gesprek wilt verwijderen?",
     "message_info_title": "Informatie",
@@ -131,7 +131,7 @@
       "sending_progress": "Verzenden: {{progress}}%",
       "cancel": "Annuleren",
       "warning_title": "Waarschuwing:",
-      "warning_body": "Annulering onderbreekt de overdracht permanent.",
+      "warning_body": "Annuleren stopt de overdracht permanent.",
       "cancelled_by_user": "(Geannuleerd door gebruiker)"
     },
     "message_menu": {
@@ -140,7 +140,7 @@
       "delete": "Verwijderen"
     },
     "reactions": {
-      "title": "Reageer met {{emoji}}",
+      "title": "Reageren met {{emoji}}",
       "title_one": "1 reactie",
       "title_other": "{{count}} reacties"
     },
@@ -165,15 +165,15 @@
     },
     "input": {
       "remove_file": "Bestand verwijderen",
-      "file_disabled_offline": "Peer offline - verzenden van bestanden niet beschikbaar",
+      "file_disabled_offline": "Peer offline - bestand verzenden niet beschikbaar",
       "attach_file": "Bestand bijvoegen",
-      "file_too_large": "Het bestand is te groot. Maximaal toegestane grootte: {{maxSize}} MB\n\nOpmerking: Bestanden worden automatisch gecomprimeerd voordat ze worden verzonden om de overdracht te optimaliseren.",
+      "file_too_large": "Het bestand is te groot. Maximaal toegestane grootte: {{maxSize}} MB\n\nOpmerking: bestanden worden automatisch gecomprimeerd voordat ze worden verzonden om de overdracht te optimaliseren.",
       "selected_file": "Geselecteerd bestand: {{fileName}}",
       "placeholder": "Typ uw bericht...",
-      "placeholder_offline": "Gebruiker offline - verzenden van berichten uitgeschakeld",
+      "placeholder_offline": "Gebruiker offline - berichten verzenden uitgeschakeld",
       "aria_label": "Berichtinvoer",
       "add_emoji": "Emoji toevoegen",
-      "record_voice": "Spraakbericht opnemen",
+      "record_voice": "Een spraakbericht opnemen",
       "peer_offline_warning": "{{peerName}} is offline. Het verzenden van berichten is uitgeschakeld.",
       "compression_notice": "Wordt automatisch gecomprimeerd en versleuteld"
     }
@@ -193,47 +193,47 @@
     "loading": "Laden...",
     "delete_confirm": "Weet u zeker dat u dit gesprek wilt verwijderen?",
     "last_message_none": "Geen berichten",
-    "last_message_file": "📎 Gedeeld bestand",
+    "last_message_file": "📎 Bestand gedeeld",
     "user_default_name": "Gebruiker",
     "gender": {
       "male": "Man",
       "female": "Vrouw",
       "other": "Anders"
     },
-    "age_suffix": "jaar",
+    "age_suffix": "jr",
     "delete_button_title": "Dit gesprek verwijderen",
     "delete_button_aria": "Verwijderen"
   },
   "diagnosticPanel": {
-    "title": "NoNetChat Diagnostiek",
+    "title": "NoNetChat-diagnose",
     "close": "Sluiten",
     "resize": "Grootte wijzigen",
     "connectivity_tests": "Connectiviteitstests",
-    "testing_in_progress": "Testen...",
-    "test_connectivity": "Test connectiviteit",
+    "testing_in_progress": "Test wordt uitgevoerd...",
+    "test_connectivity": "Connectiviteit testen",
     "signaling": "Signalering",
     "ok": "OK",
-    "fail": "MISLUKT",
+    "fail": "Mislukt",
     "stun_servers": "STUN-servers:",
     "network_info": "Netwerkinfo:",
-    "logs_title": "Real-time logboeken",
+    "logs_title": "Realtime logboeken",
     "auto_scroll": "Automatisch scrollen",
     "clear": "Wissen",
     "export": "Exporteren",
-    "no_logs": "Geen logboeken beschikbaar. Logboeken verschijnen hier in real-time.",
+    "no_logs": "Geen logboeken beschikbaar. Logboeken verschijnen hier in realtime.",
     "instructions_title": "Instructies:",
-    "instructions_body": "1) Voer \"Test Connectiviteit\" uit. 2) Monitor de logboeken. 3) Exporteer om te delen."
+    "instructions_body": "1) Voer 'Connectiviteit testen' uit. 2) Monitor de logboeken. 3) Exporteer om te delen."
   },
   "filePreview": {
     "unknown_size": "onbekende grootte",
     "file_not_found": "Bestand niet gevonden in lokale database.",
-    "clipboard_error": "Kon tekst niet naar klembord kopiëren.",
-    "audio_error": "Kon dit audiobestand niet afspelen.",
+    "clipboard_error": "Kan tekst niet naar klembord kopiëren.",
+    "audio_error": "Kan dit audiobestand niet afspelen.",
     "default_filename": "bestand",
     "unplayable_audio": "Dit audioformaat is mogelijk niet afspeelbaar in deze browser. U kunt het hierboven downloaden.",
     "hide_preview": "Voorbeeld verbergen",
     "show_preview": "Voorbeeld weergeven",
-    "loading": "Laden…",
+    "loading": "Laden...",
     "unknown_type": "onbekend type",
     "download": "Downloaden",
     "open_in_new_tab": "Openen in nieuw tabblad",
@@ -257,13 +257,13 @@
     "sound": "Meldingsgeluiden",
     "sound_description": "Een geluid afspelen bij het ontvangen van berichten",
     "system": "Systeemmeldingen",
-    "system_description": "Meldingen in de browser weergeven",
+    "system_description": "Meldingen weergeven in de browser",
     "authorize": "Autoriseren",
     "dnd": "Niet storen-modus",
     "dnd_description": "Alle meldingen tijdelijk uitschakelen",
     "tips_title": "💡 Tips:",
     "tip1": "• Systeemmeldingen werken alleen als het tabblad geopend is",
-    "tip2": "• De modus \"Niet storen\" schakelt alle meldingen uit",
+    "tip2": "• De modus 'Niet storen' schakelt alle meldingen uit",
     "tip3": "• Instellingen worden automatisch opgeslagen",
     "close": "Sluiten"
   },
@@ -274,7 +274,7 @@
     "male": "Mannen",
     "female": "Vrouwen",
     "other_gender": "Anders / Niet gespecificeerd",
-    "sort_by": "Sorteren op",
+    "sort_by": "Sorteren",
     "distance_asc": "Afstand (↑)",
     "distance_desc": "Afstand (↓)",
     "age_asc": "Leeftijd (↑)",
@@ -282,18 +282,18 @@
     "connection_required_title": "Verbinding vereist",
     "connection_required_body": "Maak verbinding met de signaleringsserver",
     "no_peers_title": "Geen peers online",
-    "no_peers_body": "Pas de filters hierboven aan",
+    "no_peers_body": "Pas de bovenstaande filters aan",
     "user_default_name": "Gebruiker",
     "estimated_distance": "Geschatte afstand",
     "gender_title": "Geslacht: {{gender}}",
-    "age_suffix": "jaar",
+    "age_suffix": "jr",
     "view_profile": "Profiel bekijken",
     "start_conversation": "Gesprek starten",
     "join_time": {
       "unknown": "Onbekend",
       "now": "Zojuist",
       "minutes_ago": "{{count}} min geleden",
-      "hours_ago": "{{count}}u geleden"
+      "hours_ago": "{{count}} u geleden"
     },
     "tooltip": {
       "status": "Status:",
@@ -312,9 +312,25 @@
       "offline": "Offline",
       "busy": "Bezet"
     },
-    "meta_separator": "•",
     "block_user_title": "Gebruiker blokkeren",
-    "block_user_confirm": "Weet je zeker dat je {{name}} wilt blokkeren? Je ontvangt dan geen berichten meer van hem/haar."
+    "block_user_confirm": "Weet u zeker dat u {{name}} wilt blokkeren? U ontvangt hun berichten niet meer.",
+    "meta_separator": "•"
+  },
+  "blockedUsers": {
+    "title": "Geblokkeerde gebruikers",
+    "close": "Sluiten",
+    "manage_blocked_users": "Geblokkeerde gebruikers beheren",
+    "blocked_count": "{{count}} gebruiker(s) geblokkeerd",
+    "no_blocked_users": "Geen geblokkeerde gebruikers",
+    "unknown_user": "Onbekende gebruiker",
+    "blocked_at": "Geblokkeerd op {{date}}",
+    "unblock_user": "Gebruiker deblokkeren",
+    "unblock": "Deblokkeren",
+    "unblock_confirm": "Weet u zeker dat u deze gebruiker wilt deblokkeren?",
+    "unblock_confirm_title": "Gebruiker deblokkeren",
+    "unblock_confirm_message": "Weet u zeker dat u deze gebruiker wilt deblokkeren?",
+    "confirm": "Bevestigen",
+    "cancel": "Annuleren"
   },
   "profileModal": {
     "title": "Uw profiel",
@@ -323,8 +339,8 @@
     "select_valid_image": "Selecteer een geldige afbeelding.",
     "avatar_alt": "Avatar",
     "change_avatar_title": "Avatar wijzigen",
-    "refresh_avatar_title": "Genereer een nieuwe standaardavatar",
-    "optimizing_image": "Afbeelding optimaliseren…",
+    "refresh_avatar_title": "Nieuwe standaardavatar genereren",
+    "optimizing_image": "Afbeelding optimaliseren...",
     "username_label": "Gebruikersnaam",
     "age_label": "Leeftijd",
     "gender_label": "Geslacht",
@@ -342,8 +358,8 @@
     "gender_male_short": "M",
     "gender_female_short": "V",
     "gender_other": "Anders",
-    "age_suffix": "jaar",
-    "meta_separator": " · "
+    "age_suffix": "jr",
+    "meta_separator": "·"
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} peer verbonden",
@@ -358,12 +374,12 @@
   },
   "voiceRecorder": {
     "voice_note": "Spraakbericht",
-    "mic_error": "Kon geen toegang krijgen tot de microfoon. Controleer de browsermachtigingen.",
+    "mic_error": "Kan geen toegang krijgen tot de microfoon. Controleer de browsermachtigingen.",
     "idle_title_click": "Klik: opnemen (vergrendeld) • Enter: verzenden • Esc: annuleren",
-    "idle_title_hold": "Lang indrukken om op te nemen • Schuif ← om te annuleren • Schuif ↑ om te vergrendelen",
-    "record_aria": "Spraakbericht opnemen",
-    "hint_slide_cancel": "Schuif naar links om te annuleren",
-    "hint_slide_lock": "Schuif omhoog om te vergrendelen",
+    "idle_title_hold": "Lang indrukken om op te nemen • Veeg ← om te annuleren • Veeg ↑ om te vergrendelen",
+    "record_aria": "Een spraakbericht opnemen",
+    "hint_slide_cancel": "Veeg naar links om te annuleren",
+    "hint_slide_lock": "Veeg omhoog om te vergrendelen",
     "cancel_aria": "Opname annuleren",
     "cancel_title": "Annuleren",
     "lock_aria": "Opname vergrendelen",
@@ -372,26 +388,247 @@
     "send_title": "Verzenden",
     "locked": "vergrendeld",
     "mobile_hint_lock": "Vergrendelen",
-    "mobile_hint_cancel": "Schuif ← om te annuleren"
+    "mobile_hint_cancel": "Veeg ← om te annuleren"
   },
   "languageSelector": {
     "label": "Taal",
     "description": "De taal wordt automatisch opgeslagen en gedetecteerd bij uw volgende bezoek."
   },
-  "blockedUsers": {
-    "title": "Geblokkeerde gebruikers",
+  "consent": {
+    "geolocation": {
+      "title": "Toestemming voor geolocatie",
+      "description": "NoNetChat wil toegang tot uw geografische locatie om u te verbinden met gebruikers in de buurt. Uw locatiegegevens worden veilig en in overeenstemming met de AVG verwerkt.",
+      "privacy_title": "Respect voor uw privacy",
+      "privacy_point1": "End-to-end versleutelde gegevens",
+      "privacy_point2": "Alleen lokale opslag",
+      "privacy_point3": "Automatische verwijdering van servercoördinaten",
+      "privacy_point4": "Geen centrale dataserver",
+      "show_details": "Technische details weergeven",
+      "hide_details": "Details verbergen",
+      "technical_details": "Technische details",
+      "data_collected": "Verzamelde gegevens",
+      "data_collected_desc": "GPS-coördinaten (breedtegraad/lengtegraad), geschatte stad en land",
+      "purpose": "Doel",
+      "purpose_desc": "P2P-verbinding met geografisch nabije gebruikers",
+      "retention": "Bewaring",
+      "retention_desc": "Coördinaten worden na verbreking automatisch van de server verwijderd",
+      "legal_basis": "Wettelijke basis",
+      "legal_basis_desc": "Uitdrukkelijke toestemming (art. 6.1.a AVG)",
+      "withdrawal_info": "U kunt uw toestemming te allen tijde intrekken in de privacy-instellingen. Raadpleeg voor meer informatie onze",
+      "privacy_policy_link": "privacybeleid",
+      "accept": "Accepteren",
+      "decline": "Weigeren"
+    }
+  },
+  "legal": {
+    "tabs": {
+      "privacy": "Privacy",
+      "terms": "Voorwaarden",
+      "legal_notices": "Juridische mededelingen"
+    },
+    "privacy_policy": {
+      "title": "Privacybeleid",
+      "last_updated": "Laatst bijgewerkt",
+      "controller": {
+        "title": "Gegevensbeheerder",
+        "name": "Naam",
+        "contact": "Contact",
+        "dpo": "Functionaris voor gegevensbescherming"
+      },
+      "data_collected": {
+        "title": "Verzamelde gegevens",
+        "legal_basis": "Wettelijke basis",
+        "geolocation": {
+          "title": "Geolocatiegegevens",
+          "coordinates": "GPS-coördinaten (breedtegraad, lengtegraad)",
+          "city_country": "Stad en land (via IP-geolocatie-API)",
+          "accuracy": "Locatienauwkeurigheid",
+          "legal_basis": "Uitdrukkelijke toestemming (art. 6.1.a AVG)"
+        },
+        "profile": {
+          "title": "Profielgegevens",
+          "display_name": "Weergavenaam (optioneel)",
+          "age_gender": "Leeftijd en geslacht (optioneel)",
+          "avatar": "Profielfoto (optioneel)",
+          "device_id": "Unieke apparaat-ID",
+          "legal_basis": "Gerechtvaardigd belang voor de werking van de dienst (art. 6.1.f AVG)"
+        },
+        "messages": {
+          "title": "Berichten en gesprekken",
+          "encrypted": "End-to-end versleutelde berichten (AES-GCM)",
+          "local_only": "Alleen lokale opslag (IndexedDB)",
+          "metadata": "Technische metadata (tijdstempel, status)",
+          "legal_basis": "Uitvoering van het servicecontract (art. 6.1.b AVG)"
+        }
+      },
+      "retention": {
+        "title": "Bewaartermijn",
+        "geolocation": "Geolocatie",
+        "geolocation_duration": "Automatische verwijdering bij verbreking (max. 24 uur)",
+        "profile": "Gebruikersprofiel",
+        "profile_duration": "Lokaal bewaard tot handmatige verwijdering",
+        "messages": "Berichten",
+        "messages_duration": "Lokaal bewaard tot handmatige verwijdering"
+      },
+      "rights": {
+        "title": "Uw AVG-rechten",
+        "access": "Recht op inzage",
+        "access_desc": "Bekijk uw gegevens in de instellingen",
+        "rectification": "Recht op rectificatie",
+        "rectification_desc": "Bewerk uw profiel op elk gewenst moment",
+        "erasure": "Recht op verwijdering",
+        "erasure_desc": "Verwijder al uw gegevens",
+        "portability": "Recht op gegevensoverdraagbaarheid",
+        "portability_desc": "Exporteer uw gegevens in JSON-formaat",
+        "withdraw_consent": "Toestemming intrekken",
+        "withdraw_consent_desc": "Toestemming voor geolocatie intrekken",
+        "complaint": "Recht om een klacht in te dienen",
+        "complaint_desc": "Neem contact op met uw gegevensbeschermingsautoriteit"
+      },
+      "security": {
+        "title": "Beveiliging en bescherming",
+        "encryption": "End-to-end-versleuteling met kortstondige ECDH-sleutels",
+        "local_storage": "Exclusieve lokale opslag (geen centrale server)",
+        "p2p": "Gedecentraliseerde P2P-architectuur",
+        "no_central_server": "Geen gegevensverzameling door een centrale server"
+      },
+      "contact": {
+        "title": "Contact",
+        "description": "Voor vragen over dit privacybeleid of de uitoefening van uw rechten:"
+      }
+    },
+    "terms": {
+      "title": "Algemene gebruiksvoorwaarden",
+      "last_updated": "Laatst bijgewerkt",
+      "acceptance": {
+        "title": "Aanvaarding van de voorwaarden",
+        "content": "Door NoNetChat te gebruiken, gaat u akkoord met deze gebruiksvoorwaarden. Als u niet akkoord gaat met deze voorwaarden, gebruik de service dan niet."
+      },
+      "service_description": {
+        "title": "Servicebeschrijving",
+        "content": "NoNetChat is een gedecentraliseerde peer-to-peer-berichtenapplicatie waarmee gebruikers veilig kunnen communiceren zonder een centrale server. De service biedt:",
+        "feature1": "End-to-end versleutelde berichten",
+        "feature2": "Directe P2P-verbindingen",
+        "feature3": "Lokale gegevensopslag",
+        "feature4": "Peer-detectie op basis van geolocatie"
+      },
+      "user_obligations": {
+        "title": "Verplichtingen van de gebruiker",
+        "respect_laws": "Naleving van toepasselijke wet- en regelgeving",
+        "no_harassment": "Andere gebruikers niet lastigvallen, bedreigen of intimideren",
+        "no_illegal_content": "Geen illegale, aanstootgevende of ongepaste inhoud delen",
+        "respect_others": "Respecteer de privacy en rechten van anderen",
+        "accurate_info": "Geef nauwkeurige informatie op in uw profiel"
+      },
+      "prohibited_uses": {
+        "title": "Verboden gebruik",
+        "spam": "Spam of ongevraagde berichten verzenden",
+        "malware": "Malware of virussen verspreiden",
+        "impersonation": "Imitatie of frauduleuze weergave",
+        "copyright": "Schending van auteursrechten of intellectuele eigendomsrechten",
+        "reverse_engineering": "Reverse engineering of poging om de service te compromitteren"
+      },
+      "liability": {
+        "title": "Beperking van aansprakelijkheid",
+        "content": "NoNetChat wordt geleverd 'zoals het is' zonder enige vorm van garantie. Wij zijn niet aansprakelijk voor enige directe, indirecte of gevolgschade die voortvloeit uit het gebruik van de service.",
+        "disclaimer": "De gebruiker is als enige verantwoordelijk voor de inhoud die hij deelt en de interacties die hij heeft met andere gebruikers."
+      },
+      "modifications": {
+        "title": "Wijzigingen in de voorwaarden",
+        "content": "Wij behouden ons het recht voor om deze voorwaarden op elk moment te wijzigen. De wijzigingen worden van kracht na publicatie. Voortgezet gebruik van de service houdt aanvaarding van de nieuwe voorwaarden in."
+      },
+      "termination": {
+        "title": "Beëindiging",
+        "content": "U kunt op elk moment stoppen met het gebruik van de service. Wij behouden ons het recht voor om de toegang tot de service op te schorten in geval van schending van deze voorwaarden."
+      },
+      "governing_law": {
+        "title": "Toepasselijk recht",
+        "content": "Deze voorwaarden worden beheerst door het Franse recht. Elk geschil wordt voorgelegd aan de bevoegde Franse rechtbanken."
+      }
+    },
+    "notices": {
+      "title": "Juridische mededelingen",
+      "publisher": {
+        "title": "Uitgever",
+        "name": "Naam",
+        "type": "Type",
+        "type_value": "Open source webapplicatie",
+        "contact": "Contact",
+        "website": "Website"
+      },
+      "hosting": {
+        "title": "Hosting",
+        "provider": "Provider",
+        "provider_value": "Gedecentraliseerde architectuur - geen centrale hosting",
+        "note": "Opmerking",
+        "note_value": "Gegevens worden lokaal op het apparaat van de gebruiker opgeslagen"
+      },
+      "intellectual_property": {
+        "title": "Intellectueel eigendom",
+        "content": "NoNetChat is gratis software die wordt gedistribueerd onder een open source-licentie. De broncode is openbaar beschikbaar en kan worden gewijzigd volgens de voorwaarden van de licentie."
+      },
+      "open_source": {
+        "title": "Open Source",
+        "content": "Dit project is open source en bijdragen van de gemeenschap zijn welkom.",
+        "repository": "Repository"
+      }
+    }
+  },
+  "privacy_settings": {
+    "title": "Privacy-instellingen",
+    "consent_withdrawn": "Toestemming succesvol ingetrokken",
+    "consent_granted": "Toestemming succesvol verleend",
+    "export_success": "Gegevens succesvol geëxporteerd",
+    "export_error": "Fout bij het exporteren van gegevens",
+    "delete_success": "Alle gegevens succesvol verwijderd",
+    "delete_error": "Fout bij het verwijderen van gegevens",
+    "delete_confirm_error": "Typ 'DELETE' om te bevestigen",
+    "never": "Nooit",
+    "geolocation_consent": {
+      "title": "Toestemming voor geolocatie",
+      "status": "Status",
+      "granted": "Verleend",
+      "declined": "Geweigerd",
+      "not_set": "Niet ingesteld",
+      "date": "Datum",
+      "grant": "Verlenen",
+      "withdraw": "Intrekken"
+    },
+    "data_overview": {
+      "title": "Gegevensoverzicht",
+      "messages": "Berichten",
+      "conversations": "Gesprekken",
+      "avatars": "Avatars",
+      "profile_size": "Profielgrootte"
+    },
+    "data_actions": {
+      "title": "Gegevensacties",
+      "export": {
+        "title": "Mijn gegevens exporteren",
+        "description": "Download al uw persoonlijke gegevens in JSON-formaat",
+        "button": "Exporteren",
+        "exporting": "Exporteren..."
+      },
+      "delete": {
+        "title": "Al mijn gegevens verwijderen",
+        "description": "Permanente verwijdering van al uw persoonlijke gegevens",
+        "button": "Verwijderen",
+        "confirm_title": "Verwijdering bevestigen",
+        "confirm_description": "Deze actie is onomkeerbaar. Al uw gegevens worden permanent verwijderd.",
+        "type_delete": "Typ 'DELETE' om te bevestigen:",
+        "confirm_button": "Verwijdering bevestigen",
+        "deleting": "Verwijderen..."
+      }
+    },
+    "legal_documents": {
+      "title": "Juridische documenten",
+      "privacy_policy": "Privacybeleid",
+      "terms_of_service": "Gebruiksvoorwaarden",
+      "legal_notices": "Juridische mededelingen"
+    }
+  },
+  "common": {
     "close": "Sluiten",
-    "manage_blocked_users": "Beheer geblokkeerde gebruikers",
-    "blocked_count": "{{count}} geblokkeerde gebruiker(s)",
-    "no_blocked_users": "Geen geblokkeerde gebruikers",
-    "unknown_user": "Onbekende gebruiker",
-    "blocked_at": "Geblokkeerd op {{date}}",
-    "unblock_user": "Gebruiker deblokkeren",
-    "unblock": "Deblokkeren",
-    "unblock_confirm": "Weet je zeker dat je deze gebruiker wilt deblokkeren?",
-    "unblock_confirm_title": "Gebruiker deblokkeren",
-    "unblock_confirm_message": "Weet je zeker dat je deze gebruiker wilt deblokkeren?",
-    "confirm": "Bevestigen",
     "cancel": "Annuleren"
   }
 }

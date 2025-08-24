@@ -1,8 +1,8 @@
 {
   "app": {
     "initializing": "Menginisialisasi layanan...",
-    "tagline": "Pesan langsung",
-    "tagline_disconnected": "Pesan langsung (Terputus)",
+    "tagline": "Pesan Langsung",
+    "tagline_disconnected": "Pesan Langsung (Terputus)",
     "title": "NoNetChat Web",
     "status": {
       "connected": "Terhubung",
@@ -19,11 +19,11 @@
     "activate": "Aktifkan lokasi",
     "close_alert": "Tutup peringatan",
     "unavailable_location": "Tidak dapat menentukan negara/kota Anda. Pencarian yang diperluas dinonaktifkan.",
-    "gps_failed": "GPS gagal. Menggunakan perkiraan lokasi melalui IP.",
-    "permission_denied": "Akses ke geolokasi ditolak. Aplikasi tidak dapat menemukan rekan terdekat.",
-    "position_unavailable": "Tidak bisa mendapatkan posisi Anda saat ini. Periksa koneksi jaringan atau pengaturan lokasi.",
+    "gps_failed": "GPS gagal. Menggunakan perkiraan lokasi berdasarkan IP.",
+    "permission_denied": "Akses ke geolokasi telah ditolak. Aplikasi tidak dapat menemukan rekan terdekat.",
+    "position_unavailable": "Tidak dapat memperoleh posisi Anda saat ini. Periksa koneksi jaringan atau pengaturan lokasi.",
     "timeout": "Waktu pencarian posisi habis. Silakan coba lagi.",
-    "unknown": "Kesalahan tidak diketahui saat mengambil posisi Anda."
+    "unknown": "Kesalahan tidak dikenal saat mengambil posisi Anda."
   },
   "user": {
     "default_name": "Pengguna"
@@ -47,7 +47,7 @@
   "settings": {
     "title": "Pengaturan",
     "close_aria": "Tutup pengaturan",
-    "profile_shortcut_title": "Profil belum lengkap",
+    "profile_shortcut_title": "Profil tidak lengkap",
     "profile_shortcut_description": "Edit nama / avatar Anda",
     "edit": "Edit",
     "signaling_url_label": "URL server sinyal",
@@ -69,13 +69,13 @@
     "home_aria": "Kembali ke beranda"
   },
   "main": {
-    "connecting_to_peer": "Menyambungkan...",
+    "connecting_to_peer": "Menghubungkan...",
     "establishing_connection": "Membangun koneksi dengan rekan yang dipilih.",
-    "connecting_to_server": "Menyambungkan ke server sinyal...",
+    "connecting_to_server": "Menghubungkan ke server sinyal...",
     "select_peer_prompt": "Pilih rekan untuk memulai percakapan langsung dan aman.",
     "cancel_button": "Batal",
     "welcome_title": "NoNetChat Web",
-    "welcome_connecting": "Menyambungkan ke server sinyal...",
+    "welcome_connecting": "Menghubungkan ke server sinyal...",
     "welcome_select_peer": "Pilih rekan untuk memulai percakapan langsung dan aman."
   },
   "bottomNav": {
@@ -131,7 +131,7 @@
       "sending_progress": "Mengirim: {{progress}}%",
       "cancel": "Batal",
       "warning_title": "Peringatan:",
-      "warning_body": "Pembatalan akan menghentikan transfer secara permanen.",
+      "warning_body": "Membatalkan akan menghentikan transfer secara permanen.",
       "cancelled_by_user": "(Dibatalkan oleh pengguna)"
     },
     "message_menu": {
@@ -179,9 +179,9 @@
     }
   },
   "connectionStatus": {
-    "reconnecting": "Menyambungkan kembali...",
+    "reconnecting": "Menghubungkan kembali...",
     "disconnected": "Terputus",
-    "reconnect": "Sambungkan kembali"
+    "reconnect": "Hubungkan kembali"
   },
   "conversationList": {
     "title": "Percakapan ({{count}})",
@@ -193,7 +193,7 @@
     "loading": "Memuat...",
     "delete_confirm": "Apakah Anda yakin ingin menghapus percakapan ini?",
     "last_message_none": "Tidak ada pesan",
-    "last_message_file": "📎 File bersama",
+    "last_message_file": "📎 File dibagikan",
     "user_default_name": "Pengguna",
     "gender": {
       "male": "Pria",
@@ -208,33 +208,33 @@
     "title": "Diagnostik NoNetChat",
     "close": "Tutup",
     "resize": "Ubah ukuran",
-    "connectivity_tests": "Tes Konektivitas",
-    "testing_in_progress": "Menguji...",
-    "test_connectivity": "Uji Konektivitas",
+    "connectivity_tests": "Tes konektivitas",
+    "testing_in_progress": "Tes sedang berlangsung...",
+    "test_connectivity": "Tes konektivitas",
     "signaling": "Sinyal",
     "ok": "OK",
-    "fail": "GAGAL",
+    "fail": "Gagal",
     "stun_servers": "Server STUN:",
-    "network_info": "Info Jaringan:",
-    "logs_title": "Log Real-time",
+    "network_info": "Info jaringan:",
+    "logs_title": "Log waktu nyata",
     "auto_scroll": "Gulir otomatis",
     "clear": "Hapus",
     "export": "Ekspor",
-    "no_logs": "Tidak ada log yang tersedia. Log akan muncul di sini secara real-time.",
+    "no_logs": "Tidak ada log yang tersedia. Log akan muncul di sini secara waktu nyata.",
     "instructions_title": "Instruksi:",
-    "instructions_body": "1) Jalankan \"Uji Konektivitas\". 2) Pantau log. 3) Ekspor untuk dibagikan."
+    "instructions_body": "1) Jalankan 'Tes konektivitas'. 2) Pantau log. 3) Ekspor untuk dibagikan."
   },
   "filePreview": {
     "unknown_size": "ukuran tidak diketahui",
     "file_not_found": "File tidak ditemukan di database lokal.",
-    "clipboard_error": "Tidak dapat menyalin teks ke clipboard.",
+    "clipboard_error": "Tidak dapat menyalin teks ke papan klip.",
     "audio_error": "Tidak dapat memutar file audio ini.",
     "default_filename": "file",
     "unplayable_audio": "Format audio ini mungkin tidak dapat diputar di browser ini. Anda dapat mengunduhnya di atas.",
     "hide_preview": "Sembunyikan pratinjau",
     "show_preview": "Tampilkan pratinjau",
-    "loading": "Memuat…",
-    "unknown_type": "tipe tidak dikenal",
+    "loading": "Memuat...",
+    "unknown_type": "jenis tidak diketahui",
     "download": "Unduh",
     "open_in_new_tab": "Buka di tab baru",
     "copy_text": "Salin teks",
@@ -250,8 +250,8 @@
     "error": "Kesalahan"
   },
   "notificationSettings": {
-    "title": "Pengaturan Notifikasi",
-    "general": "Notifikasi Umum",
+    "title": "Pengaturan notifikasi",
+    "general": "Notifikasi umum",
     "enable_notifications": "Aktifkan notifikasi",
     "enable_notifications_description": "Terima notifikasi untuk pesan baru",
     "sound": "Suara notifikasi",
@@ -261,20 +261,20 @@
     "authorize": "Otorisasi",
     "dnd": "Mode Jangan Ganggu",
     "dnd_description": "Nonaktifkan sementara semua notifikasi",
-    "tips_title": "💡 Tips:",
+    "tips_title": "💡 Kiat:",
     "tip1": "• Notifikasi sistem hanya berfungsi jika tab terbuka",
-    "tip2": "• Mode \"Jangan Ganggu\" menonaktifkan semua notifikasi",
+    "tip2": "• Mode 'Jangan Ganggu' menonaktifkan semua notifikasi",
     "tip3": "• Pengaturan disimpan secara otomatis",
     "close": "Tutup"
   },
   "peerList": {
-    "title": "Rekan Terhubung ({{count}})",
+    "title": "Rekan terhubung ({{count}})",
     "filter_by_gender": "Filter berdasarkan jenis kelamin",
     "all_genders": "Semua jenis kelamin",
     "male": "Pria",
     "female": "Wanita",
     "other_gender": "Lainnya / Tidak ditentukan",
-    "sort_by": "Urutkan berdasarkan",
+    "sort_by": "Urutkan",
     "distance_asc": "Jarak (↑)",
     "distance_desc": "Jarak (↓)",
     "age_asc": "Usia (↑)",
@@ -285,7 +285,7 @@
     "no_peers_body": "Sesuaikan filter di atas",
     "user_default_name": "Pengguna",
     "estimated_distance": "Perkiraan jarak",
-    "gender_title": "Jenis Kelamin: {{gender}}",
+    "gender_title": "Jenis kelamin: {{gender}}",
     "age_suffix": "thn",
     "view_profile": "Lihat profil",
     "start_conversation": "Mulai percakapan",
@@ -298,7 +298,7 @@
     "tooltip": {
       "status": "Status:",
       "age": "Usia:",
-      "gender": "Jenis Kelamin:",
+      "gender": "Jenis kelamin:",
       "distance": "Jarak:",
       "connected": "Terhubung:"
     },
@@ -312,9 +312,25 @@
       "offline": "Offline",
       "busy": "Sibuk"
     },
-    "meta_separator": "•",
     "block_user_title": "Blokir pengguna",
-    "block_user_confirm": "Anda yakin ingin memblokir {{name}}? Anda tidak akan lagi menerima pesan mereka."
+    "block_user_confirm": "Apakah Anda yakin ingin memblokir {{name}}? Anda tidak akan lagi menerima pesan mereka.",
+    "meta_separator": "•"
+  },
+  "blockedUsers": {
+    "title": "Pengguna yang diblokir",
+    "close": "Tutup",
+    "manage_blocked_users": "Kelola pengguna yang diblokir",
+    "blocked_count": "{{count}} pengguna diblokir",
+    "no_blocked_users": "Tidak ada pengguna yang diblokir",
+    "unknown_user": "Pengguna tidak dikenal",
+    "blocked_at": "Diblokir pada {{date}}",
+    "unblock_user": "Buka blokir pengguna",
+    "unblock": "Buka blokir",
+    "unblock_confirm": "Apakah Anda yakin ingin membuka blokir pengguna ini?",
+    "unblock_confirm_title": "Buka blokir pengguna",
+    "unblock_confirm_message": "Apakah Anda yakin ingin membuka blokir pengguna ini?",
+    "confirm": "Konfirmasi",
+    "cancel": "Batal"
   },
   "profileModal": {
     "title": "Profil Anda",
@@ -324,10 +340,10 @@
     "avatar_alt": "Avatar",
     "change_avatar_title": "Ubah avatar",
     "refresh_avatar_title": "Hasilkan avatar default baru",
-    "optimizing_image": "Mengoptimalkan gambar…",
+    "optimizing_image": "Mengoptimalkan gambar...",
     "username_label": "Nama pengguna",
     "age_label": "Usia",
-    "gender_label": "Jenis Kelamin",
+    "gender_label": "Jenis kelamin",
     "gender_unspecified": "Tidak ditentukan",
     "gender_male": "Pria",
     "gender_female": "Wanita",
@@ -343,14 +359,14 @@
     "gender_female_short": "W",
     "gender_other": "Lainnya",
     "age_suffix": "thn",
-    "meta_separator": " · "
+    "meta_separator": "·"
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} rekan terhubung",
     "peers_connected_aria_other": "{{count}} rekan terhubung",
     "peers_connected_text": "rekan",
     "id": "ID:",
-    "full_id_title": "ID Lengkap: {{clientId}}",
+    "full_id_title": "ID lengkap: {{clientId}}",
     "connected": "Terhubung",
     "disconnected": "Terputus",
     "open_diagnostic_panel": "Buka panel diagnostik",
@@ -376,22 +392,243 @@
   },
   "languageSelector": {
     "label": "Bahasa",
-    "description": "Bahasa akan disimpan secara otomatis dan terdeteksi pada kunjungan berikutnya."
+    "description": "Bahasa akan disimpan dan dideteksi secara otomatis pada kunjungan Anda berikutnya."
   },
-  "blockedUsers": {
-    "title": "Pengguna yang Diblokir",
+  "consent": {
+    "geolocation": {
+      "title": "Izin Geolokasi",
+      "description": "NoNetChat ingin mengakses lokasi geografis Anda untuk menghubungkan Anda dengan pengguna terdekat. Data lokasi Anda diproses dengan aman dan sesuai dengan GDPR.",
+      "privacy_title": "Menghormati privasi Anda",
+      "privacy_point1": "Data terenkripsi ujung ke ujung",
+      "privacy_point2": "Hanya penyimpanan lokal",
+      "privacy_point3": "Penghapusan otomatis koordinat server",
+      "privacy_point4": "Tidak ada server data pusat",
+      "show_details": "Tampilkan detail teknis",
+      "hide_details": "Sembunyikan detail",
+      "technical_details": "Detail teknis",
+      "data_collected": "Data yang dikumpulkan",
+      "data_collected_desc": "Koordinat GPS (lintang/bujur), perkiraan kota dan negara",
+      "purpose": "Tujuan",
+      "purpose_desc": "Koneksi P2P dengan pengguna yang secara geografis dekat",
+      "retention": "Penyimpanan",
+      "retention_desc": "Koordinat secara otomatis dihapus dari server setelah pemutusan",
+      "legal_basis": "Dasar hukum",
+      "legal_basis_desc": "Persetujuan eksplisit (Pasal 6.1.a GDPR)",
+      "withdrawal_info": "Anda dapat menarik persetujuan Anda kapan saja di pengaturan privasi. Untuk informasi lebih lanjut, lihat",
+      "privacy_policy_link": "kebijakan privasi",
+      "accept": "Terima",
+      "decline": "Tolak"
+    }
+  },
+  "legal": {
+    "tabs": {
+      "privacy": "Privasi",
+      "terms": "Ketentuan",
+      "legal_notices": "Pemberitahuan hukum"
+    },
+    "privacy_policy": {
+      "title": "Kebijakan Privasi",
+      "last_updated": "Terakhir diperbarui",
+      "controller": {
+        "title": "Pengontrol Data",
+        "name": "Nama",
+        "contact": "Kontak",
+        "dpo": "Petugas Perlindungan Data"
+      },
+      "data_collected": {
+        "title": "Data yang dikumpulkan",
+        "legal_basis": "Dasar hukum",
+        "geolocation": {
+          "title": "Data geolokasi",
+          "coordinates": "Koordinat GPS (lintang, bujur)",
+          "city_country": "Kota dan negara (melalui API geolokasi IP)",
+          "accuracy": "Akurasi lokasi",
+          "legal_basis": "Persetujuan eksplisit (Pasal 6.1.a GDPR)"
+        },
+        "profile": {
+          "title": "Data profil",
+          "display_name": "Nama tampilan (opsional)",
+          "age_gender": "Usia dan jenis kelamin (opsional)",
+          "avatar": "Gambar profil (opsional)",
+          "device_id": "Pengidentifikasi perangkat unik",
+          "legal_basis": "Kepentingan sah untuk pengoperasian layanan (Pasal 6.1.f GDPR)"
+        },
+        "messages": {
+          "title": "Pesan dan percakapan",
+          "encrypted": "Pesan terenkripsi ujung ke ujung (AES-GCM)",
+          "local_only": "Hanya penyimpanan lokal (IndexedDB)",
+          "metadata": "Metadata teknis (stempel waktu, status)",
+          "legal_basis": "Pelaksanaan kontrak layanan (Pasal 6.1.b GDPR)"
+        }
+      },
+      "retention": {
+        "title": "Periode penyimpanan",
+        "geolocation": "Geolokasi",
+        "geolocation_duration": "Penghapusan otomatis saat pemutusan (maks. 24 jam)",
+        "profile": "Profil pengguna",
+        "profile_duration": "Disimpan secara lokal hingga penghapusan manual",
+        "messages": "Pesan",
+        "messages_duration": "Disimpan secara lokal hingga penghapusan manual"
+      },
+      "rights": {
+        "title": "Hak GDPR Anda",
+        "access": "Hak akses",
+        "access_desc": "Lihat data Anda di pengaturan",
+        "rectification": "Hak untuk perbaikan",
+        "rectification_desc": "Edit profil Anda kapan saja",
+        "erasure": "Hak untuk penghapusan",
+        "erasure_desc": "Hapus semua data Anda",
+        "portability": "Hak atas portabilitas data",
+        "portability_desc": "Ekspor data Anda dalam format JSON",
+        "withdraw_consent": "Tarik persetujuan",
+        "withdraw_consent_desc": "Cabut izin geolokasi",
+        "complaint": "Hak untuk mengajukan keluhan",
+        "complaint_desc": "Hubungi otoritas perlindungan data Anda"
+      },
+      "security": {
+        "title": "Keamanan dan perlindungan",
+        "encryption": "Enkripsi ujung ke ujung dengan kunci ECDH sementara",
+        "local_storage": "Penyimpanan lokal eksklusif (tidak ada server pusat)",
+        "p2p": "Arsitektur P2P terdesentralisasi",
+        "no_central_server": "Tidak ada pengumpulan data oleh server pusat"
+      },
+      "contact": {
+        "title": "Kontak",
+        "description": "Untuk pertanyaan apa pun mengenai kebijakan privasi ini atau pelaksanaan hak-hak Anda:"
+      }
+    },
+    "terms": {
+      "title": "Ketentuan Penggunaan Umum",
+      "last_updated": "Terakhir diperbarui",
+      "acceptance": {
+        "title": "Penerimaan ketentuan",
+        "content": "Dengan menggunakan NoNetChat, Anda menyetujui ketentuan penggunaan ini. Jika Anda tidak menyetujui ketentuan ini, jangan gunakan layanan ini."
+      },
+      "service_description": {
+        "title": "Deskripsi layanan",
+        "content": "NoNetChat adalah aplikasi perpesanan peer-to-peer terdesentralisasi yang memungkinkan pengguna berkomunikasi dengan aman tanpa server pusat. Layanan ini menawarkan:",
+        "feature1": "Pesan terenkripsi ujung ke ujung",
+        "feature2": "Koneksi P2P langsung",
+        "feature3": "Penyimpanan data lokal",
+        "feature4": "Penemuan rekan berdasarkan geolokasi"
+      },
+      "user_obligations": {
+        "title": "Kewajiban pengguna",
+        "respect_laws": "Mematuhi hukum dan peraturan yang berlaku",
+        "no_harassment": "Jangan melecehkan, mengancam, atau mengintimidasi pengguna lain",
+        "no_illegal_content": "Jangan membagikan konten ilegal, menyinggung, atau tidak pantas",
+        "respect_others": "Hormati privasi dan hak orang lain",
+        "accurate_info": "Berikan informasi yang akurat di profil Anda"
+      },
+      "prohibited_uses": {
+        "title": "Penggunaan yang dilarang",
+        "spam": "Mengirim spam atau pesan yang tidak diminta",
+        "malware": "Mendistribusikan malware atau virus",
+        "impersonation": "Peniruan identitas atau representasi palsu",
+        "copyright": "Pelanggaran hak cipta atau kekayaan intelektual",
+        "reverse_engineering": "Rekayasa balik atau mencoba menyusupi layanan"
+      },
+      "liability": {
+        "title": "Batasan tanggung jawab",
+        "content": "NoNetChat disediakan 'sebagaimana adanya' tanpa jaminan apa pun. Kami tidak bertanggung jawab atas kerusakan langsung, tidak langsung, atau konsekuensial yang diakibatkan oleh penggunaan layanan.",
+        "disclaimer": "Pengguna bertanggung jawab penuh atas konten yang mereka bagikan dan interaksi yang mereka lakukan dengan pengguna lain."
+      },
+      "modifications": {
+        "title": "Perubahan ketentuan",
+        "content": "Kami berhak mengubah ketentuan ini kapan saja. Perubahan akan berlaku setelah dipublikasikan. Penggunaan layanan secara berkelanjutan merupakan penerimaan terhadap ketentuan baru."
+      },
+      "termination": {
+        "title": "Penghentian",
+        "content": "Anda dapat berhenti menggunakan layanan kapan saja. Kami berhak menangguhkan akses ke layanan jika terjadi pelanggaran terhadap ketentuan ini."
+      },
+      "governing_law": {
+        "title": "Hukum yang mengatur",
+        "content": "Ketentuan ini diatur oleh hukum Prancis. Setiap sengketa akan diajukan ke yurisdiksi pengadilan Prancis yang kompeten."
+      }
+    },
+    "notices": {
+      "title": "Pemberitahuan hukum",
+      "publisher": {
+        "title": "Penerbit",
+        "name": "Nama",
+        "type": "Jenis",
+        "type_value": "Aplikasi web sumber terbuka",
+        "contact": "Kontak",
+        "website": "Situs web"
+      },
+      "hosting": {
+        "title": "Hosting",
+        "provider": "Penyedia",
+        "provider_value": "Arsitektur terdesentralisasi - tidak ada hosting pusat",
+        "note": "Catatan",
+        "note_value": "Data disimpan secara lokal di perangkat pengguna"
+      },
+      "intellectual_property": {
+        "title": "Kekayaan intelektual",
+        "content": "NoNetChat adalah perangkat lunak gratis yang didistribusikan di bawah lisensi sumber terbuka. Kode sumber tersedia untuk umum dan dapat dimodifikasi sesuai dengan ketentuan lisensi."
+      },
+      "open_source": {
+        "title": "Sumber Terbuka",
+        "content": "Proyek ini bersifat sumber terbuka dan kontribusi dari komunitas sangat kami harapkan.",
+        "repository": "Repositori"
+      }
+    }
+  },
+  "privacy_settings": {
+    "title": "Pengaturan privasi",
+    "consent_withdrawn": "Persetujuan berhasil ditarik",
+    "consent_granted": "Persetujuan berhasil diberikan",
+    "export_success": "Data berhasil diekspor",
+    "export_error": "Kesalahan saat mengekspor data",
+    "delete_success": "Semua data berhasil dihapus",
+    "delete_error": "Kesalahan saat menghapus data",
+    "delete_confirm_error": "Silakan ketik 'DELETE' untuk mengonfirmasi",
+    "never": "Tidak pernah",
+    "geolocation_consent": {
+      "title": "Persetujuan geolokasi",
+      "status": "Status",
+      "granted": "Diberikan",
+      "declined": "Ditolak",
+      "not_set": "Tidak diatur",
+      "date": "Tanggal",
+      "grant": "Berikan",
+      "withdraw": "Tarik"
+    },
+    "data_overview": {
+      "title": "Gambaran data",
+      "messages": "Pesan",
+      "conversations": "Percakapan",
+      "avatars": "Avatar",
+      "profile_size": "Ukuran profil"
+    },
+    "data_actions": {
+      "title": "Tindakan data",
+      "export": {
+        "title": "Ekspor data saya",
+        "description": "Unduh semua data pribadi Anda dalam format JSON",
+        "button": "Ekspor",
+        "exporting": "Mengekspor..."
+      },
+      "delete": {
+        "title": "Hapus semua data saya",
+        "description": "Penghapusan permanen semua data pribadi Anda",
+        "button": "Hapus",
+        "confirm_title": "Konfirmasi penghapusan",
+        "confirm_description": "Tindakan ini tidak dapat diurungkan. Semua data Anda akan dihapus secara permanen.",
+        "type_delete": "Ketik 'DELETE' untuk mengonfirmasi:",
+        "confirm_button": "Konfirmasi penghapusan",
+        "deleting": "Menghapus..."
+      }
+    },
+    "legal_documents": {
+      "title": "Dokumen hukum",
+      "privacy_policy": "Kebijakan Privasi",
+      "terms_of_service": "Ketentuan Penggunaan",
+      "legal_notices": "Pemberitahuan Hukum"
+    }
+  },
+  "common": {
     "close": "Tutup",
-    "manage_blocked_users": "Kelola Pengguna yang Diblokir",
-    "blocked_count": "{{count}} pengguna diblokir",
-    "no_blocked_users": "Tidak ada pengguna yang diblokir",
-    "unknown_user": "Pengguna tidak dikenal",
-    "blocked_at": "Diblokir pada {{date}}",
-    "unblock_user": "Buka Blokir Pengguna",
-    "unblock": "Buka blokir",
-    "unblock_confirm": "Anda yakin ingin membuka blokir pengguna ini?",
-    "unblock_confirm_title": "Buka Blokir Pengguna",
-    "unblock_confirm_message": "Anda yakin ingin membuka blokir pengguna ini?",
-    "confirm": "Konfirmasi",
     "cancel": "Batal"
   }
 }

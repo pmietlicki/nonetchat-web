@@ -1,59 +1,59 @@
 {
   "app": {
     "initializing": "正在初始化服务...",
-    "tagline": "即时消息",
-    "tagline_disconnected": "即时消息 (已断开)",
+    "tagline": "直接消息",
+    "tagline_disconnected": "直接消息 (已断开连接)",
     "title": "NoNetChat Web",
     "status": {
       "connected": "已连接",
-      "disconnected": "已断开"
+      "disconnected": "已断开连接"
     },
     "install": "安装",
     "install_aria": "安装应用程序",
     "aria": {
       "connected": "已连接",
-      "disconnected": "已断开"
+      "disconnected": "已断开连接"
     }
   },
   "geolocationError": {
-    "activate": "启用位置",
+    "activate": "激活位置",
     "close_alert": "关闭警报",
-    "unavailable_location": "无法确定您所在的国家/地区。扩展搜索已禁用。",
-    "gps_failed": "GPS失败。通过IP使用近似位置。",
-    "permission_denied": "对地理位置的访问被拒绝。该应用程序找不到附近的对等点。",
-    "position_unavailable": "无法获取您的当前位置。请检查网络连接或位置设置。",
-    "timeout": "位置搜索超时。请再试一次。",
+    "unavailable_location": "无法确定您的国家/城市。扩展搜索已禁用。",
+    "gps_failed": "GPS 失败。使用 IP 的大致位置。",
+    "permission_denied": "对地理位置的访问已被拒绝。应用程序无法找到附近的对等点。",
+    "position_unavailable": "无法获取您的当前位置。检查网络连接或位置设置。",
+    "timeout": "位置搜索超时。请重试。",
     "unknown": "检索您的位置时出现未知错误。"
   },
   "user": {
     "default_name": "用户"
   },
   "file": {
-    "receiving": "(接收中...)"
+    "receiving": "(正在接收...)"
   },
   "tabs": {
     "peers": "对等点",
-    "public_chat": "公开",
+    "public_chat": "公共",
     "conversations": "消息"
   },
   "publicChat": {
     "title": "公共聊天",
-    "description": "此处的留言是短暂的，并且对您当前区域中的每个人都可见。",
+    "description": "此处的留言是短暂的，您当前区域中的每个人都可以看到。",
     "empty_placeholder": {
       "title": "{{roomName}}",
-      "body": "此处的留言是短暂的，并且对您当前区域中的每个人都可见。"
+      "body": "此处的留言是短暂的，您当前区域中的每个人都可以看到。"
     }
   },
   "settings": {
     "title": "设置",
     "close_aria": "关闭设置",
-    "profile_shortcut_title": "个人资料未完成",
+    "profile_shortcut_title": "个人资料不完整",
     "profile_shortcut_description": "编辑您的姓名/头像",
     "edit": "编辑",
-    "signaling_url_label": "信令服务器URL",
+    "signaling_url_label": "信令服务器 URL",
     "signaling_url_placeholder": "wss://your-server.com",
     "discovery_mode_label": "搜索模式",
-    "radius_km": "半径(公里)",
+    "radius_km": "半径 (公里)",
     "city": "城市",
     "country": "整个国家",
     "unavailable": "(不可用)",
@@ -62,7 +62,7 @@
     "manage": "管理"
   },
   "header": {
-    "logo_alt": "NoNetChat徽标",
+    "logo_alt": "NoNetChat 徽标",
     "notifications_aria": "通知设置",
     "settings_aria": "设置",
     "profile_aria": "编辑您的个人资料",
@@ -81,7 +81,7 @@
   "bottomNav": {
     "peers": "对等点",
     "public_chat": "公共聊天",
-    "public_chat_short": "公开",
+    "public_chat_short": "公共",
     "messages": "消息",
     "settings": "设置",
     "notifications": "通知",
@@ -95,26 +95,26 @@
     }
   },
   "chat": {
-    "voice_note": "语音留言",
-    "sending_in_progress": "(发送中...)",
-    "sending_progress": "(发送中: {{progress}}%)",
+    "voice_note": "语音便笺",
+    "sending_in_progress": "(正在发送...)",
+    "sending_progress": "(正在发送: {{progress}}%)",
     "sending_error": "(发送错误)",
-    "receiving_in_progress": "(接收中...)",
-    "file_size_error": "文件大小不正确: 收到{{totalSize}}字节，应为{{expectedSize}}字节 (相差: {{sizeDifference}})",
-    "decryption_empty_error": "解密后的文件为空",
-    "decryption_error": "错误: 无法解密{{fileName}}",
+    "receiving_in_progress": "(正在接收...)",
+    "file_size_error": "文件大小不正确: 收到 {{totalSize}} 字节，预期 {{expectedSize}} 字节 (差异: {{sizeDifference}})",
+    "decryption_empty_error": "解密的文件为空",
+    "decryption_error": "错误: 无法解密 {{fileName}}",
     "delete_message_confirm": "您确定要删除此消息吗？",
-    "delete_conversation_confirm": "您确定要删除此整个对话吗？",
+    "delete_conversation_confirm": "您确定要删除整个对话吗？",
     "message_info_title": "信息",
-    "message_info_content": "ID: {{id}}\n类型: {{type}}\n发送时间: {{timestamp}}\n状态: {{status}}",
+    "message_info_content": "ID: {{id}}\n类型: {{type}}\n已发送: {{timestamp}}\n状态: {{status}}",
     "message_status_sent": "已发送",
     "send_aria_label_offline": "用户离线 - 发送已禁用",
     "send_aria_label_file": "发送文件",
     "send_aria_label_message": "发送消息",
     "download_link": {
       "not_found": "在本地数据库中找不到文件。",
-      "error": "下载过程中发生错误。",
-      "loading": "加载中...",
+      "error": "下载期间发生错误。",
+      "loading": "正在加载...",
       "download": "📥 下载",
       "title": "下载文件"
     },
@@ -127,11 +127,11 @@
     },
     "cancel_transfers": {
       "title": "正在进行的传输",
-      "receiving_progress": "接收中: {{progress}}%",
-      "sending_progress": "发送中: {{progress}}%",
+      "receiving_progress": "正在接收: {{progress}}%",
+      "sending_progress": "正在发送: {{progress}}%",
       "cancel": "取消",
       "warning_title": "警告:",
-      "warning_body": "取消会永久中断传输。",
+      "warning_body": "取消将永久停止传输。",
       "cancelled_by_user": "(用户已取消)"
     },
     "message_menu": {
@@ -140,19 +140,19 @@
       "delete": "删除"
     },
     "reactions": {
-      "title": "使用{{emoji}}作出反应",
-      "title_one": "1个反应",
-      "title_other": "{{count}}个反应"
+      "title": "用 {{emoji}} 回应",
+      "title_one": "1 个回应",
+      "title_other": "{{count}} 个回应"
     },
     "file_message": {
       "size": "大小:",
       "unknown_size": "未知",
-      "status_sending": "发送中...",
+      "status_sending": "正在发送...",
       "status_sent": "已发送",
-      "status_receiving": "接收中...",
+      "status_receiving": "正在接收...",
       "status_pending": "待定",
-      "sending": "发送中",
-      "receiving": "接收中",
+      "sending": "正在发送",
+      "receiving": "正在接收",
       "kb_unit": "KB",
       "seek_forward": "⟳ 10秒",
       "seek_backward": "⟲ 10秒",
@@ -160,8 +160,8 @@
     },
     "new_messages_button": {
       "aria_label": "转到新消息",
-      "text_one": "{{count}}条新消息",
-      "text_other": "{{count}}条新消息"
+      "text_one": "{{count}} 条新消息",
+      "text_other": "{{count}} 条新消息"
     },
     "input": {
       "remove_file": "删除文件",
@@ -174,13 +174,13 @@
       "aria_label": "消息输入",
       "add_emoji": "添加表情符号",
       "record_voice": "录制语音消息",
-      "peer_offline_warning": "{{peerName}}已离线。消息发送已禁用。",
+      "peer_offline_warning": "{{peerName}} 离线。消息发送已禁用。",
       "compression_notice": "将自动压缩和加密"
     }
   },
   "connectionStatus": {
-    "reconnecting": "重新连接中...",
-    "disconnected": "已断开",
+    "reconnecting": "正在重新连接...",
+    "disconnected": "已断开连接",
     "reconnect": "重新连接"
   },
   "conversationList": {
@@ -188,12 +188,12 @@
     "search_placeholder": "按姓名或消息搜索...",
     "clear_search_aria": "清除搜索",
     "clear_search_title": "清除",
-    "no_conversations_title": "无对话",
+    "no_conversations_title": "没有对话",
     "no_conversations_prompt": "选择一个对等点开始",
-    "loading": "加载中...",
+    "loading": "正在加载...",
     "delete_confirm": "您确定要删除此对话吗？",
-    "last_message_none": "无消息",
-    "last_message_file": "📎 共享文件",
+    "last_message_none": "没有消息",
+    "last_message_file": "📎 文件已共享",
     "user_default_name": "用户",
     "gender": {
       "male": "男性",
@@ -205,24 +205,24 @@
     "delete_button_aria": "删除"
   },
   "diagnosticPanel": {
-    "title": "NoNetChat诊断",
+    "title": "NoNetChat 诊断",
     "close": "关闭",
     "resize": "调整大小",
     "connectivity_tests": "连接测试",
-    "testing_in_progress": "测试中...",
+    "testing_in_progress": "测试正在进行中...",
     "test_connectivity": "测试连接",
     "signaling": "信令",
     "ok": "确定",
     "fail": "失败",
-    "stun_servers": "STUN服务器:",
+    "stun_servers": "STUN 服务器:",
     "network_info": "网络信息:",
     "logs_title": "实时日志",
     "auto_scroll": "自动滚动",
     "clear": "清除",
     "export": "导出",
-    "no_logs": "无可用日志。日志将在此处实时显示。",
+    "no_logs": "没有可用的日志。日志将在此处实时显示。",
     "instructions_title": "说明:",
-    "instructions_body": "1) 运行\"测试连接\". 2) 监视日志。 3) 导出以共享。"
+    "instructions_body": "1) 运行“测试连接”。2) 监视日志。3) 导出以共享。"
   },
   "filePreview": {
     "unknown_size": "未知大小",
@@ -230,20 +230,20 @@
     "clipboard_error": "无法将文本复制到剪贴板。",
     "audio_error": "无法播放此音频文件。",
     "default_filename": "文件",
-    "unplayable_audio": "此音频格式可能无法在此浏览器中播放。您可以从上方下载。",
+    "unplayable_audio": "此音频格式可能无法在此浏览器中播放。您可以从上面下载。",
     "hide_preview": "隐藏预览",
     "show_preview": "显示预览",
-    "loading": "加载中…",
+    "loading": "正在加载...",
     "unknown_type": "未知类型",
     "download": "下载",
-    "open_in_new_tab": "在新标签页中打开",
+    "open_in_new_tab": "在新选项卡中打开",
     "copy_text": "复制文本",
-    "preview_unavailable": "此文件类型无可用预览。",
+    "preview_unavailable": "此文件类型没有可用的预览。",
     "change_speed": "更改速度",
     "media_album": "附件"
   },
   "messageStatus": {
-    "sending": "发送中...",
+    "sending": "正在发送...",
     "sent": "已发送",
     "delivered": "已送达",
     "read": "已读",
@@ -263,7 +263,7 @@
     "dnd_description": "暂时禁用所有通知",
     "tips_title": "💡 提示:",
     "tip1": "• 系统通知仅在选项卡打开时有效",
-    "tip2": "• \"请勿打扰\"模式会禁用所有通知",
+    "tip2": "• “请勿打扰”模式会禁用所有通知",
     "tip3": "• 设置会自动保存",
     "close": "关闭"
   },
@@ -274,7 +274,7 @@
     "male": "男性",
     "female": "女性",
     "other_gender": "其他/未指定",
-    "sort_by": "排序方式",
+    "sort_by": "排序",
     "distance_asc": "距离 (↑)",
     "distance_desc": "距离 (↓)",
     "age_asc": "年龄 (↑)",
@@ -292,8 +292,8 @@
     "join_time": {
       "unknown": "未知",
       "now": "刚才",
-      "minutes_ago": "{{count}}分钟前",
-      "hours_ago": "{{count}}小时前"
+      "minutes_ago": "{{count}} 分钟前",
+      "hours_ago": "{{count}} 小时前"
     },
     "tooltip": {
       "status": "状态:",
@@ -303,7 +303,7 @@
       "connected": "已连接:"
     },
     "modal": {
-      "title": "{{name}}的个人资料",
+      "title": "{{name}} 的个人资料",
       "close": "关闭",
       "connected_since": "连接时间:"
     },
@@ -312,9 +312,25 @@
       "offline": "离线",
       "busy": "忙碌"
     },
-    "meta_separator": "•",
-    "block_user_title": "封锁用户",
-    "block_user_confirm": "您确定要封锁 {{name}} 吗？您将不再收到他们的消息。"
+    "block_user_title": "阻止用户",
+    "block_user_confirm": "您确定要阻止 {{name}} 吗？您将不再收到他们的消息。",
+    "meta_separator": "•"
+  },
+  "blockedUsers": {
+    "title": "已阻止的用户",
+    "close": "关闭",
+    "manage_blocked_users": "管理已阻止的用户",
+    "blocked_count": "{{count}} 个用户已阻止",
+    "no_blocked_users": "没有已阻止的用户",
+    "unknown_user": "未知用户",
+    "blocked_at": "于 {{date}} 阻止",
+    "unblock_user": "取消阻止用户",
+    "unblock": "取消阻止",
+    "unblock_confirm": "您确定要取消阻止此用户吗？",
+    "unblock_confirm_title": "取消阻止用户",
+    "unblock_confirm_message": "您确定要取消阻止此用户吗？",
+    "confirm": "确认",
+    "cancel": "取消"
   },
   "profileModal": {
     "title": "您的个人资料",
@@ -322,9 +338,9 @@
     "username_cannot_be_empty": "用户名不能为空。",
     "select_valid_image": "请选择有效的图片。",
     "avatar_alt": "头像",
-    "change_avatar_title": "更换头像",
+    "change_avatar_title": "更改头像",
     "refresh_avatar_title": "生成新的默认头像",
-    "optimizing_image": "正在优化图片…",
+    "optimizing_image": "正在优化图片...",
     "username_label": "用户名",
     "age_label": "年龄",
     "gender_label": "性别",
@@ -343,24 +359,24 @@
     "gender_female_short": "女",
     "gender_other": "其他",
     "age_suffix": "岁",
-    "meta_separator": " · "
+    "meta_separator": "·"
   },
   "statusBar": {
-    "peers_connected_aria_one": "{{count}}个对等点已连接",
-    "peers_connected_aria_other": "{{count}}个对等点已连接",
-    "peers_connected_text": "对等点",
+    "peers_connected_aria_one": "{{count}} 个对等点已连接",
+    "peers_connected_aria_other": "{{count}} 个对等点已连接",
+    "peers_connected_text": "个对等点",
     "id": "ID:",
-    "full_id_title": "完整ID: {{clientId}}",
+    "full_id_title": "完整 ID: {{clientId}}",
     "connected": "已连接",
-    "disconnected": "已断开",
+    "disconnected": "已断开连接",
     "open_diagnostic_panel": "打开诊断面板",
     "change_signaling_server": "更改信令服务器"
   },
   "voiceRecorder": {
-    "voice_note": "语音留言",
-    "mic_error": "无法访问麦克风。请检查浏览器权限。",
-    "idle_title_click": "单击: 录制(锁定) • Enter: 发送 • Esc: 取消",
-    "idle_title_hold": "长按录制 • ←滑动取消 • ↑滑动锁定",
+    "voice_note": "语音便笺",
+    "mic_error": "无法访问麦克风。检查浏览器权限。",
+    "idle_title_click": "单击: 录制 (已锁定) • Enter: 发送 • Esc: 取消",
+    "idle_title_hold": "长按录制 • 滑动 ← 取消 • 滑动 ↑ 锁定",
     "record_aria": "录制语音消息",
     "hint_slide_cancel": "向左滑动取消",
     "hint_slide_lock": "向上滑动锁定",
@@ -368,30 +384,251 @@
     "cancel_title": "取消",
     "lock_aria": "锁定录制",
     "lock_title": "锁定",
-    "send_aria": "发送语音留言",
+    "send_aria": "发送语音便笺",
     "send_title": "发送",
     "locked": "已锁定",
     "mobile_hint_lock": "锁定",
-    "mobile_hint_cancel": "←滑动取消"
+    "mobile_hint_cancel": "滑动 ← 取消"
   },
   "languageSelector": {
     "label": "语言",
-    "description": "语言将自动保存并在您下次访问时识别。"
+    "description": "下次访问时，语言将自动保存和检测。"
   },
-  "blockedUsers": {
-    "title": "被封锁的用户",
+  "consent": {
+    "geolocation": {
+      "title": "地理位置权限",
+      "description": "NoNetChat 希望访问您的地理位置，以便将您与附近的用户联系起来。您的位置数据会得到安全处理，并符合 GDPR。",
+      "privacy_title": "尊重您的隐私",
+      "privacy_point1": "端到端加密数据",
+      "privacy_point2": "仅本地存储",
+      "privacy_point3": "自动删除服务器坐标",
+      "privacy_point4": "没有中央数据服务器",
+      "show_details": "显示技术细节",
+      "hide_details": "隐藏细节",
+      "technical_details": "技术细节",
+      "data_collected": "收集的数据",
+      "data_collected_desc": "GPS 坐标 (纬度/经度)、大致城市和国家",
+      "purpose": "目的",
+      "purpose_desc": "与地理位置相近的用户建立 P2P 连接",
+      "retention": "保留",
+      "retention_desc": "断开连接后，坐标会自动从服务器中删除",
+      "legal_basis": "法律依据",
+      "legal_basis_desc": "明确同意 (GDPR 第 6.1.a 条)",
+      "withdrawal_info": "您可以随时在隐私设置中撤回您的同意。有关更多信息，请参阅我们的",
+      "privacy_policy_link": "隐私政策",
+      "accept": "接受",
+      "decline": "拒绝"
+    }
+  },
+  "legal": {
+    "tabs": {
+      "privacy": "隐私",
+      "terms": "条款",
+      "legal_notices": "法律声明"
+    },
+    "privacy_policy": {
+      "title": "隐私政策",
+      "last_updated": "最后更新",
+      "controller": {
+        "title": "数据控制者",
+        "name": "姓名",
+        "contact": "联系方式",
+        "dpo": "数据保护官"
+      },
+      "data_collected": {
+        "title": "收集的数据",
+        "legal_basis": "法律依据",
+        "geolocation": {
+          "title": "地理位置数据",
+          "coordinates": "GPS 坐标 (纬度、经度)",
+          "city_country": "城市和国家 (通过 IP 地理位置 API)",
+          "accuracy": "位置精度",
+          "legal_basis": "明确同意 (GDPR 第 6.1.a 条)"
+        },
+        "profile": {
+          "title": "个人资料数据",
+          "display_name": "显示名称 (可选)",
+          "age_gender": "年龄和性别 (可选)",
+          "avatar": "个人资料图片 (可选)",
+          "device_id": "唯一设备标识符",
+          "legal_basis": "服务运营的合法权益 (GDPR 第 6.1.f 条)"
+        },
+        "messages": {
+          "title": "消息和对话",
+          "encrypted": "端到端加密消息 (AES-GCM)",
+          "local_only": "仅本地存储 (IndexedDB)",
+          "metadata": "技术元数据 (时间戳、状态)",
+          "legal_basis": "履行服务合同 (GDPR 第 6.1.b 条)"
+        }
+      },
+      "retention": {
+        "title": "保留期限",
+        "geolocation": "地理位置",
+        "geolocation_duration": "断开连接时自动删除 (最长 24 小时)",
+        "profile": "用户个人资料",
+        "profile_duration": "本地保存，直到手动删除",
+        "messages": "消息",
+        "messages_duration": "本地保存，直到手动删除"
+      },
+      "rights": {
+        "title": "您的 GDPR 权利",
+        "access": "访问权",
+        "access_desc": "在设置中查看您的数据",
+        "rectification": "更正权",
+        "rectification_desc": "随时编辑您的个人资料",
+        "erasure": "删除权",
+        "erasure_desc": "删除您的所有数据",
+        "portability": "数据可移植性权利",
+        "portability_desc": "以 JSON 格式导出您的数据",
+        "withdraw_consent": "撤回同意",
+        "withdraw_consent_desc": "撤销地理位置权限",
+        "complaint": "投诉权",
+        "complaint_desc": "联系您的数据保护机构"
+      },
+      "security": {
+        "title": "安全与保护",
+        "encryption": "使用临时 ECDH 密钥进行端到端加密",
+        "local_storage": "独占本地存储 (无中央服务器)",
+        "p2p": "去中心化 P2P 架构",
+        "no_central_server": "中央服务器不收集数据"
+      },
+      "contact": {
+        "title": "联系方式",
+        "description": "有关本隐私政策或行使您的权利的任何问题，请联系:"
+      }
+    },
+    "terms": {
+      "title": "一般使用条款",
+      "last_updated": "最后更新",
+      "acceptance": {
+        "title": "接受条款",
+        "content": "使用 NoNetChat，即表示您同意这些使用条款。如果您不同意这些条款，请不要使用本服务。"
+      },
+      "service_description": {
+        "title": "服务说明",
+        "content": "NoNetChat 是一款去中心化的点对点消息应用程序，允许用户在没有中央服务器的情况下安全地进行通信。该服务提供:",
+        "feature1": "端到端加密消息",
+        "feature2": "直接 P2P 连接",
+        "feature3": "本地数据存储",
+        "feature4": "通过地理位置发现对等点"
+      },
+      "user_obligations": {
+        "title": "用户义务",
+        "respect_laws": "遵守适用的法律法规",
+        "no_harassment": "不得骚扰、威胁或恐吓其他用户",
+        "no_illegal_content": "不得分享非法、冒犯性或不当内容",
+        "respect_others": "尊重他人的隐私和权利",
+        "accurate_info": "在您的个人资料中提供准确的信息"
+      },
+      "prohibited_uses": {
+        "title": "禁止使用",
+        "spam": "发送垃圾邮件或未经请求的消息",
+        "malware": "分发恶意软件或病毒",
+        "impersonation": "冒充或欺诈性陈述",
+        "copyright": "侵犯版权或知识产权",
+        "reverse_engineering": "逆向工程或试图破坏服务"
+      },
+      "liability": {
+        "title": "责任限制",
+        "content": "NoNetChat 按“原样”提供，不作任何形式的保证。对于因使用本服务而导致的任何直接、间接或后果性损害，我们概不负责。",
+        "disclaimer": "用户对其分享的内容以及与其他用户的互动负全部责任。"
+      },
+      "modifications": {
+        "title": "条款修改",
+        "content": "我们保留随时修改这些条款的权利。修改将在发布后生效。继续使用本服务即表示接受新条款。"
+      },
+      "termination": {
+        "title": "终止",
+        "content": "您可以随时停止使用本服务。如果违反这些条款，我们保留暂停访问本服务的权利。"
+      },
+      "governing_law": {
+        "title": "适用法律",
+        "content": "这些条款受法国法律管辖。任何争议将提交给有管辖权的法国法院。"
+      }
+    },
+    "notices": {
+      "title": "法律声明",
+      "publisher": {
+        "title": "发布者",
+        "name": "姓名",
+        "type": "类型",
+        "type_value": "开源 Web 应用程序",
+        "contact": "联系方式",
+        "website": "网站"
+      },
+      "hosting": {
+        "title": "托管",
+        "provider": "提供商",
+        "provider_value": "去中心化架构 - 无中央托管",
+        "note": "注意",
+        "note_value": "数据本地存储在用户的设备上"
+      },
+      "intellectual_property": {
+        "title": "知识产权",
+        "content": "NoNetChat 是根据开源许可证分发的免费软件。源代码是公开的，可以根据许可证的条款进行修改。"
+      },
+      "open_source": {
+        "title": "开源",
+        "content": "该项目是开源的，欢迎社区贡献。",
+        "repository": "存储库"
+      }
+    }
+  },
+  "privacy_settings": {
+    "title": "隐私设置",
+    "consent_withdrawn": "同意已成功撤回",
+    "consent_granted": "同意已成功授予",
+    "export_success": "数据已成功导出",
+    "export_error": "导出数据时出错",
+    "delete_success": "所有数据已成功删除",
+    "delete_error": "删除数据时出错",
+    "delete_confirm_error": "请键入‘DELETE’以确认",
+    "never": "从不",
+    "geolocation_consent": {
+      "title": "地理位置同意",
+      "status": "状态",
+      "granted": "已授予",
+      "declined": "已拒绝",
+      "not_set": "未设置",
+      "date": "日期",
+      "grant": "授予",
+      "withdraw": "撤回"
+    },
+    "data_overview": {
+      "title": "数据概览",
+      "messages": "消息",
+      "conversations": "对话",
+      "avatars": "头像",
+      "profile_size": "个人资料大小"
+    },
+    "data_actions": {
+      "title": "数据操作",
+      "export": {
+        "title": "导出我的数据",
+        "description": "以 JSON 格式下载您的所有个人数据",
+        "button": "导出",
+        "exporting": "正在导出..."
+      },
+      "delete": {
+        "title": "删除我的所有数据",
+        "description": "永久删除您的所有个人数据",
+        "button": "删除",
+        "confirm_title": "确认删除",
+        "confirm_description": "此操作不可逆。您的所有数据将被永久删除。",
+        "type_delete": "键入‘DELETE’以确认:",
+        "confirm_button": "确认删除",
+        "deleting": "正在删除..."
+      }
+    },
+    "legal_documents": {
+      "title": "法律文件",
+      "privacy_policy": "隐私政策",
+      "terms_of_service": "使用条款",
+      "legal_notices": "法律声明"
+    }
+  },
+  "common": {
     "close": "关闭",
-    "manage_blocked_users": "管理被封锁的用户",
-    "blocked_count": "{{count}} 位被封锁的用户",
-    "no_blocked_users": "没有被封锁的用户",
-    "unknown_user": "未知的用户",
-    "blocked_at": "{{date}} 已封锁",
-    "unblock_user": "解除封锁用户",
-    "unblock": "解除封锁",
-    "unblock_confirm": "您确定要解除封锁此用户吗？",
-    "unblock_confirm_title": "解除封锁用户",
-    "unblock_confirm_message": "您确定要解除封锁此用户吗？",
-    "confirm": "确认",
     "cancel": "取消"
   }
 }

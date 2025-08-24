@@ -1,27 +1,27 @@
 {
   "app": {
-    "initializing": "Inițializarea serviciilor...",
+    "initializing": "Se inițializează serviciile...",
     "tagline": "Mesagerie directă",
-    "tagline_disconnected": "Mesagerie directă (Deconectat)",
+    "tagline_disconnected": "Mesagerie directă (deconectat)",
     "title": "NoNetChat Web",
     "status": {
       "connected": "Conectat",
       "disconnected": "Deconectat"
     },
-    "install": "Instalare",
-    "install_aria": "Instalare aplicație",
+    "install": "Instalează",
+    "install_aria": "Instalează aplicația",
     "aria": {
       "connected": "Conectat",
       "disconnected": "Deconectat"
     }
   },
   "geolocationError": {
-    "activate": "Activați locația",
-    "close_alert": "Închideți alerta",
+    "activate": "Activează locația",
+    "close_alert": "Închide alerta",
     "unavailable_location": "Nu s-a putut determina țara/orașul dvs. Căutarea extinsă este dezactivată.",
     "gps_failed": "GPS a eșuat. Se utilizează locația aproximativă prin IP.",
-    "permission_denied": "Accesul la geolocalizare a fost refuzat. Aplicația nu poate găsi peer-uri din apropiere.",
-    "position_unavailable": "Nu s-a putut obține poziția dvs. curentă. Verificați conexiunea la rețea sau setările de locație.",
+    "permission_denied": "Accesul la geolocalizare a fost refuzat. Aplicația nu poate găsi parteneri din apropiere.",
+    "position_unavailable": "Nu se poate obține poziția dvs. curentă. Verificați conexiunea la rețea sau setările de localizare.",
     "timeout": "Timpul de căutare a poziției a expirat. Vă rugăm să încercați din nou.",
     "unknown": "Eroare necunoscută la preluarea poziției dvs."
   },
@@ -32,7 +32,7 @@
     "receiving": "(Se primește...)"
   },
   "tabs": {
-    "peers": "Peer-uri",
+    "peers": "Parteneri",
     "public_chat": "Public",
     "conversations": "Mesaje"
   },
@@ -46,48 +46,48 @@
   },
   "settings": {
     "title": "Setări",
-    "close_aria": "Închideți setările",
-    "profile_shortcut_title": "Profil necompletat",
-    "profile_shortcut_description": "Editați-vă numele / avatarul",
-    "edit": "Editare",
-    "signaling_url_label": "Adresa URL a serverului de semnalizare",
+    "close_aria": "Închide setările",
+    "profile_shortcut_title": "Profil incomplet",
+    "profile_shortcut_description": "Editați-vă numele/avatarul",
+    "edit": "Editează",
+    "signaling_url_label": "URL server de semnalizare",
     "signaling_url_placeholder": "wss://your-server.com",
     "discovery_mode_label": "Mod de căutare",
-    "radius_km": "Raza (km)",
+    "radius_km": "Rază (km)",
     "city": "Oraș",
     "country": "Toată țara",
     "unavailable": "(indisponibil)",
-    "cancel": "Anulare",
-    "save": "Salvare",
+    "cancel": "Anulează",
+    "save": "Salvează",
     "manage": "Gestionează"
   },
   "header": {
     "logo_alt": "Logo NoNetChat",
     "notifications_aria": "Setări de notificare",
     "settings_aria": "Setări",
-    "profile_aria": "Editați-vă profilul",
+    "profile_aria": "Editează-ți profilul",
     "home_aria": "Înapoi la pagina principală"
   },
   "main": {
     "connecting_to_peer": "Se conectează...",
-    "establishing_connection": "Se stabilește conexiunea cu peer-ul selectat.",
+    "establishing_connection": "Se stabilește conexiunea cu partenerul selectat.",
     "connecting_to_server": "Se conectează la serverul de semnalizare...",
-    "select_peer_prompt": "Selectați un peer pentru a începe o conversație directă și sigură.",
-    "cancel_button": "Anulare",
+    "select_peer_prompt": "Selectați un partener pentru a începe o conversație directă și sigură.",
+    "cancel_button": "Anulează",
     "welcome_title": "NoNetChat Web",
     "welcome_connecting": "Se conectează la serverul de semnalizare...",
-    "welcome_select_peer": "Selectați un peer pentru a începe o conversație directă și sigură."
+    "welcome_select_peer": "Selectați un partener pentru a începe o conversație directă și sigură."
   },
   "bottomNav": {
-    "peers": "Peer-uri",
+    "peers": "Parteneri",
     "public_chat": "Chat public",
     "public_chat_short": "Public",
     "messages": "Mesaje",
     "settings": "Setări",
     "notifications": "Notificări",
-    "notifications_short": "Notif.",
+    "notifications_short": "Notificări",
     "aria": {
-      "peers": "Peer-uri",
+      "peers": "Parteneri",
       "public_chat": "Chat public",
       "messages": "Mesaje",
       "settings": "Setări",
@@ -98,7 +98,7 @@
     "voice_note": "Notă vocală",
     "sending_in_progress": "(Se trimite...)",
     "sending_progress": "(Se trimite: {{progress}}%)",
-    "sending_error": "(Eroare de trimitere)",
+    "sending_error": "(Eroare la trimitere)",
     "receiving_in_progress": "(Se primește...)",
     "file_size_error": "Dimensiune incorectă a fișierului: s-au primit {{totalSize}} octeți, se așteptau {{expectedSize}} octeți (diferență: {{sizeDifference}})",
     "decryption_empty_error": "Fișierul decriptat este gol",
@@ -106,7 +106,7 @@
     "delete_message_confirm": "Sigur doriți să ștergeți acest mesaj?",
     "delete_conversation_confirm": "Sigur doriți să ștergeți întreaga conversație?",
     "message_info_title": "Informații",
-    "message_info_content": "ID: {{id}}\nTip: {{type}}\nTrimis: {{timestamp}}\nStatus: {{status}}",
+    "message_info_content": "ID: {{id}}\nTip: {{type}}\nTrimis: {{timestamp}}\nStare: {{status}}",
     "message_status_sent": "Trimis",
     "send_aria_label_offline": "Utilizator offline - trimiterea este dezactivată",
     "send_aria_label_file": "Trimite fișier",
@@ -115,8 +115,8 @@
       "not_found": "Fișierul nu a fost găsit în baza de date locală.",
       "error": "A apărut o eroare în timpul descărcării.",
       "loading": "Se încarcă...",
-      "download": "📥 Descărcare",
-      "title": "Descărcare fișier"
+      "download": "📥 Descarcă",
+      "title": "Descarcă fișier"
     },
     "header": {
       "back": "Înapoi",
@@ -129,15 +129,15 @@
       "title": "Transferuri în curs",
       "receiving_progress": "Se primește: {{progress}}%",
       "sending_progress": "Se trimite: {{progress}}%",
-      "cancel": "Anulare",
-      "warning_title": "Avertisment:",
-      "warning_body": "Anularea întrerupe definitiv transferul.",
+      "cancel": "Anulează",
+      "warning_title": "Atenție:",
+      "warning_body": "Anularea va opri definitiv transferul.",
       "cancelled_by_user": "(Anulat de utilizator)"
     },
     "message_menu": {
       "title": "Opțiuni mesaj",
       "info": "Informații",
-      "delete": "Ștergere"
+      "delete": "Șterge"
     },
     "reactions": {
       "title": "Reacționează cu {{emoji}}",
@@ -165,9 +165,9 @@
     },
     "input": {
       "remove_file": "Elimină fișierul",
-      "file_disabled_offline": "Peer offline - trimiterea fișierelor nu este disponibilă",
+      "file_disabled_offline": "Partener offline - trimiterea fișierelor nu este disponibilă",
       "attach_file": "Atașează fișier",
-      "file_too_large": "Fișierul este prea mare. Dimensiunea maximă permisă: {{maxSize}} MB\n\nNotă: Fișierele sunt comprimate automat înainte de a fi trimise pentru a optimiza transferul.",
+      "file_too_large": "Fișierul este prea mare. Dimensiunea maximă permisă: {{maxSize}} MB\n\nNotă: fișierele sunt comprimate automat înainte de a fi trimise pentru a optimiza transferul.",
       "selected_file": "Fișier selectat: {{fileName}}",
       "placeholder": "Scrieți mesajul...",
       "placeholder_offline": "Utilizator offline - trimiterea mesajelor este dezactivată",
@@ -181,15 +181,15 @@
   "connectionStatus": {
     "reconnecting": "Se reconectează...",
     "disconnected": "Deconectat",
-    "reconnect": "Reconectare"
+    "reconnect": "Reconectează"
   },
   "conversationList": {
     "title": "Conversații ({{count}})",
-    "search_placeholder": "Căutare după nume sau mesaj...",
+    "search_placeholder": "Caută după nume sau mesaj...",
     "clear_search_aria": "Șterge căutarea",
     "clear_search_title": "Șterge",
     "no_conversations_title": "Nicio conversație",
-    "no_conversations_prompt": "Selectați un peer pentru a începe",
+    "no_conversations_prompt": "Selectați un partener pentru a începe",
     "loading": "Se încarcă...",
     "delete_confirm": "Sigur doriți să ștergeți această conversație?",
     "last_message_none": "Niciun mesaj",
@@ -207,22 +207,22 @@
   "diagnosticPanel": {
     "title": "Diagnostic NoNetChat",
     "close": "Închide",
-    "resize": "Redimensionare",
+    "resize": "Redimensionează",
     "connectivity_tests": "Teste de conectivitate",
-    "testing_in_progress": "Se testează...",
+    "testing_in_progress": "Test în curs...",
     "test_connectivity": "Testează conectivitatea",
     "signaling": "Semnalizare",
     "ok": "OK",
-    "fail": "EȘEC",
+    "fail": "Eșec",
     "stun_servers": "Servere STUN:",
-    "network_info": "Informații rețea:",
-    "logs_title": "Loguri în timp real",
+    "network_info": "Informații de rețea:",
+    "logs_title": "Jurnale în timp real",
     "auto_scroll": "Derulare automată",
     "clear": "Șterge",
-    "export": "Export",
-    "no_logs": "Niciun log disponibil. Logurile vor apărea aici în timp real.",
+    "export": "Exportă",
+    "no_logs": "Niciun jurnal disponibil. Jurnalele vor apărea aici în timp real.",
     "instructions_title": "Instrucțiuni:",
-    "instructions_body": "1) Rulați \"Testează conectivitatea\". 2) Monitorizați logurile. 3) Exportați pentru a partaja."
+    "instructions_body": "1) Rulați 'Testează conectivitatea'. 2) Monitorizați jurnalele. 3) Exportați pentru a partaja."
   },
   "filePreview": {
     "unknown_size": "dimensiune necunoscută",
@@ -233,9 +233,9 @@
     "unplayable_audio": "Este posibil ca acest format audio să nu poată fi redat în acest browser. Îl puteți descărca mai sus.",
     "hide_preview": "Ascunde previzualizarea",
     "show_preview": "Afișează previzualizarea",
-    "loading": "Se încarcă…",
+    "loading": "Se încarcă...",
     "unknown_type": "tip necunoscut",
-    "download": "Descărcare",
+    "download": "Descarcă",
     "open_in_new_tab": "Deschide într-o filă nouă",
     "copy_text": "Copiază textul",
     "preview_unavailable": "Previzualizare indisponibilă pentru acest tip de fișier.",
@@ -263,40 +263,40 @@
     "dnd_description": "Dezactivează temporar toate notificările",
     "tips_title": "💡 Sfaturi:",
     "tip1": "• Notificările de sistem funcționează numai dacă fila este deschisă",
-    "tip2": "• Modul \"Nu deranja\" dezactivează toate notificările",
+    "tip2": "• Modul 'Nu deranja' dezactivează toate notificările",
     "tip3": "• Setările sunt salvate automat",
     "close": "Închide"
   },
   "peerList": {
-    "title": "Peer-uri conectate ({{count}})",
+    "title": "Parteneri conectați ({{count}})",
     "filter_by_gender": "Filtrează după gen",
     "all_genders": "Toate genurile",
     "male": "Bărbați",
     "female": "Femei",
     "other_gender": "Altul / Nespecificat",
-    "sort_by": "Sortează după",
+    "sort_by": "Sortează",
     "distance_asc": "Distanță (↑)",
     "distance_desc": "Distanță (↓)",
     "age_asc": "Vârstă (↑)",
     "age_desc": "Vârstă (↓)",
     "connection_required_title": "Conexiune necesară",
     "connection_required_body": "Conectați-vă la serverul de semnalizare",
-    "no_peers_title": "Niciun peer online",
+    "no_peers_title": "Niciun partener online",
     "no_peers_body": "Ajustați filtrele de mai sus",
     "user_default_name": "Utilizator",
     "estimated_distance": "Distanță estimată",
     "gender_title": "Gen: {{gender}}",
     "age_suffix": "ani",
     "view_profile": "Vezi profilul",
-    "start_conversation": "Începe o conversație",
+    "start_conversation": "Începe conversația",
     "join_time": {
       "unknown": "Necunoscut",
       "now": "Chiar acum",
-      "minutes_ago": "acum {{count}} min",
-      "hours_ago": "acum {{count}}h"
+      "minutes_ago": "Acum {{count}} min",
+      "hours_ago": "Acum {{count}} h"
     },
     "tooltip": {
-      "status": "Status:",
+      "status": "Stare:",
       "age": "Vârstă:",
       "gender": "Gen:",
       "distance": "Distanță:",
@@ -312,9 +312,25 @@
       "offline": "Offline",
       "busy": "Ocupat"
     },
-    "meta_separator": "•",
     "block_user_title": "Blochează utilizatorul",
-    "block_user_confirm": "Sigur doriți să blocați {{name}}? Nu veți mai primi mesajele sale."
+    "block_user_confirm": "Sigur doriți să blocați {{name}}? Nu veți mai primi mesajele lor.",
+    "meta_separator": "•"
+  },
+  "blockedUsers": {
+    "title": "Utilizatori blocați",
+    "close": "Închide",
+    "manage_blocked_users": "Gestionează utilizatorii blocați",
+    "blocked_count": "{{count}} utilizator(i) blocat(i)",
+    "no_blocked_users": "Niciun utilizator blocat",
+    "unknown_user": "Utilizator necunoscut",
+    "blocked_at": "Blocat la {{date}}",
+    "unblock_user": "Deblochează utilizatorul",
+    "unblock": "Deblochează",
+    "unblock_confirm": "Sigur doriți să deblocați acest utilizator?",
+    "unblock_confirm_title": "Deblochează utilizatorul",
+    "unblock_confirm_message": "Sigur doriți să deblocați acest utilizator?",
+    "confirm": "Confirmă",
+    "cancel": "Anulează"
   },
   "profileModal": {
     "title": "Profilul tău",
@@ -324,7 +340,7 @@
     "avatar_alt": "Avatar",
     "change_avatar_title": "Schimbă avatarul",
     "refresh_avatar_title": "Generează un nou avatar implicit",
-    "optimizing_image": "Se optimizează imaginea…",
+    "optimizing_image": "Se optimizează imaginea...",
     "username_label": "Nume de utilizator",
     "age_label": "Vârstă",
     "gender_label": "Gen",
@@ -332,8 +348,8 @@
     "gender_male": "Bărbat",
     "gender_female": "Femeie",
     "gender_other": "Altul",
-    "cancel": "Anulare",
-    "save": "Salvare"
+    "cancel": "Anulează",
+    "save": "Salvează"
   },
   "publicChatWindow": {
     "back": "Înapoi",
@@ -343,55 +359,276 @@
     "gender_female_short": "F",
     "gender_other": "Altul",
     "age_suffix": "ani",
-    "meta_separator": " · "
+    "meta_separator": "·"
   },
   "statusBar": {
-    "peers_connected_aria_one": "{{count}} peer conectat",
-    "peers_connected_aria_other": "{{count}} peer-uri conectate",
-    "peers_connected_text": "peer(i)",
+    "peers_connected_aria_one": "{{count}} partener conectat",
+    "peers_connected_aria_other": "{{count}} parteneri conectați",
+    "peers_connected_text": "partener(i)",
     "id": "ID:",
     "full_id_title": "ID complet: {{clientId}}",
     "connected": "Conectat",
     "disconnected": "Deconectat",
-    "open_diagnostic_panel": "Deschide panoul de diagnostic",
+    "open_diagnostic_panel": "Deschide panoul de diagnosticare",
     "change_signaling_server": "Schimbă serverul de semnalizare"
   },
   "voiceRecorder": {
     "voice_note": "Notă vocală",
     "mic_error": "Nu s-a putut accesa microfonul. Verificați permisiunile browserului.",
     "idle_title_click": "Clic: înregistrează (blocat) • Enter: trimite • Esc: anulează",
-    "idle_title_hold": "Apăsare lungă pentru a înregistra • Glisare ← pentru a anula • Glisare ↑ pentru a bloca",
+    "idle_title_hold": "Apăsați lung pentru a înregistra • Glisați ← pentru a anula • Glisați ↑ pentru a bloca",
     "record_aria": "Înregistrează un mesaj vocal",
     "hint_slide_cancel": "Glisați la stânga pentru a anula",
     "hint_slide_lock": "Glisați în sus pentru a bloca",
     "cancel_aria": "Anulează înregistrarea",
-    "cancel_title": "Anulare",
+    "cancel_title": "Anulează",
     "lock_aria": "Blochează înregistrarea",
-    "lock_title": "Blocare",
+    "lock_title": "Blochează",
     "send_aria": "Trimite nota vocală",
     "send_title": "Trimite",
     "locked": "blocat",
-    "mobile_hint_lock": "Blocare",
+    "mobile_hint_lock": "Blochează",
     "mobile_hint_cancel": "Glisați ← pentru a anula"
   },
   "languageSelector": {
     "label": "Limbă",
-    "description": "Limba va fi salvată automat și detectată la următoarea vizită."
+    "description": "Limba va fi salvată și detectată automat la următoarea vizită."
   },
-  "blockedUsers": {
-    "title": "Utilizatori blocați",
+  "consent": {
+    "geolocation": {
+      "title": "Permisiune de geolocalizare",
+      "description": "NoNetChat dorește să acceseze locația dvs. geografică pentru a vă conecta cu utilizatorii din apropiere. Datele dvs. de localizare sunt prelucrate în siguranță și în conformitate cu GDPR.",
+      "privacy_title": "Respect pentru confidențialitatea dvs.",
+      "privacy_point1": "Date criptate end-to-end",
+      "privacy_point2": "Doar stocare locală",
+      "privacy_point3": "Ștergerea automată a coordonatelor serverului",
+      "privacy_point4": "Niciun server de date central",
+      "show_details": "Afișează detalii tehnice",
+      "hide_details": "Ascunde detalii",
+      "technical_details": "Detalii tehnice",
+      "data_collected": "Date colectate",
+      "data_collected_desc": "Coordonate GPS (latitudine/longitudine), oraș și țară aproximative",
+      "purpose": "Scop",
+      "purpose_desc": "Conexiune P2P cu utilizatori apropiați geografic",
+      "retention": "Păstrare",
+      "retention_desc": "Coordonatele sunt șterse automat de pe server după deconectare",
+      "legal_basis": "Bază legală",
+      "legal_basis_desc": "Consimțământ explicit (Art. 6.1.a GDPR)",
+      "withdrawal_info": "Vă puteți retrage consimțământul în orice moment în setările de confidențialitate. Pentru mai multe informații, consultați",
+      "privacy_policy_link": "politica de confidențialitate",
+      "accept": "Acceptă",
+      "decline": "Refuză"
+    }
+  },
+  "legal": {
+    "tabs": {
+      "privacy": "Confidențialitate",
+      "terms": "Termeni",
+      "legal_notices": "Notificări legale"
+    },
+    "privacy_policy": {
+      "title": "Politică de confidențialitate",
+      "last_updated": "Ultima actualizare",
+      "controller": {
+        "title": "Operator de date",
+        "name": "Nume",
+        "contact": "Contact",
+        "dpo": "Responsabil cu protecția datelor"
+      },
+      "data_collected": {
+        "title": "Date colectate",
+        "legal_basis": "Bază legală",
+        "geolocation": {
+          "title": "Date de geolocalizare",
+          "coordinates": "Coordonate GPS (latitudine, longitudine)",
+          "city_country": "Oraș și țară (prin API de geolocalizare IP)",
+          "accuracy": "Precizia locației",
+          "legal_basis": "Consimțământ explicit (Art. 6.1.a GDPR)"
+        },
+        "profile": {
+          "title": "Date de profil",
+          "display_name": "Nume de afișare (opțional)",
+          "age_gender": "Vârstă și gen (opțional)",
+          "avatar": "Poză de profil (opțional)",
+          "device_id": "Identificator unic al dispozitivului",
+          "legal_basis": "Interes legitim pentru funcționarea serviciului (Art. 6.1.f GDPR)"
+        },
+        "messages": {
+          "title": "Mesaje și conversații",
+          "encrypted": "Mesaje criptate end-to-end (AES-GCM)",
+          "local_only": "Doar stocare locală (IndexedDB)",
+          "metadata": "Metadate tehnice (timestamp, stare)",
+          "legal_basis": "Executarea contractului de servicii (Art. 6.1.b GDPR)"
+        }
+      },
+      "retention": {
+        "title": "Perioada de păstrare",
+        "geolocation": "Geolocalizare",
+        "geolocation_duration": "Ștergere automată la deconectare (max. 24h)",
+        "profile": "Profil de utilizator",
+        "profile_duration": "Păstrat local până la ștergerea manuală",
+        "messages": "Mesaje",
+        "messages_duration": "Păstrat local până la ștergerea manuală"
+      },
+      "rights": {
+        "title": "Drepturile dvs. GDPR",
+        "access": "Dreptul de acces",
+        "access_desc": "Vizualizați datele dvs. în setări",
+        "rectification": "Dreptul la rectificare",
+        "rectification_desc": "Editați-vă profilul în orice moment",
+        "erasure": "Dreptul la ștergere",
+        "erasure_desc": "Ștergeți toate datele dvs.",
+        "portability": "Dreptul la portabilitatea datelor",
+        "portability_desc": "Exportați datele dvs. în format JSON",
+        "withdraw_consent": "Retragerea consimțământului",
+        "withdraw_consent_desc": "Revocați permisiunea de geolocalizare",
+        "complaint": "Dreptul de a depune o plângere",
+        "complaint_desc": "Contactați autoritatea dvs. de protecție a datelor"
+      },
+      "security": {
+        "title": "Securitate și protecție",
+        "encryption": "Criptare end-to-end cu chei ECDH efemere",
+        "local_storage": "Stocare locală exclusivă (fără server central)",
+        "p2p": "Arhitectură P2P descentralizată",
+        "no_central_server": "Nicio colectare de date de către un server central"
+      },
+      "contact": {
+        "title": "Contact",
+        "description": "Pentru orice întrebări referitoare la această politică de confidențialitate sau la exercitarea drepturilor dvs.:"
+      }
+    },
+    "terms": {
+      "title": "Termeni generali de utilizare",
+      "last_updated": "Ultima actualizare",
+      "acceptance": {
+        "title": "Acceptarea termenilor",
+        "content": "Prin utilizarea NoNetChat, sunteți de acord cu acești termeni de utilizare. Dacă nu sunteți de acord cu acești termeni, vă rugăm să nu utilizați serviciul."
+      },
+      "service_description": {
+        "title": "Descrierea serviciului",
+        "content": "NoNetChat este o aplicație de mesagerie descentralizată peer-to-peer care permite utilizatorilor să comunice în siguranță fără un server central. Serviciul oferă:",
+        "feature1": "Mesagerie criptată end-to-end",
+        "feature2": "Conexiuni P2P directe",
+        "feature3": "Stocare locală a datelor",
+        "feature4": "Descoperirea partenerilor prin geolocalizare"
+      },
+      "user_obligations": {
+        "title": "Obligațiile utilizatorului",
+        "respect_laws": "Respectați legile și reglementările aplicabile",
+        "no_harassment": "Nu hărțuiți, amenințați sau intimidați alți utilizatori",
+        "no_illegal_content": "Nu partajați conținut ilegal, ofensator sau inadecvat",
+        "respect_others": "Respectați confidențialitatea și drepturile altora",
+        "accurate_info": "Furnizați informații exacte în profilul dvs."
+      },
+      "prohibited_uses": {
+        "title": "Utilizări interzise",
+        "spam": "Trimiterea de spam sau mesaje nesolicitate",
+        "malware": "Distribuirea de malware sau viruși",
+        "impersonation": "Furt de identitate sau reprezentare frauduloasă",
+        "copyright": "Încălcarea drepturilor de autor sau a proprietății intelectuale",
+        "reverse_engineering": "Inginerie inversă sau încercarea de a compromite serviciul"
+      },
+      "liability": {
+        "title": "Limitarea răspunderii",
+        "content": "NoNetChat este furnizat 'ca atare' fără nicio garanție de niciun fel. Nu suntem răspunzători pentru nicio daună directă, indirectă sau consecințială rezultată din utilizarea serviciului.",
+        "disclaimer": "Utilizatorul este singurul responsabil pentru conținutul pe care îl partajează și pentru interacțiunile pe care le are cu alți utilizatori."
+      },
+      "modifications": {
+        "title": "Modificări ale termenilor",
+        "content": "Ne rezervăm dreptul de a modifica acești termeni în orice moment. Modificările vor intra în vigoare la publicarea lor. Utilizarea continuă a serviciului constituie acceptarea noilor termeni."
+      },
+      "termination": {
+        "title": "Încetare",
+        "content": "Puteți înceta utilizarea serviciului în orice moment. Ne rezervăm dreptul de a suspenda accesul la serviciu în cazul încălcării acestor termeni."
+      },
+      "governing_law": {
+        "title": "Legea aplicabilă",
+        "content": "Acești termeni sunt guvernați de legea franceză. Orice litigiu va fi supus jurisdicției instanțelor franceze competente."
+      }
+    },
+    "notices": {
+      "title": "Notificări legale",
+      "publisher": {
+        "title": "Editor",
+        "name": "Nume",
+        "type": "Tip",
+        "type_value": "Aplicație web open source",
+        "contact": "Contact",
+        "website": "Site web"
+      },
+      "hosting": {
+        "title": "Găzduire",
+        "provider": "Furnizor",
+        "provider_value": "Arhitectură descentralizată - fără găzduire centrală",
+        "note": "Notă",
+        "note_value": "Datele sunt stocate local pe dispozitivul utilizatorului"
+      },
+      "intellectual_property": {
+        "title": "Proprietate intelectuală",
+        "content": "NoNetChat este un software gratuit distribuit sub o licență open source. Codul sursă este disponibil public și poate fi modificat în conformitate cu termenii licenței."
+      },
+      "open_source": {
+        "title": "Sursă deschisă",
+        "content": "Acest proiect este open source și contribuțiile comunității sunt binevenite.",
+        "repository": "Depozit"
+      }
+    }
+  },
+  "privacy_settings": {
+    "title": "Setări de confidențialitate",
+    "consent_withdrawn": "Consimțământul a fost retras cu succes",
+    "consent_granted": "Consimțământul a fost acordat cu succes",
+    "export_success": "Datele au fost exportate cu succes",
+    "export_error": "Eroare la exportul datelor",
+    "delete_success": "Toate datele au fost șterse cu succes",
+    "delete_error": "Eroare la ștergerea datelor",
+    "delete_confirm_error": "Vă rugăm să tastați 'DELETE' pentru a confirma",
+    "never": "Niciodată",
+    "geolocation_consent": {
+      "title": "Consimțământ pentru geolocalizare",
+      "status": "Stare",
+      "granted": "Acordat",
+      "declined": "Refuzat",
+      "not_set": "Nu este setat",
+      "date": "Data",
+      "grant": "Acordă",
+      "withdraw": "Retrage"
+    },
+    "data_overview": {
+      "title": "Prezentare generală a datelor",
+      "messages": "Mesaje",
+      "conversations": "Conversații",
+      "avatars": "Avatare",
+      "profile_size": "Dimensiunea profilului"
+    },
+    "data_actions": {
+      "title": "Acțiuni de date",
+      "export": {
+        "title": "Exportă datele mele",
+        "description": "Descărcați toate datele dvs. personale în format JSON",
+        "button": "Exportă",
+        "exporting": "Se exportă..."
+      },
+      "delete": {
+        "title": "Șterge toate datele mele",
+        "description": "Ștergerea permanentă a tuturor datelor dvs. personale",
+        "button": "Șterge",
+        "confirm_title": "Confirmă ștergerea",
+        "confirm_description": "Această acțiune este ireversibilă. Toate datele dvs. vor fi șterse definitiv.",
+        "type_delete": "Tastați 'DELETE' pentru a confirma:",
+        "confirm_button": "Confirmă ștergerea",
+        "deleting": "Se șterge..."
+      }
+    },
+    "legal_documents": {
+      "title": "Documente legale",
+      "privacy_policy": "Politică de confidențialitate",
+      "terms_of_service": "Termeni și condiții",
+      "legal_notices": "Notificări legale"
+    }
+  },
+  "common": {
     "close": "Închide",
-    "manage_blocked_users": "Gestionează utilizatorii blocați",
-    "blocked_count": "{{count}} utilizator(i) blocat(i)",
-    "no_blocked_users": "Niciun utilizator blocat",
-    "unknown_user": "Utilizator necunoscut",
-    "blocked_at": "Blocat pe {{date}}",
-    "unblock_user": "Deblochează utilizatorul",
-    "unblock": "Deblochează",
-    "unblock_confirm": "Sigur doriți să deblocați acest utilizator?",
-    "unblock_confirm_title": "Deblochează utilizatorul",
-    "unblock_confirm_message": "Sigur doriți să deblocați acest utilizator?",
-    "confirm": "Confirmă",
     "cancel": "Anulează"
   }
 }

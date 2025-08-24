@@ -393,5 +393,242 @@
   "languageSelector": {
     "label": "Langue",
     "description": "La langue sera automatiquement sauvegardée et détectée lors de votre prochaine visite."
+  },
+  "consent": {
+    "geolocation": {
+      "title": "Autorisation de géolocalisation",
+      "description": "NoNetChat souhaite accéder à votre position géographique pour vous connecter avec des utilisateurs proches. Vos données de localisation sont traitées de manière sécurisée et conforme au RGPD.",
+      "privacy_title": "Respect de votre vie privée",
+      "privacy_point1": "Données chiffrées de bout en bout",
+      "privacy_point2": "Stockage local uniquement",
+      "privacy_point3": "Suppression automatique des coordonnées serveur",
+      "privacy_point4": "Aucun serveur central de données",
+      "show_details": "Afficher les détails techniques",
+      "hide_details": "Masquer les détails",
+      "technical_details": "Détails techniques",
+      "data_collected": "Données collectées",
+      "data_collected_desc": "Coordonnées GPS (latitude/longitude), ville et pays approximatifs",
+      "purpose": "Finalité",
+      "purpose_desc": "Connexion P2P avec des utilisateurs géographiquement proches",
+      "retention": "Conservation",
+      "retention_desc": "Coordonnées supprimées automatiquement du serveur après déconnexion",
+      "legal_basis": "Base légale",
+      "legal_basis_desc": "Consentement explicite (Art. 6.1.a RGPD)",
+      "withdrawal_info": "Vous pouvez retirer votre consentement à tout moment dans les paramètres de confidentialité. Pour plus d'informations, consultez notre",
+      "privacy_policy_link": "politique de confidentialité",
+      "accept": "Accepter",
+      "decline": "Refuser"
+    }
+  },
+  "legal": {
+    "tabs": {
+      "privacy": "Confidentialité",
+      "terms": "Conditions",
+      "legal_notices": "Mentions légales"
+    },
+    "privacy_policy": {
+      "title": "Politique de confidentialité",
+      "last_updated": "Dernière mise à jour",
+      "controller": {
+        "title": "Responsable du traitement",
+        "name": "Nom",
+        "contact": "Contact",
+        "dpo": "Délégué à la protection des données"
+      },
+      "data_collected": {
+        "title": "Données collectées",
+        "legal_basis": "Base légale",
+        "geolocation": {
+          "title": "Données de géolocalisation",
+          "coordinates": "Coordonnées GPS (latitude, longitude)",
+          "city_country": "Ville et pays (via API de géolocalisation IP)",
+          "accuracy": "Précision de la localisation",
+          "legal_basis": "Consentement explicite (Art. 6.1.a RGPD)"
+        },
+        "profile": {
+          "title": "Données de profil",
+          "display_name": "Nom d'affichage (optionnel)",
+          "age_gender": "Âge et genre (optionnels)",
+          "avatar": "Photo de profil (optionnelle)",
+          "device_id": "Identifiant unique de l'appareil",
+          "legal_basis": "Intérêt légitime pour le fonctionnement du service (Art. 6.1.f RGPD)"
+        },
+        "messages": {
+          "title": "Messages et conversations",
+          "encrypted": "Messages chiffrés de bout en bout (AES-GCM)",
+          "local_only": "Stockage local uniquement (IndexedDB)",
+          "metadata": "Métadonnées techniques (horodatage, statut)",
+          "legal_basis": "Exécution du contrat de service (Art. 6.1.b RGPD)"
+        }
+      },
+      "retention": {
+        "title": "Durée de conservation",
+        "geolocation": "Géolocalisation",
+        "geolocation_duration": "Suppression automatique à la déconnexion (max. 24h)",
+        "profile": "Profil utilisateur",
+        "profile_duration": "Conservé localement jusqu'à suppression manuelle",
+        "messages": "Messages",
+        "messages_duration": "Conservés localement jusqu'à suppression manuelle"
+      },
+      "rights": {
+        "title": "Vos droits RGPD",
+        "access": "Droit d'accès",
+        "access_desc": "Consulter vos données dans les paramètres",
+        "rectification": "Droit de rectification",
+        "rectification_desc": "Modifier votre profil à tout moment",
+        "erasure": "Droit à l'effacement",
+        "erasure_desc": "Supprimer toutes vos données",
+        "portability": "Droit à la portabilité",
+        "portability_desc": "Exporter vos données au format JSON",
+        "withdraw_consent": "Retrait du consentement",
+        "withdraw_consent_desc": "Révoquer l'autorisation de géolocalisation",
+        "complaint": "Droit de réclamation",
+        "complaint_desc": "Contacter votre autorité de protection des données"
+      },
+      "security": {
+        "title": "Sécurité et protection",
+        "encryption": "Chiffrement de bout en bout avec clés éphémères ECDH",
+        "local_storage": "Stockage local exclusif (pas de serveur central)",
+        "p2p": "Architecture P2P décentralisée",
+        "no_central_server": "Aucune collecte de données par un serveur central"
+      },
+      "contact": {
+        "title": "Contact",
+        "description": "Pour toute question concernant cette politique de confidentialité ou l'exercice de vos droits :"
+      }
+    },
+    "terms": {
+      "title": "Conditions générales d'utilisation",
+      "last_updated": "Dernière mise à jour",
+      "acceptance": {
+        "title": "Acceptation des conditions",
+        "content": "En utilisant NoNetChat, vous acceptez ces conditions d'utilisation. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser le service."
+      },
+      "service_description": {
+        "title": "Description du service",
+        "content": "NoNetChat est une application de messagerie décentralisée, peer-to-peer, qui permet aux utilisateurs de communiquer de manière sécurisée sans serveur central. Le service offre :",
+        "feature1": "Messagerie chiffrée de bout en bout",
+        "feature2": "Connexions P2P directes",
+        "feature3": "Stockage local des données",
+        "feature4": "Découverte de pairs par géolocalisation"
+      },
+      "user_obligations": {
+        "title": "Obligations de l'utilisateur",
+        "respect_laws": "Respecter les lois et réglementations applicables",
+        "no_harassment": "Ne pas harceler, menacer ou intimider d'autres utilisateurs",
+        "no_illegal_content": "Ne pas partager de contenu illégal, offensant ou inapproprié",
+        "respect_others": "Respecter la vie privée et les droits d'autrui",
+        "accurate_info": "Fournir des informations exactes dans votre profil"
+      },
+      "prohibited_uses": {
+        "title": "Utilisations interdites",
+        "spam": "Envoi de spam ou de messages non sollicités",
+        "malware": "Distribution de logiciels malveillants ou de virus",
+        "impersonation": "Usurpation d'identité ou représentation frauduleuse",
+        "copyright": "Violation des droits d'auteur ou de propriété intellectuelle",
+        "reverse_engineering": "Ingénierie inverse ou tentative de compromission du service"
+      },
+      "liability": {
+        "title": "Limitation de responsabilité",
+        "content": "NoNetChat est fourni 'en l'état' sans garantie d'aucune sorte. Nous ne sommes pas responsables des dommages directs, indirects ou consécutifs résultant de l'utilisation du service.",
+        "disclaimer": "L'utilisateur est seul responsable du contenu qu'il partage et des interactions qu'il a avec d'autres utilisateurs."
+      },
+      "modifications": {
+        "title": "Modifications des conditions",
+        "content": "Nous nous réservons le droit de modifier ces conditions à tout moment. Les modifications prendront effet dès leur publication. L'utilisation continue du service constitue une acceptation des nouvelles conditions."
+      },
+      "termination": {
+        "title": "Résiliation",
+        "content": "Vous pouvez cesser d'utiliser le service à tout moment. Nous nous réservons le droit de suspendre l'accès au service en cas de violation de ces conditions."
+      },
+      "governing_law": {
+        "title": "Droit applicable",
+        "content": "Ces conditions sont régies par le droit français. Tout litige sera soumis à la juridiction des tribunaux français compétents."
+      }
+    },
+    "notices": {
+      "title": "Mentions légales",
+      "publisher": {
+        "title": "Éditeur",
+        "name": "Nom",
+        "type": "Type",
+        "type_value": "Application web open source",
+        "contact": "Contact",
+        "website": "Site web"
+      },
+      "hosting": {
+        "title": "Hébergement",
+        "provider": "Fournisseur",
+        "provider_value": "Architecture décentralisée - pas d'hébergement central",
+        "note": "Note",
+        "note_value": "Les données sont stockées localement sur l'appareil de l'utilisateur"
+      },
+      "intellectual_property": {
+        "title": "Propriété intellectuelle",
+        "content": "NoNetChat est un logiciel libre distribué sous licence open source. Le code source est disponible publiquement et peut être modifié selon les termes de la licence."
+      },
+      "open_source": {
+        "title": "Open Source",
+        "content": "Ce projet est open source et les contributions de la communauté sont les bienvenues.",
+        "repository": "Dépôt"
+      }
+    }
+  },
+  "privacy_settings": {
+    "title": "Paramètres de confidentialité",
+    "consent_withdrawn": "Consentement retiré avec succès",
+    "consent_granted": "Consentement accordé avec succès",
+    "export_success": "Données exportées avec succès",
+    "export_error": "Erreur lors de l'export des données",
+    "delete_success": "Toutes les données ont été supprimées avec succès",
+    "delete_error": "Erreur lors de la suppression des données",
+    "delete_confirm_error": "Veuillez taper 'DELETE' pour confirmer",
+    "never": "Jamais",
+    "geolocation_consent": {
+      "title": "Consentement à la géolocalisation",
+      "status": "Statut",
+      "granted": "Accordé",
+      "declined": "Refusé",
+      "not_set": "Non défini",
+      "date": "Date",
+      "grant": "Accorder",
+      "withdraw": "Retirer"
+    },
+    "data_overview": {
+      "title": "Aperçu des données",
+      "messages": "Messages",
+      "conversations": "Conversations",
+      "avatars": "Avatars",
+      "profile_size": "Taille du profil"
+    },
+    "data_actions": {
+      "title": "Actions sur les données",
+      "export": {
+        "title": "Exporter mes données",
+        "description": "Télécharger toutes vos données personnelles au format JSON",
+        "button": "Exporter",
+        "exporting": "Export en cours..."
+      },
+      "delete": {
+        "title": "Supprimer toutes mes données",
+        "description": "Suppression définitive de toutes vos données personnelles",
+        "button": "Supprimer",
+        "confirm_title": "Confirmation de suppression",
+        "confirm_description": "Cette action est irréversible. Toutes vos données seront définitivement supprimées.",
+        "type_delete": "Tapez 'DELETE' pour confirmer :",
+        "confirm_button": "Confirmer la suppression",
+        "deleting": "Suppression en cours..."
+      }
+    },
+    "legal_documents": {
+      "title": "Documents légaux",
+      "privacy_policy": "Politique de confidentialité",
+      "terms_of_service": "Conditions d'utilisation",
+      "legal_notices": "Mentions légales"
+    }
+  },
+  "common": {
+    "close": "Fermer",
+    "cancel": "Annuler"
   }
 }

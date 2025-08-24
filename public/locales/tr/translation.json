@@ -1,8 +1,8 @@
 {
   "app": {
     "initializing": "Hizmetler başlatılıyor...",
-    "tagline": "Doğrudan mesajlaşma",
-    "tagline_disconnected": "Doğrudan mesajlaşma (Bağlantı kesildi)",
+    "tagline": "Doğrudan Mesajlaşma",
+    "tagline_disconnected": "Doğrudan Mesajlaşma (Bağlantı kesildi)",
     "title": "NoNetChat Web",
     "status": {
       "connected": "Bağlandı",
@@ -19,9 +19,9 @@
     "activate": "Konumu etkinleştir",
     "close_alert": "Uyarıyı kapat",
     "unavailable_location": "Ülkeniz/şehriniz belirlenemedi. Genişletilmiş arama devre dışı bırakıldı.",
-    "gps_failed": "GPS başarısız oldu. IP üzerinden yaklaşık konum kullanılıyor.",
+    "gps_failed": "GPS başarısız oldu. IP'ye göre yaklaşık konum kullanılıyor.",
     "permission_denied": "Coğrafi konuma erişim reddedildi. Uygulama yakındaki eşleri bulamıyor.",
-    "position_unavailable": "Mevcut konumunuz alınamadı. Ağ bağlantısını veya konum ayarlarını kontrol edin.",
+    "position_unavailable": "Mevcut konumunuz alınamıyor. Ağ bağlantısını veya konum ayarlarını kontrol edin.",
     "timeout": "Konum arama zaman aşımına uğradı. Lütfen tekrar deneyin.",
     "unknown": "Konumunuz alınırken bilinmeyen bir hata oluştu."
   },
@@ -47,7 +47,7 @@
   "settings": {
     "title": "Ayarlar",
     "close_aria": "Ayarları kapat",
-    "profile_shortcut_title": "Profil tamamlanmadı",
+    "profile_shortcut_title": "Profil eksik",
     "profile_shortcut_description": "Adınızı / avatarınızı düzenleyin",
     "edit": "Düzenle",
     "signaling_url_label": "Sinyal sunucusu URL'si",
@@ -104,7 +104,7 @@
     "decryption_empty_error": "Şifresi çözülmüş dosya boş",
     "decryption_error": "Hata: {{fileName}} şifresi çözülemedi",
     "delete_message_confirm": "Bu mesajı silmek istediğinizden emin misiniz?",
-    "delete_conversation_confirm": "Bu sohbetin tamamını silmek istediğinizden emin misiniz?",
+    "delete_conversation_confirm": "Bu konuşmanın tamamını silmek istediğinizden emin misiniz?",
     "message_info_title": "Bilgi",
     "message_info_content": "ID: {{id}}\nTür: {{type}}\nGönderildi: {{timestamp}}\nDurum: {{status}}",
     "message_status_sent": "Gönderildi",
@@ -122,7 +122,7 @@
       "back": "Geri",
       "online": "Çevrimiçi",
       "offline": "Çevrimdışı",
-      "delete_conversation_title": "Sohbeti sil",
+      "delete_conversation_title": "Konuşmayı sil",
       "cancel_transfers_title": "Devam eden aktarımları iptal et"
     },
     "cancel_transfers": {
@@ -131,7 +131,7 @@
       "sending_progress": "Gönderiliyor: {{progress}}%",
       "cancel": "İptal",
       "warning_title": "Uyarı:",
-      "warning_body": "İptal, aktarımı kalıcı olarak keser.",
+      "warning_body": "İptal etmek aktarımı kalıcı olarak durduracaktır.",
       "cancelled_by_user": "(Kullanıcı tarafından iptal edildi)"
     },
     "message_menu": {
@@ -154,8 +154,8 @@
       "sending": "Gönderiliyor",
       "receiving": "Alınıyor",
       "kb_unit": "KB",
-      "seek_forward": "⟳ 10sn",
-      "seek_backward": "⟲ 10sn",
+      "seek_forward": "⟳ 10s",
+      "seek_backward": "⟲ 10s",
       "change_speed_aria": "Hızı değiştir"
     },
     "new_messages_button": {
@@ -167,14 +167,14 @@
       "remove_file": "Dosyayı kaldır",
       "file_disabled_offline": "Eş çevrimdışı - dosya gönderme kullanılamıyor",
       "attach_file": "Dosya ekle",
-      "file_too_large": "Dosya çok büyük. İzin verilen maksimum boyut: {{maxSize}} MB\n\nNot: Dosyalar, aktarımı optimize etmek için gönderilmeden önce otomatik olarak sıkıştırılır.",
+      "file_too_large": "Dosya çok büyük. İzin verilen maksimum boyut: {{maxSize}} MB\n\nNot: Dosyalar aktarımı optimize etmek için gönderilmeden önce otomatik olarak sıkıştırılır.",
       "selected_file": "Seçilen dosya: {{fileName}}",
       "placeholder": "Mesajınızı yazın...",
       "placeholder_offline": "Kullanıcı çevrimdışı - mesaj gönderme devre dışı",
       "aria_label": "Mesaj girişi",
       "add_emoji": "Emoji ekle",
       "record_voice": "Sesli mesaj kaydet",
-      "peer_offline_warning": "{{peerName}} çevrimdışı. Mesaj gönderme devre dışı.",
+      "peer_offline_warning": "{{peerName}} çevrimdışı. Mesaj gönderme devre dışı bırakıldı.",
       "compression_notice": "Otomatik olarak sıkıştırılacak ve şifrelenecektir"
     }
   },
@@ -184,16 +184,16 @@
     "reconnect": "Yeniden bağlan"
   },
   "conversationList": {
-    "title": "Sohbetler ({{count}})",
+    "title": "Konuşmalar ({{count}})",
     "search_placeholder": "Ada veya mesaja göre ara...",
     "clear_search_aria": "Aramayı temizle",
     "clear_search_title": "Temizle",
-    "no_conversations_title": "Sohbet yok",
+    "no_conversations_title": "Konuşma yok",
     "no_conversations_prompt": "Başlamak için bir eş seçin",
     "loading": "Yükleniyor...",
-    "delete_confirm": "Bu sohbeti silmek istediğinizden emin misiniz?",
+    "delete_confirm": "Bu konuşmayı silmek istediğinizden emin misiniz?",
     "last_message_none": "Mesaj yok",
-    "last_message_file": "📎 Paylaşılan dosya",
+    "last_message_file": "📎 Dosya paylaşıldı",
     "user_default_name": "Kullanıcı",
     "gender": {
       "male": "Erkek",
@@ -201,28 +201,28 @@
       "other": "Diğer"
     },
     "age_suffix": "yaşında",
-    "delete_button_title": "Bu sohbeti sil",
+    "delete_button_title": "Bu konuşmayı sil",
     "delete_button_aria": "Sil"
   },
   "diagnosticPanel": {
     "title": "NoNetChat Tanılama",
     "close": "Kapat",
     "resize": "Yeniden boyutlandır",
-    "connectivity_tests": "Bağlantı Testleri",
-    "testing_in_progress": "Test ediliyor...",
-    "test_connectivity": "Bağlantıyı Test Et",
+    "connectivity_tests": "Bağlantı testleri",
+    "testing_in_progress": "Test devam ediyor...",
+    "test_connectivity": "Bağlantıyı test et",
     "signaling": "Sinyalizasyon",
     "ok": "Tamam",
-    "fail": "BAŞARISIZ",
-    "stun_servers": "STUN Sunucuları:",
-    "network_info": "Ağ Bilgisi:",
-    "logs_title": "Gerçek Zamanlı Günlükler",
+    "fail": "Başarısız",
+    "stun_servers": "STUN sunucuları:",
+    "network_info": "Ağ bilgisi:",
+    "logs_title": "Gerçek zamanlı günlükler",
     "auto_scroll": "Otomatik kaydırma",
     "clear": "Temizle",
     "export": "Dışa aktar",
     "no_logs": "Kullanılabilir günlük yok. Günlükler burada gerçek zamanlı olarak görünecektir.",
     "instructions_title": "Talimatlar:",
-    "instructions_body": "1) \"Bağlantıyı Test Et\". 2) Günlükleri izleyin. 3) Paylaşmak için dışa aktarın."
+    "instructions_body": "1) 'Bağlantıyı test et'i çalıştırın. 2) Günlükleri izleyin. 3) Paylaşmak için dışa aktarın."
   },
   "filePreview": {
     "unknown_size": "bilinmeyen boyut",
@@ -233,7 +233,7 @@
     "unplayable_audio": "Bu ses formatı bu tarayıcıda oynatılamayabilir. Yukarıdan indirebilirsiniz.",
     "hide_preview": "Önizlemeyi gizle",
     "show_preview": "Önizlemeyi göster",
-    "loading": "Yükleniyor…",
+    "loading": "Yükleniyor...",
     "unknown_type": "bilinmeyen tür",
     "download": "İndir",
     "open_in_new_tab": "Yeni sekmede aç",
@@ -250,25 +250,25 @@
     "error": "Hata"
   },
   "notificationSettings": {
-    "title": "Bildirim Ayarları",
-    "general": "Genel Bildirimler",
+    "title": "Bildirim ayarları",
+    "general": "Genel bildirimler",
     "enable_notifications": "Bildirimleri etkinleştir",
     "enable_notifications_description": "Yeni mesajlar için bildirim al",
     "sound": "Bildirim sesleri",
-    "sound_description": "Mesaj alırken bir ses çal",
+    "sound_description": "Mesaj alırken ses çal",
     "system": "Sistem bildirimleri",
     "system_description": "Tarayıcıda bildirimleri göster",
     "authorize": "Yetkilendir",
-    "dnd": "Rahatsız Etmeyin modu",
+    "dnd": "Rahatsız etmeyin modu",
     "dnd_description": "Tüm bildirimleri geçici olarak devre dışı bırak",
     "tips_title": "💡 İpuçları:",
     "tip1": "• Sistem bildirimleri yalnızca sekme açıkken çalışır",
-    "tip2": "• \"Rahatsız Etmeyin\" modu tüm bildirimleri devre dışı bırakır",
+    "tip2": "• 'Rahatsız etmeyin' modu tüm bildirimleri devre dışı bırakır",
     "tip3": "• Ayarlar otomatik olarak kaydedilir",
     "close": "Kapat"
   },
   "peerList": {
-    "title": "Bağlı Eşler ({{count}})",
+    "title": "Bağlı eşler ({{count}})",
     "filter_by_gender": "Cinsiyete göre filtrele",
     "all_genders": "Tüm cinsiyetler",
     "male": "Erkekler",
@@ -288,33 +288,49 @@
     "gender_title": "Cinsiyet: {{gender}}",
     "age_suffix": "yaşında",
     "view_profile": "Profili görüntüle",
-    "start_conversation": "Sohbet başlat",
+    "start_conversation": "Konuşma başlat",
     "join_time": {
       "unknown": "Bilinmiyor",
       "now": "Şimdi",
-      "minutes_ago": "{{count}} dakika önce",
-      "hours_ago": "{{count}} saat önce"
+      "minutes_ago": "{{count}} dk önce",
+      "hours_ago": "{{count}} sa önce"
     },
     "tooltip": {
       "status": "Durum:",
       "age": "Yaş:",
       "gender": "Cinsiyet:",
       "distance": "Mesafe:",
-      "connected": "Bağlı:"
+      "connected": "Bağlandı:"
     },
     "modal": {
-      "title": "{{name}} Profili",
+      "title": "{{name}} profili",
       "close": "Kapat",
-      "connected_since": "Bağlandığından beri:"
+      "connected_since": "Bağlandığı tarih:"
     },
     "status": {
       "online": "Çevrimiçi",
       "offline": "Çevrimdışı",
       "busy": "Meşgul"
     },
-    "meta_separator": "•",
     "block_user_title": "Kullanıcıyı engelle",
-    "block_user_confirm": "{{name}} adlı kullanıcıyı engellemek istediğinizden emin misiniz? Artık mesajlarını almayacaksınız."
+    "block_user_confirm": "{{name}} adlı kullanıcıyı engellemek istediğinizden emin misiniz? Artık mesajlarını almayacaksınız.",
+    "meta_separator": "•"
+  },
+  "blockedUsers": {
+    "title": "Engellenen kullanıcılar",
+    "close": "Kapat",
+    "manage_blocked_users": "Engellenen kullanıcıları yönet",
+    "blocked_count": "{{count}} kullanıcı engellendi",
+    "no_blocked_users": "Engellenen kullanıcı yok",
+    "unknown_user": "Bilinmeyen kullanıcı",
+    "blocked_at": "{{date}} tarihinde engellendi",
+    "unblock_user": "Kullanıcının engelini kaldır",
+    "unblock": "Engeli kaldır",
+    "unblock_confirm": "Bu kullanıcının engelini kaldırmak istediğinizden emin misiniz?",
+    "unblock_confirm_title": "Kullanıcının engelini kaldır",
+    "unblock_confirm_message": "Bu kullanıcının engelini kaldırmak istediğinizden emin misiniz?",
+    "confirm": "Onayla",
+    "cancel": "İptal"
   },
   "profileModal": {
     "title": "Profiliniz",
@@ -324,7 +340,7 @@
     "avatar_alt": "Avatar",
     "change_avatar_title": "Avatarı değiştir",
     "refresh_avatar_title": "Yeni bir varsayılan avatar oluştur",
-    "optimizing_image": "Görüntü optimize ediliyor…",
+    "optimizing_image": "Resim optimize ediliyor...",
     "username_label": "Kullanıcı adı",
     "age_label": "Yaş",
     "gender_label": "Cinsiyet",
@@ -343,11 +359,11 @@
     "gender_female_short": "K",
     "gender_other": "Diğer",
     "age_suffix": "yaşında",
-    "meta_separator": " · "
+    "meta_separator": "·"
   },
   "statusBar": {
-    "peers_connected_aria_one": "{{count}} eş bağlandı",
-    "peers_connected_aria_other": "{{count}} eş bağlandı",
+    "peers_connected_aria_one": "{{count}} eş bağlı",
+    "peers_connected_aria_other": "{{count}} eş bağlı",
     "peers_connected_text": "eş(ler)",
     "id": "ID:",
     "full_id_title": "Tam ID: {{clientId}}",
@@ -368,7 +384,7 @@
     "cancel_title": "İptal",
     "lock_aria": "Kaydı kilitle",
     "lock_title": "Kilitle",
-    "send_aria": "Sesli notu gönder",
+    "send_aria": "Sesli not gönder",
     "send_title": "Gönder",
     "locked": "kilitli",
     "mobile_hint_lock": "Kilitle",
@@ -378,20 +394,241 @@
     "label": "Dil",
     "description": "Dil otomatik olarak kaydedilecek ve bir sonraki ziyaretinizde algılanacaktır."
   },
-  "blockedUsers": {
-    "title": "Engellenen Kullanıcılar",
+  "consent": {
+    "geolocation": {
+      "title": "Coğrafi Konum İzni",
+      "description": "NoNetChat, sizi yakındaki kullanıcılarla buluşturmak için coğrafi konumunuza erişmek istiyor. Konum verileriniz güvenli bir şekilde ve GDPR'ye uygun olarak işlenir.",
+      "privacy_title": "Gizliliğinize saygı",
+      "privacy_point1": "Uçtan uca şifrelenmiş veriler",
+      "privacy_point2": "Yalnızca yerel depolama",
+      "privacy_point3": "Sunucu koordinatlarının otomatik olarak silinmesi",
+      "privacy_point4": "Merkezi veri sunucusu yok",
+      "show_details": "Teknik ayrıntıları göster",
+      "hide_details": "Ayrıntıları gizle",
+      "technical_details": "Teknik ayrıntılar",
+      "data_collected": "Toplanan veriler",
+      "data_collected_desc": "GPS koordinatları (enlem/boylam), yaklaşık şehir ve ülke",
+      "purpose": "Amaç",
+      "purpose_desc": "Coğrafi olarak yakın kullanıcılarla P2P bağlantısı",
+      "retention": "Saklama",
+      "retention_desc": "Bağlantı kesildikten sonra koordinatlar sunucudan otomatik olarak silinir",
+      "legal_basis": "Yasal dayanak",
+      "legal_basis_desc": "Açık rıza (GDPR Madde 6.1.a)",
+      "withdrawal_info": "Gizlilik ayarlarından istediğiniz zaman rızanızı geri çekebilirsiniz. Daha fazla bilgi için bkz.",
+      "privacy_policy_link": "gizlilik politikası",
+      "accept": "Kabul et",
+      "decline": "Reddet"
+    }
+  },
+  "legal": {
+    "tabs": {
+      "privacy": "Gizlilik",
+      "terms": "Şartlar",
+      "legal_notices": "Yasal uyarılar"
+    },
+    "privacy_policy": {
+      "title": "Gizlilik Politikası",
+      "last_updated": "Son güncelleme",
+      "controller": {
+        "title": "Veri Sorumlusu",
+        "name": "Ad",
+        "contact": "İletişim",
+        "dpo": "Veri Koruma Görevlisi"
+      },
+      "data_collected": {
+        "title": "Toplanan veriler",
+        "legal_basis": "Yasal dayanak",
+        "geolocation": {
+          "title": "Coğrafi konum verileri",
+          "coordinates": "GPS koordinatları (enlem, boylam)",
+          "city_country": "Şehir ve ülke (IP coğrafi konum API'si aracılığıyla)",
+          "accuracy": "Konum doğruluğu",
+          "legal_basis": "Açık rıza (GDPR Madde 6.1.a)"
+        },
+        "profile": {
+          "title": "Profil verileri",
+          "display_name": "Görünen ad (isteğe bağlı)",
+          "age_gender": "Yaş ve cinsiyet (isteğe bağlı)",
+          "avatar": "Profil resmi (isteğe bağlı)",
+          "device_id": "Benzersiz cihaz tanımlayıcısı",
+          "legal_basis": "Hizmetin işleyişi için meşru menfaat (GDPR Madde 6.1.f)"
+        },
+        "messages": {
+          "title": "Mesajlar ve konuşmalar",
+          "encrypted": "Uçtan uca şifrelenmiş mesajlar (AES-GCM)",
+          "local_only": "Yalnızca yerel depolama (IndexedDB)",
+          "metadata": "Teknik meta veriler (zaman damgası, durum)",
+          "legal_basis": "Hizmet sözleşmesinin ifası (GDPR Madde 6.1.b)"
+        }
+      },
+      "retention": {
+        "title": "Saklama süresi",
+        "geolocation": "Coğrafi konum",
+        "geolocation_duration": "Bağlantı kesildiğinde otomatik silme (en fazla 24 saat)",
+        "profile": "Kullanıcı profili",
+        "profile_duration": "Manuel olarak silinene kadar yerel olarak saklanır",
+        "messages": "Mesajlar",
+        "messages_duration": "Manuel olarak silinene kadar yerel olarak saklanır"
+      },
+      "rights": {
+        "title": "GDPR haklarınız",
+        "access": "Erişim hakkı",
+        "access_desc": "Verilerinizi ayarlarda görüntüleyin",
+        "rectification": "Düzeltme hakkı",
+        "rectification_desc": "Profilinizi istediğiniz zaman düzenleyin",
+        "erasure": "Silme hakkı",
+        "erasure_desc": "Tüm verilerinizi silin",
+        "portability": "Veri taşınabilirliği hakkı",
+        "portability_desc": "Verilerinizi JSON formatında dışa aktarın",
+        "withdraw_consent": "Rızayı geri çekme",
+        "withdraw_consent_desc": "Coğrafi konum iznini iptal etme",
+        "complaint": "Şikayet hakkı",
+        "complaint_desc": "Veri koruma yetkilinizle iletişime geçin"
+      },
+      "security": {
+        "title": "Güvenlik ve koruma",
+        "encryption": "Geçici ECDH anahtarlarıyla uçtan uca şifreleme",
+        "local_storage": "Özel yerel depolama (merkezi sunucu yok)",
+        "p2p": "Merkezi olmayan P2P mimarisi",
+        "no_central_server": "Merkezi bir sunucu tarafından veri toplanmaz"
+      },
+      "contact": {
+        "title": "İletişim",
+        "description": "Bu gizlilik politikası veya haklarınızın kullanılmasıyla ilgili herhangi bir sorunuz için:"
+      }
+    },
+    "terms": {
+      "title": "Genel Kullanım Koşulları",
+      "last_updated": "Son güncelleme",
+      "acceptance": {
+        "title": "Koşulların kabulü",
+        "content": "NoNetChat'i kullanarak bu kullanım koşullarını kabul etmiş olursunuz. Bu koşulları kabul etmiyorsanız, lütfen hizmeti kullanmayın."
+      },
+      "service_description": {
+        "title": "Hizmet açıklaması",
+        "content": "NoNetChat, kullanıcıların merkezi bir sunucu olmadan güvenli bir şekilde iletişim kurmasını sağlayan merkezi olmayan, eşler arası bir mesajlaşma uygulamasıdır. Hizmet şunları sunar:",
+        "feature1": "Uçtan uca şifrelenmiş mesajlaşma",
+        "feature2": "Doğrudan P2P bağlantıları",
+        "feature3": "Yerel veri depolama",
+        "feature4": "Coğrafi konuma göre eş bulma"
+      },
+      "user_obligations": {
+        "title": "Kullanıcı yükümlülükleri",
+        "respect_laws": "Geçerli yasa ve yönetmeliklere uyun",
+        "no_harassment": "Diğer kullanıcıları taciz etmeyin, tehdit etmeyin veya korkutmayın",
+        "no_illegal_content": "Yasadışı, saldırgan veya uygunsuz içerik paylaşmayın",
+        "respect_others": "Başkalarının gizliliğine ve haklarına saygı gösterin",
+        "accurate_info": "Profilinizde doğru bilgi verin"
+      },
+      "prohibited_uses": {
+        "title": "Yasaklanmış kullanımlar",
+        "spam": "Spam veya istenmeyen mesaj gönderme",
+        "malware": "Kötü amaçlı yazılım veya virüs dağıtma",
+        "impersonation": "Kimliğe bürünme veya sahte temsil",
+        "copyright": "Telif hakkı veya fikri mülkiyet haklarının ihlali",
+        "reverse_engineering": "Tersine mühendislik veya hizmeti tehlikeye atma girişimi"
+      },
+      "liability": {
+        "title": "Sorumluluğun sınırlandırılması",
+        "content": "NoNetChat, herhangi bir garanti olmaksızın 'olduğu gibi' sağlanır. Hizmetin kullanımından kaynaklanan doğrudan, dolaylı veya sonuç olarak ortaya çıkan zararlardan sorumlu değiliz.",
+        "disclaimer": "Kullanıcı, paylaştığı içerikten ve diğer kullanıcılarla olan etkileşimlerinden tek başına sorumludur."
+      },
+      "modifications": {
+        "title": "Koşullarda yapılan değişiklikler",
+        "content": "Bu koşulları istediğimiz zaman değiştirme hakkını saklı tutarız. Değişiklikler yayınlandığı anda yürürlüğe girer. Hizmeti kullanmaya devam etmeniz, yeni koşulları kabul ettiğiniz anlamına gelir."
+      },
+      "termination": {
+        "title": "Fesih",
+        "content": "Hizmeti istediğiniz zaman kullanmayı bırakabilirsiniz. Bu koşulların ihlali durumunda hizmete erişimi askıya alma hakkını saklı tutarız."
+      },
+      "governing_law": {
+        "title": "Uygulanacak hukuk",
+        "content": "Bu koşullar Fransız yasalarına tabidir. Herhangi bir anlaşmazlık, yetkili Fransız mahkemelerinin yargı yetkisine tabi olacaktır."
+      }
+    },
+    "notices": {
+      "title": "Yasal uyarılar",
+      "publisher": {
+        "title": "Yayıncı",
+        "name": "Ad",
+        "type": "Tür",
+        "type_value": "Açık kaynaklı web uygulaması",
+        "contact": "İletişim",
+        "website": "Web sitesi"
+      },
+      "hosting": {
+        "title": "Barındırma",
+        "provider": "Sağlayıcı",
+        "provider_value": "Merkezi olmayan mimari - merkezi barındırma yok",
+        "note": "Not",
+        "note_value": "Veriler kullanıcının cihazında yerel olarak saklanır"
+      },
+      "intellectual_property": {
+        "title": "Fikri mülkiyet",
+        "content": "NoNetChat, açık kaynak lisansı altında dağıtılan ücretsiz bir yazılımdır. Kaynak kodu halka açıktır ve lisans koşullarına göre değiştirilebilir."
+      },
+      "open_source": {
+        "title": "Açık Kaynak",
+        "content": "Bu proje açık kaynaklıdır ve topluluk katkıları memnuniyetle karşılanır.",
+        "repository": "Depo"
+      }
+    }
+  },
+  "privacy_settings": {
+    "title": "Gizlilik ayarları",
+    "consent_withdrawn": "Rıza başarıyla geri çekildi",
+    "consent_granted": "Rıza başarıyla verildi",
+    "export_success": "Veriler başarıyla dışa aktarıldı",
+    "export_error": "Veriler dışa aktarılırken hata oluştu",
+    "delete_success": "Tüm veriler başarıyla silindi",
+    "delete_error": "Veriler silinirken hata oluştu",
+    "delete_confirm_error": "Onaylamak için lütfen 'DELETE' yazın",
+    "never": "Asla",
+    "geolocation_consent": {
+      "title": "Coğrafi konum rızası",
+      "status": "Durum",
+      "granted": "Verildi",
+      "declined": "Reddedildi",
+      "not_set": "Ayarlanmadı",
+      "date": "Tarih",
+      "grant": "Ver",
+      "withdraw": "Geri çek"
+    },
+    "data_overview": {
+      "title": "Veri özeti",
+      "messages": "Mesajlar",
+      "conversations": "Konuşmalar",
+      "avatars": "Avatarlar",
+      "profile_size": "Profil boyutu"
+    },
+    "data_actions": {
+      "title": "Veri eylemleri",
+      "export": {
+        "title": "Verilerimi dışa aktar",
+        "description": "Tüm kişisel verilerinizi JSON formatında indirin",
+        "button": "Dışa aktar",
+        "exporting": "Dışa aktarılıyor..."
+      },
+      "delete": {
+        "title": "Tüm verilerimi sil",
+        "description": "Tüm kişisel verilerinizin kalıcı olarak silinmesi",
+        "button": "Sil",
+        "confirm_title": "Silmeyi onayla",
+        "confirm_description": "Bu işlem geri alınamaz. Tüm verileriniz kalıcı olarak silinecektir.",
+        "type_delete": "Onaylamak için 'DELETE' yazın:",
+        "confirm_button": "Silmeyi onayla",
+        "deleting": "Siliniyor..."
+      }
+    },
+    "legal_documents": {
+      "title": "Yasal belgeler",
+      "privacy_policy": "Gizlilik Politikası",
+      "terms_of_service": "Kullanım Koşulları",
+      "legal_notices": "Yasal Uyarılar"
+    }
+  },
+  "common": {
     "close": "Kapat",
-    "manage_blocked_users": "Engellenen Kullanıcıları Yönet",
-    "blocked_count": "{{count}} engellenen kullanıcı",
-    "no_blocked_users": "Engellenen kullanıcı yok",
-    "unknown_user": "Bilinmeyen kullanıcı",
-    "blocked_at": "{{date}} tarihinde engellendi",
-    "unblock_user": "Kullanıcının Engelini Kaldır",
-    "unblock": "Engeli kaldır",
-    "unblock_confirm": "Bu kullanıcının engelini kaldırmak istediğinizden emin misiniz?",
-    "unblock_confirm_title": "Kullanıcının Engelini Kaldır",
-    "unblock_confirm_message": "Bu kullanıcının engelini kaldırmak istediğinizden emin misiniz?",
-    "confirm": "Onayla",
     "cancel": "İptal"
   }
 }

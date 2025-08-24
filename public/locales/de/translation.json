@@ -2,7 +2,7 @@
   "app": {
     "initializing": "Dienste werden initialisiert...",
     "tagline": "Direktnachrichten",
-    "tagline_disconnected": "Direktnachrichten (Getrennt)",
+    "tagline_disconnected": "Direktnachrichten (getrennt)",
     "title": "NoNetChat Web",
     "status": {
       "connected": "Verbunden",
@@ -19,10 +19,10 @@
     "activate": "Standort aktivieren",
     "close_alert": "Warnung schließen",
     "unavailable_location": "Ihr Land/Ihre Stadt konnte nicht bestimmt werden. Die erweiterte Suche ist deaktiviert.",
-    "gps_failed": "GPS fehlgeschlagen. Ungefährer Standort über IP wird verwendet.",
+    "gps_failed": "GPS fehlgeschlagen. Ungefährer Standort nach IP wird verwendet.",
     "permission_denied": "Der Zugriff auf die Geolokalisierung wurde verweigert. Die Anwendung kann keine Peers in der Nähe finden.",
-    "position_unavailable": "Ihre aktuelle Position konnte nicht abgerufen werden. Überprüfen Sie die Netzwerkverbindung oder die Standorteinstellungen.",
-    "timeout": "Zeitüberschreitung bei der Positionssuche. Bitte versuchen Sie es erneut.",
+    "position_unavailable": "Ihre aktuelle Position kann nicht abgerufen werden. Überprüfen Sie die Netzwerkverbindung oder die Standorteinstellungen.",
+    "timeout": "Die Positionssuche hat zu lange gedauert. Bitte versuchen Sie es erneut.",
     "unknown": "Unbekannter Fehler beim Abrufen Ihrer Position."
   },
   "user": {
@@ -38,16 +38,16 @@
   },
   "publicChat": {
     "title": "Öffentlicher Chat",
-    "description": "Nachrichten hier sind flüchtig und für jeden in Ihrer aktuellen Umgebung sichtbar.",
+    "description": "Nachrichten hier sind flüchtig und für alle in Ihrer aktuellen Zone sichtbar.",
     "empty_placeholder": {
       "title": "{{roomName}}",
-      "body": "Nachrichten hier sind flüchtig und für jeden in Ihrer aktuellen Umgebung sichtbar."
+      "body": "Nachrichten hier sind flüchtig und für alle in Ihrer aktuellen Zone sichtbar."
     }
   },
   "settings": {
     "title": "Einstellungen",
     "close_aria": "Einstellungen schließen",
-    "profile_shortcut_title": "Profil nicht vervollständigt",
+    "profile_shortcut_title": "Profil unvollständig",
     "profile_shortcut_description": "Bearbeiten Sie Ihren Namen / Avatar",
     "edit": "Bearbeiten",
     "signaling_url_label": "Signaling-Server-URL",
@@ -65,7 +65,7 @@
     "logo_alt": "NoNetChat-Logo",
     "notifications_aria": "Benachrichtigungseinstellungen",
     "settings_aria": "Einstellungen",
-    "profile_aria": "Bearbeiten Sie Ihr Profil",
+    "profile_aria": "Ihr Profil bearbeiten",
     "home_aria": "Zurück zur Startseite"
   },
   "main": {
@@ -104,8 +104,8 @@
     "decryption_empty_error": "Entschlüsselte Datei ist leer",
     "decryption_error": "Fehler: {{fileName}} konnte nicht entschlüsselt werden",
     "delete_message_confirm": "Möchten Sie diese Nachricht wirklich löschen?",
-    "delete_conversation_confirm": "Möchten Sie diese gesamte Konversation wirklich löschen?",
-    "message_info_title": "Information",
+    "delete_conversation_confirm": "Möchten Sie dieses gesamte Gespräch wirklich löschen?",
+    "message_info_title": "Informationen",
     "message_info_content": "ID: {{id}}\nTyp: {{type}}\nGesendet: {{timestamp}}\nStatus: {{status}}",
     "message_status_sent": "Gesendet",
     "send_aria_label_offline": "Benutzer offline - Senden deaktiviert",
@@ -122,7 +122,7 @@
       "back": "Zurück",
       "online": "Online",
       "offline": "Offline",
-      "delete_conversation_title": "Konversation löschen",
+      "delete_conversation_title": "Gespräch löschen",
       "cancel_transfers_title": "Laufende Übertragungen abbrechen"
     },
     "cancel_transfers": {
@@ -130,13 +130,13 @@
       "receiving_progress": "Empfangen: {{progress}}%",
       "sending_progress": "Senden: {{progress}}%",
       "cancel": "Abbrechen",
-      "warning_title": "Warnung:",
-      "warning_body": "Das Abbrechen unterbricht die Übertragung dauerhaft.",
+      "warning_title": "Achtung:",
+      "warning_body": "Das Abbrechen stoppt die Übertragung endgültig.",
       "cancelled_by_user": "(Vom Benutzer abgebrochen)"
     },
     "message_menu": {
       "title": "Nachrichtenoptionen",
-      "info": "Information",
+      "info": "Informationen",
       "delete": "Löschen"
     },
     "reactions": {
@@ -169,7 +169,7 @@
       "attach_file": "Datei anhängen",
       "file_too_large": "Die Datei ist zu groß. Maximal zulässige Größe: {{maxSize}} MB\n\nHinweis: Dateien werden vor dem Senden automatisch komprimiert, um die Übertragung zu optimieren.",
       "selected_file": "Ausgewählte Datei: {{fileName}}",
-      "placeholder": "Schreiben Sie Ihre Nachricht...",
+      "placeholder": "Ihre Nachricht eingeben...",
       "placeholder_offline": "Benutzer offline - Nachrichtenversand deaktiviert",
       "aria_label": "Nachrichteneingabe",
       "add_emoji": "Emoji hinzufügen",
@@ -181,27 +181,27 @@
   "connectionStatus": {
     "reconnecting": "Verbindung wird wiederhergestellt...",
     "disconnected": "Getrennt",
-    "reconnect": "Wiederverbinden"
+    "reconnect": "Erneut verbinden"
   },
   "conversationList": {
-    "title": "Konversationen ({{count}})",
-    "search_placeholder": "Suche nach Name oder Nachricht...",
+    "title": "Gespräche ({{count}})",
+    "search_placeholder": "Nach Name oder Nachricht suchen...",
     "clear_search_aria": "Suche löschen",
     "clear_search_title": "Löschen",
-    "no_conversations_title": "Keine Konversationen",
+    "no_conversations_title": "Keine Gespräche",
     "no_conversations_prompt": "Wählen Sie einen Peer aus, um zu beginnen",
     "loading": "Laden...",
-    "delete_confirm": "Möchten Sie diese Konversation wirklich löschen?",
+    "delete_confirm": "Möchten Sie dieses Gespräch wirklich löschen?",
     "last_message_none": "Keine Nachrichten",
-    "last_message_file": "📎 Geteilte Datei",
+    "last_message_file": "📎 Datei geteilt",
     "user_default_name": "Benutzer",
     "gender": {
       "male": "Männlich",
       "female": "Weiblich",
       "other": "Andere"
     },
-    "age_suffix": "Jahre alt",
-    "delete_button_title": "Diese Konversation löschen",
+    "age_suffix": "Jahre",
+    "delete_button_title": "Dieses Gespräch löschen",
     "delete_button_aria": "Löschen"
   },
   "diagnosticPanel": {
@@ -209,9 +209,11 @@
     "close": "Schließen",
     "resize": "Größe ändern",
     "connectivity_tests": "Konnektivitätstests",
-    "testing_in_progress": "Testen...",
+    "testing_in_progress": "Test läuft...",
     "test_connectivity": "Konnektivität testen",
     "signaling": "Signalisierung",
+    "ok": "OK",
+    "fail": "Fehlgeschlagen",
     "stun_servers": "STUN-Server:",
     "network_info": "Netzwerkinformationen:",
     "logs_title": "Echtzeit-Protokolle",
@@ -220,9 +222,7 @@
     "export": "Exportieren",
     "no_logs": "Keine Protokolle verfügbar. Protokolle werden hier in Echtzeit angezeigt.",
     "instructions_title": "Anweisungen:",
-    "instructions_body": "1) Führen Sie \"Konnektivität testen\". 2) Überwachen Sie die Protokolle. 3) Exportieren Sie sie zum Teilen.",
-    "ok": "OK",
-    "fail": "FEHLER"
+    "instructions_body": "1) Führen Sie \"Konnektivität testen\" aus. 2) Überwachen Sie die Protokolle. 3) Exportieren Sie, um sie zu teilen."
   },
   "filePreview": {
     "unknown_size": "unbekannte Größe",
@@ -230,10 +230,10 @@
     "clipboard_error": "Text konnte nicht in die Zwischenablage kopiert werden.",
     "audio_error": "Diese Audiodatei konnte nicht abgespielt werden.",
     "default_filename": "Datei",
-    "unplayable_audio": "Dieses Audioformat kann in diesem Browser möglicherweise nicht abgespielt werden. Sie können es oben herunterladen.",
+    "unplayable_audio": "Dieses Audioformat ist in diesem Browser möglicherweise nicht abspielbar. Sie können es oben herunterladen.",
     "hide_preview": "Vorschau ausblenden",
     "show_preview": "Vorschau anzeigen",
-    "loading": "Laden…",
+    "loading": "Laden...",
     "unknown_type": "unbekannter Typ",
     "download": "Herunterladen",
     "open_in_new_tab": "In neuem Tab öffnen",
@@ -255,7 +255,7 @@
     "enable_notifications": "Benachrichtigungen aktivieren",
     "enable_notifications_description": "Benachrichtigungen für neue Nachrichten erhalten",
     "sound": "Benachrichtigungstöne",
-    "sound_description": "Ton beim Empfang von Nachrichten abspielen",
+    "sound_description": "Ton abspielen, wenn Nachrichten empfangen werden",
     "system": "Systembenachrichtigungen",
     "system_description": "Benachrichtigungen im Browser anzeigen",
     "authorize": "Autorisieren",
@@ -274,26 +274,26 @@
     "male": "Männer",
     "female": "Frauen",
     "other_gender": "Andere / Nicht angegeben",
-    "sort_by": "Sortieren nach",
+    "sort_by": "Sortieren",
     "distance_asc": "Entfernung (↑)",
     "distance_desc": "Entfernung (↓)",
     "age_asc": "Alter (↑)",
     "age_desc": "Alter (↓)",
     "connection_required_title": "Verbindung erforderlich",
-    "connection_required_body": "Verbindung zum Signalisierungsserver herstellen",
+    "connection_required_body": "Verbinden Sie sich mit dem Signaling-Server",
     "no_peers_title": "Keine Peers online",
     "no_peers_body": "Passen Sie die Filter oben an",
     "user_default_name": "Benutzer",
     "estimated_distance": "Geschätzte Entfernung",
     "gender_title": "Geschlecht: {{gender}}",
-    "age_suffix": "Jahre alt",
+    "age_suffix": "Jahre",
     "view_profile": "Profil anzeigen",
     "start_conversation": "Gespräch beginnen",
     "join_time": {
       "unknown": "Unbekannt",
       "now": "Gerade eben",
-      "minutes_ago": "vor {{count}} min",
-      "hours_ago": "vor {{count}}h"
+      "minutes_ago": "Vor {{count}} Min.",
+      "hours_ago": "Vor {{count}} Std."
     },
     "tooltip": {
       "status": "Status:",
@@ -312,19 +312,35 @@
       "offline": "Offline",
       "busy": "Beschäftigt"
     },
-    "meta_separator": "•",
     "block_user_title": "Benutzer blockieren",
-    "block_user_confirm": "Möchten Sie {{name}} wirklich blockieren? Sie werden ihre Nachrichten nicht mehr erhalten."
+    "block_user_confirm": "Möchten Sie {{name}} wirklich blockieren? Sie werden ihre Nachrichten nicht mehr erhalten.",
+    "meta_separator": "•"
+  },
+  "blockedUsers": {
+    "title": "Blockierte Benutzer",
+    "close": "Schließen",
+    "manage_blocked_users": "Blockierte Benutzer verwalten",
+    "blocked_count": "{{count}} Benutzer blockiert",
+    "no_blocked_users": "Keine blockierten Benutzer",
+    "unknown_user": "Unbekannter Benutzer",
+    "blocked_at": "Blockiert am {{date}}",
+    "unblock_user": "Benutzer entsperren",
+    "unblock": "Entsperren",
+    "unblock_confirm": "Möchten Sie diesen Benutzer wirklich entsperren?",
+    "unblock_confirm_title": "Benutzer entsperren",
+    "unblock_confirm_message": "Möchten Sie diesen Benutzer wirklich entsperren?",
+    "confirm": "Bestätigen",
+    "cancel": "Abbrechen"
   },
   "profileModal": {
     "title": "Ihr Profil",
     "close_aria": "Schließen",
-    "username_cannot_be_empty": "Benutzername darf nicht leer sein.",
+    "username_cannot_be_empty": "Der Benutzername darf nicht leer sein.",
     "select_valid_image": "Bitte wählen Sie ein gültiges Bild aus.",
     "avatar_alt": "Avatar",
     "change_avatar_title": "Avatar ändern",
     "refresh_avatar_title": "Neuen Standard-Avatar generieren",
-    "optimizing_image": "Bild wird optimiert…",
+    "optimizing_image": "Bild wird optimiert...",
     "username_label": "Benutzername",
     "age_label": "Alter",
     "gender_label": "Geschlecht",
@@ -342,8 +358,8 @@
     "gender_male_short": "M",
     "gender_female_short": "W",
     "gender_other": "Andere",
-    "age_suffix": "Jahre alt",
-    "meta_separator": " · "
+    "age_suffix": "Jahre",
+    "meta_separator": "·"
   },
   "statusBar": {
     "peers_connected_aria_one": "{{count}} Peer verbunden",
@@ -353,17 +369,17 @@
     "full_id_title": "Vollständige ID: {{clientId}}",
     "connected": "Verbunden",
     "disconnected": "Getrennt",
-    "open_diagnostic_panel": "Diagnosefenster öffnen",
-    "change_signaling_server": "Signalisierungsserver ändern"
+    "open_diagnostic_panel": "Diagnosepanel öffnen",
+    "change_signaling_server": "Signaling-Server ändern"
   },
   "voiceRecorder": {
     "voice_note": "Sprachnotiz",
     "mic_error": "Auf das Mikrofon konnte nicht zugegriffen werden. Überprüfen Sie die Browserberechtigungen.",
     "idle_title_click": "Klick: aufnehmen (gesperrt) • Enter: senden • Esc: abbrechen",
-    "idle_title_hold": "Lange drücken zum Aufnehmen • Nach links wischen zum Abbrechen • Nach oben wischen zum Sperren",
+    "idle_title_hold": "Zum Aufnehmen gedrückt halten • Zum Abbrechen nach ← wischen • Zum Sperren nach ↑ wischen",
     "record_aria": "Sprachnachricht aufnehmen",
-    "hint_slide_cancel": "Nach links wischen zum Abbrechen",
-    "hint_slide_lock": "Nach oben wischen zum Sperren",
+    "hint_slide_cancel": "Zum Abbrechen nach links wischen",
+    "hint_slide_lock": "Zum Sperren nach oben wischen",
     "cancel_aria": "Aufnahme abbrechen",
     "cancel_title": "Abbrechen",
     "lock_aria": "Aufnahme sperren",
@@ -372,26 +388,247 @@
     "send_title": "Senden",
     "locked": "gesperrt",
     "mobile_hint_lock": "Sperren",
-    "mobile_hint_cancel": "Nach links wischen zum Abbrechen"
+    "mobile_hint_cancel": "Zum Abbrechen nach ← wischen"
   },
   "languageSelector": {
     "label": "Sprache",
     "description": "Die Sprache wird automatisch gespeichert und bei Ihrem nächsten Besuch erkannt."
   },
-  "blockedUsers": {
-    "title": "Blockierte Benutzer",
+  "consent": {
+    "geolocation": {
+      "title": "Geolokalisierungsgenehmigung",
+      "description": "NoNetChat möchte auf Ihren geografischen Standort zugreifen, um Sie mit Benutzern in der Nähe zu verbinden. Ihre Standortdaten werden sicher und DSGVO-konform verarbeitet.",
+      "privacy_title": "Respekt für Ihre Privatsphäre",
+      "privacy_point1": "Ende-zu-Ende-verschlüsselte Daten",
+      "privacy_point2": "Nur lokaler Speicher",
+      "privacy_point3": "Automatische Löschung der Serverkoordinaten",
+      "privacy_point4": "Kein zentraler Datenserver",
+      "show_details": "Technische Details anzeigen",
+      "hide_details": "Details ausblenden",
+      "technical_details": "Technische Details",
+      "data_collected": "Gesammelte Daten",
+      "data_collected_desc": "GPS-Koordinaten (Breitengrad/Längengrad), ungefähre Stadt und Land",
+      "purpose": "Zweck",
+      "purpose_desc": "P2P-Verbindung mit geografisch nahen Benutzern",
+      "retention": "Aufbewahrung",
+      "retention_desc": "Koordinaten werden nach dem Trennen automatisch vom Server gelöscht",
+      "legal_basis": "Rechtsgrundlage",
+      "legal_basis_desc": "Ausdrückliche Einwilligung (Art. 6.1.a DSGVO)",
+      "withdrawal_info": "Sie können Ihre Einwilligung jederzeit in den Datenschutzeinstellungen widerrufen. Weitere Informationen finden Sie in unserer",
+      "privacy_policy_link": "Datenschutzerklärung",
+      "accept": "Akzeptieren",
+      "decline": "Ablehnen"
+    }
+  },
+  "legal": {
+    "tabs": {
+      "privacy": "Datenschutz",
+      "terms": "Bedingungen",
+      "legal_notices": "Impressum"
+    },
+    "privacy_policy": {
+      "title": "Datenschutzerklärung",
+      "last_updated": "Letzte Aktualisierung",
+      "controller": {
+        "title": "Datenverantwortlicher",
+        "name": "Name",
+        "contact": "Kontakt",
+        "dpo": "Datenschutzbeauftragter"
+      },
+      "data_collected": {
+        "title": "Gesammelte Daten",
+        "legal_basis": "Rechtsgrundlage",
+        "geolocation": {
+          "title": "Geolokalisierungsdaten",
+          "coordinates": "GPS-Koordinaten (Breitengrad, Längengrad)",
+          "city_country": "Stadt und Land (über IP-Geolokalisierungs-API)",
+          "accuracy": "Standortgenauigkeit",
+          "legal_basis": "Ausdrückliche Einwilligung (Art. 6.1.a DSGVO)"
+        },
+        "profile": {
+          "title": "Profildaten",
+          "display_name": "Anzeigename (optional)",
+          "age_gender": "Alter und Geschlecht (optional)",
+          "avatar": "Profilbild (optional)",
+          "device_id": "Eindeutige Gerätekennung",
+          "legal_basis": "Berechtigtes Interesse am Betrieb des Dienstes (Art. 6.1.f DSGVO)"
+        },
+        "messages": {
+          "title": "Nachrichten und Gespräche",
+          "encrypted": "Ende-zu-Ende-verschlüsselte Nachrichten (AES-GCM)",
+          "local_only": "Nur lokaler Speicher (IndexedDB)",
+          "metadata": "Technische Metadaten (Zeitstempel, Status)",
+          "legal_basis": "Erfüllung des Dienstleistungsvertrags (Art. 6.1.b DSGVO)"
+        }
+      },
+      "retention": {
+        "title": "Aufbewahrungsdauer",
+        "geolocation": "Geolokalisierung",
+        "geolocation_duration": "Automatische Löschung bei Trennung (max. 24h)",
+        "profile": "Benutzerprofil",
+        "profile_duration": "Lokal gespeichert bis zur manuellen Löschung",
+        "messages": "Nachrichten",
+        "messages_duration": "Lokal gespeichert bis zur manuellen Löschung"
+      },
+      "rights": {
+        "title": "Ihre DSGVO-Rechte",
+        "access": "Auskunftsrecht",
+        "access_desc": "Ihre Daten in den Einstellungen einsehen",
+        "rectification": "Recht auf Berichtigung",
+        "rectification_desc": "Ihr Profil jederzeit bearbeiten",
+        "erasure": "Recht auf Löschung",
+        "erasure_desc": "Alle Ihre Daten löschen",
+        "portability": "Recht auf Datenübertragbarkeit",
+        "portability_desc": "Ihre Daten im JSON-Format exportieren",
+        "withdraw_consent": "Einwilligung widerrufen",
+        "withdraw_consent_desc": "Geolokalisierungsgenehmigung widerrufen",
+        "complaint": "Beschwerderecht",
+        "complaint_desc": "Ihre Datenschutzbehörde kontaktieren"
+      },
+      "security": {
+        "title": "Sicherheit und Schutz",
+        "encryption": "Ende-zu-Ende-Verschlüsselung mit flüchtigen ECDH-Schlüsseln",
+        "local_storage": "Ausschließlich lokaler Speicher (kein zentraler Server)",
+        "p2p": "Dezentrale P2P-Architektur",
+        "no_central_server": "Keine Datenerfassung durch einen zentralen Server"
+      },
+      "contact": {
+        "title": "Kontakt",
+        "description": "Bei Fragen zu dieser Datenschutzerklärung oder zur Ausübung Ihrer Rechte:"
+      }
+    },
+    "terms": {
+      "title": "Allgemeine Nutzungsbedingungen",
+      "last_updated": "Letzte Aktualisierung",
+      "acceptance": {
+        "title": "Annahme der Bedingungen",
+        "content": "Durch die Nutzung von NoNetChat stimmen Sie diesen Nutzungsbedingungen zu. Wenn Sie diesen Bedingungen nicht zustimmen, verwenden Sie den Dienst bitte nicht."
+      },
+      "service_description": {
+        "title": "Dienstbeschreibung",
+        "content": "NoNetChat ist eine dezentrale Peer-to-Peer-Messaging-Anwendung, die es Benutzern ermöglicht, sicher ohne einen zentralen Server zu kommunizieren. Der Dienst bietet:",
+        "feature1": "Ende-zu-Ende-verschlüsselte Nachrichten",
+        "feature2": "Direkte P2P-Verbindungen",
+        "feature3": "Lokale Datenspeicherung",
+        "feature4": "Peer-Erkennung durch Geolokalisierung"
+      },
+      "user_obligations": {
+        "title": "Benutzerpflichten",
+        "respect_laws": "Geltende Gesetze und Vorschriften einhalten",
+        "no_harassment": "Andere Benutzer nicht belästigen, bedrohen oder einschüchtern",
+        "no_illegal_content": "Keine illegalen, beleidigenden oder unangemessenen Inhalte teilen",
+        "respect_others": "Die Privatsphäre und die Rechte anderer respektieren",
+        "accurate_info": "Genaue Informationen in Ihrem Profil angeben"
+      },
+      "prohibited_uses": {
+        "title": "Verbotene Nutzungen",
+        "spam": "Versenden von Spam oder unerwünschten Nachrichten",
+        "malware": "Verbreitung von Malware oder Viren",
+        "impersonation": "Identitätsdiebstahl oder betrügerische Darstellung",
+        "copyright": "Verletzung von Urheberrechten oder geistigem Eigentum",
+        "reverse_engineering": "Reverse Engineering oder Versuch, den Dienst zu kompromittieren"
+      },
+      "liability": {
+        "title": "Haftungsbeschränkung",
+        "content": "NoNetChat wird \"wie besehen\" ohne jegliche Gewährleistung bereitgestellt. Wir haften nicht für direkte, indirekte oder Folgeschäden, die sich aus der Nutzung des Dienstes ergeben.",
+        "disclaimer": "Der Benutzer ist allein verantwortlich für die von ihm geteilten Inhalte und die Interaktionen, die er mit anderen Benutzern hat."
+      },
+      "modifications": {
+        "title": "Änderungen der Bedingungen",
+        "content": "Wir behalten uns das Recht vor, diese Bedingungen jederzeit zu ändern. Änderungen treten mit ihrer Veröffentlichung in Kraft. Die fortgesetzte Nutzung des Dienstes stellt eine Annahme der neuen Bedingungen dar."
+      },
+      "termination": {
+        "title": "Kündigung",
+        "content": "Sie können die Nutzung des Dienstes jederzeit einstellen. Wir behalten uns das Recht vor, den Zugang zum Dienst im Falle eines Verstoßes gegen diese Bedingungen auszusetzen."
+      },
+      "governing_law": {
+        "title": "Geltendes Recht",
+        "content": "Diese Bedingungen unterliegen dem französischen Recht. Alle Streitigkeiten unterliegen der Zuständigkeit der zuständigen französischen Gerichte."
+      }
+    },
+    "notices": {
+      "title": "Impressum",
+      "publisher": {
+        "title": "Herausgeber",
+        "name": "Name",
+        "type": "Typ",
+        "type_value": "Open-Source-Webanwendung",
+        "contact": "Kontakt",
+        "website": "Webseite"
+      },
+      "hosting": {
+        "title": "Hosting",
+        "provider": "Anbieter",
+        "provider_value": "Dezentrale Architektur - kein zentrales Hosting",
+        "note": "Hinweis",
+        "note_value": "Daten werden lokal auf dem Gerät des Benutzers gespeichert"
+      },
+      "intellectual_property": {
+        "title": "Geistiges Eigentum",
+        "content": "NoNetChat ist eine freie Software, die unter einer Open-Source-Lizenz vertrieben wird. Der Quellcode ist öffentlich zugänglich und kann gemäß den Lizenzbedingungen geändert werden."
+      },
+      "open_source": {
+        "title": "Open Source",
+        "content": "Dieses Projekt ist Open Source und Beiträge aus der Community sind willkommen.",
+        "repository": "Repository"
+      }
+    }
+  },
+  "privacy_settings": {
+    "title": "Datenschutzeinstellungen",
+    "consent_withdrawn": "Einwilligung erfolgreich widerrufen",
+    "consent_granted": "Einwilligung erfolgreich erteilt",
+    "export_success": "Daten erfolgreich exportiert",
+    "export_error": "Fehler beim Exportieren der Daten",
+    "delete_success": "Alle Daten erfolgreich gelöscht",
+    "delete_error": "Fehler beim Löschen der Daten",
+    "delete_confirm_error": "Bitte geben Sie 'DELETE' ein, um zu bestätigen",
+    "never": "Nie",
+    "geolocation_consent": {
+      "title": "Geolokalisierungseinwilligung",
+      "status": "Status",
+      "granted": "Erteilt",
+      "declined": "Abgelehnt",
+      "not_set": "Nicht festgelegt",
+      "date": "Datum",
+      "grant": "Erteilen",
+      "withdraw": "Widerrufen"
+    },
+    "data_overview": {
+      "title": "Datenübersicht",
+      "messages": "Nachrichten",
+      "conversations": "Gespräche",
+      "avatars": "Avatare",
+      "profile_size": "Profilgröße"
+    },
+    "data_actions": {
+      "title": "Datenaktionen",
+      "export": {
+        "title": "Meine Daten exportieren",
+        "description": "Alle Ihre persönlichen Daten im JSON-Format herunterladen",
+        "button": "Exportieren",
+        "exporting": "Exportieren..."
+      },
+      "delete": {
+        "title": "Alle meine Daten löschen",
+        "description": "Dauerhafte Löschung aller Ihrer persönlichen Daten",
+        "button": "Löschen",
+        "confirm_title": "Löschung bestätigen",
+        "confirm_description": "Diese Aktion ist unumkehrbar. Alle Ihre Daten werden dauerhaft gelöscht.",
+        "type_delete": "Geben Sie 'DELETE' ein, um zu bestätigen:",
+        "confirm_button": "Löschung bestätigen",
+        "deleting": "Löschen..."
+      }
+    },
+    "legal_documents": {
+      "title": "Rechtliche Dokumente",
+      "privacy_policy": "Datenschutzerklärung",
+      "terms_of_service": "Nutzungsbedingungen",
+      "legal_notices": "Impressum"
+    }
+  },
+  "common": {
     "close": "Schließen",
-    "manage_blocked_users": "Blockierte Benutzer verwalten",
-    "blocked_count": "{{count}} blockierte(r) Benutzer",
-    "no_blocked_users": "Keine blockierten Benutzer",
-    "unknown_user": "Unbekannter Benutzer",
-    "blocked_at": "Gesperrt am {{date}}",
-    "unblock_user": "Benutzer entsperren",
-    "unblock": "Entsperren",
-    "unblock_confirm": "Möchten Sie diesen Benutzer wirklich entsperren?",
-    "unblock_confirm_title": "Benutzer entsperren",
-    "unblock_confirm_message": "Möchten Sie diesen Benutzer wirklich entsperren?",
-    "confirm": "Bestätigen",
     "cancel": "Abbrechen"
   }
 }
