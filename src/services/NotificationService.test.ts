@@ -70,6 +70,37 @@ describe('NotificationService', () => {
     // Mock read-only properties correctly
     vi.spyOn(document, 'hidden', 'get').mockReturnValue(false);
     vi.spyOn(Notification, 'permission', 'get').mockReturnValue('default');
+    
+    // Mock DOM elements for favicon badge functionality
+    const mockCanvas = {
+      width: 32,
+      height: 32,
+      getContext: vi.fn(() => ({
+        fillStyle: '',
+        fillRect: vi.fn(),
+        font: '',
+        textAlign: '',
+        fillText: vi.fn(),
+        beginPath: vi.fn(),
+        arc: vi.fn(),
+        fill: vi.fn()
+      })),
+      toDataURL: vi.fn(() => 'data:image/png;base64,mock')
+    };
+    
+    const mockLink = {
+      rel: '',
+      href: ''
+    };
+    
+    vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+      if (tagName === 'canvas') return mockCanvas as any;
+      if (tagName === 'link') return mockLink as any;
+      return {} as any;
+    });
+    
+    vi.spyOn(document, 'querySelector').mockReturnValue(null);
+    vi.spyOn(document.head, 'appendChild').mockImplementation(() => mockLink as any);
   });
 
   it('should load default settings', () => {
