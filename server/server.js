@@ -255,6 +255,39 @@ app.get('/api/turn-credentials', (req, res) => {
   res.json({ username, credential, ttl, realm: TURN_REALM, iceServers });
 });
 
+// Healthcheck endpoint
+app.get('/api/status', (req, res) => {
+  const services = {
+    websocket: wss ? 'ok' : 'error',
+    geoip: geoipReader ? 'ok' : 'disabled',
+    redis: redis ? 'ok' : 'disabled',
+    push: PUSH_ENABLED ? 'ok' : 'disabled'
+  };
+  
+  // Vérifier si des services critiques sont en erreur
+  const hasErrors = services.websocket === 'error';
+  const overallStatus = hasErrors ? 'error' : 'ok';
+  
+  const status = {
+    status: overallStatus,
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    services,
+    stats: {
+      connectedClients: clients.size,
+      memoryUsage: process.memoryUsage()
+    }
+  };
+  
+  // Retourner code 503 si des services critiques sont en panne
+  if (hasErrors) {
+    return res.status(503).json(status);
+  }
+  
+  // Code 200 si tout va bien
+  res.json(status);
+});
+
 app.get('/api/geoip', async (req, res) => {
   if (!geoipReader) return res.status(503).json({ error: 'GeoIP disabled' });
 
