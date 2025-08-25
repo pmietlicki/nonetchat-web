@@ -7,6 +7,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import webpush from 'web-push';
 import ngeohash from 'ngeohash';
+import Redis from 'ioredis';
 
 // --- Config ---
 dotenv.config();
@@ -15,7 +16,6 @@ function pravatarUrl(id, version = 1, size = 192) {
   const seed = encodeURIComponent(`${id}:${version}`);
   return `https://i.pravatar.cc/${size}?u=${seed}`;
 }
-
 
 function normalizeCityName(name) {
   if (!name) return null;
@@ -59,6 +59,24 @@ let geoipReader = null;
 })();
 
 // -------------------------------------------------------------
+// Redis (optionnel mais recommandé en prod)
+// -------------------------------------------------------------
+let redis = null;
+const REDIS_PUSH_PREFIX = 'push:subs:'; // HSET {key} {endpoint} {subscriptionJson}
+if (process.env.REDIS_URL) {
+  try {
+    redis = new Redis(process.env.REDIS_URL, {
+      maxRetriesPerRequest: 2,
+      enableAutoPipelining: true,
+    });
+    redis.on('error', (e) => console.error('[Redis] error:', e?.message || e));
+    console.log('[Redis] client initialized.');
+  } catch (e) {
+    console.error('[Redis] init failed:', e?.message || e);
+  }
+}
+
+// -------------------------------------------------------------
 // Push Notifications (VAPID)
 // -------------------------------------------------------------
 const PUSH_ENABLED = Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY);
@@ -73,49 +91,103 @@ if (PUSH_ENABLED) {
   console.warn('[Push] VAPID keys not found in .env. Push notifications disabled.');
 }
 
-// En production, utilisez une base de données persistante (Redis/PostgreSQL)
-const pushSubscriptions = new Map(); // Map<userId, Set<subscription>>
+// En prod : Redis ; fallback mémoire sinon
+const pushSubscriptions = new Map(); // Map<userId, Map<endpoint, subscription>>
 
-function addSubscription(userId, subscription) {
-  let set = pushSubscriptions.get(userId);
-  if (!set) { set = new Set(); pushSubscriptions.set(userId, set); }
-  // Dédup par endpoint
-  for (const s of set) { if (s.endpoint === subscription.endpoint) return; }
-  set.add(subscription);
+async function addSubscription(userId, subscription) {
+  const ep = subscription?.endpoint;
+  if (!ep) return;
+
+  if (redis) {
+    try {
+      const key = `${REDIS_PUSH_PREFIX}${userId}`;
+      await redis.hset(key, ep, JSON.stringify(subscription));
+      // Optionnel : TTL auto-purge
+      // await redis.expire(key, 60 * 60 * 24 * 30);
+      return;
+    } catch (e) {
+      console.error('[Push][Redis] hset failed:', e?.message || e);
+      // fallback mémoire
+    }
+  }
+
+  let map = pushSubscriptions.get(userId);
+  if (!map) { map = new Map(); pushSubscriptions.set(userId, map); }
+  map.set(ep, subscription);
+}
+
+async function getUserSubscriptions(userId) {
+  if (redis) {
+    try {
+      const key = `${REDIS_PUSH_PREFIX}${userId}`;
+      const hash = await redis.hgetall(key);
+      if (!hash || Object.keys(hash).length === 0) return [];
+      return Object.values(hash).map((v) => {
+        try { return JSON.parse(v); } catch { return null; }
+      }).filter(Boolean);
+    } catch (e) {
+      console.error('[Push][Redis] hgetall failed:', e?.message || e);
+      // fallback mémoire
+    }
+  }
+  const map = pushSubscriptions.get(userId);
+  return map ? [...map.values()] : [];
+}
+
+async function deleteUserSubscriptions(userId, endpoints) {
+  if (!endpoints || endpoints.length === 0) return;
+  if (redis) {
+    try {
+      const key = `${REDIS_PUSH_PREFIX}${userId}`;
+      await redis.hdel(key, ...endpoints);
+      return;
+    } catch (e) {
+      console.error('[Push][Redis] hdel failed:', e?.message || e);
+      // fallback mémoire
+    }
+  }
+  const map = pushSubscriptions.get(userId);
+  if (!map) return;
+  for (const ep of endpoints) {
+    map.delete(ep);
+  }
+  if (map.size === 0) pushSubscriptions.delete(userId);
 }
 
 async function sendPushToUser(userId, payloadObj, options = { TTL: 60 }) {
   if (!PUSH_ENABLED) return;
-  const set = pushSubscriptions.get(userId);
-  if (!set || set.size === 0) return;
+  const subs = await getUserSubscriptions(userId);
+  if (!subs || subs.length === 0) return;
 
   const payload = JSON.stringify(payloadObj);
-  const toDelete = [];
+  const staleEndpoints = [];
 
-  await Promise.all([...set].map(async (sub) => {
+  await Promise.all(subs.map(async (sub) => {
     try {
       await webpush.sendNotification(sub, payload, options);
     } catch (err) {
       const code = err?.statusCode;
       if (code === 404 || code === 410) {
-        // Abonnement expiré/supprimé -> on le retire
-        toDelete.push(sub);
+        staleEndpoints.push(sub.endpoint);
       } else {
         console.error('[Push] Error sending', code, err?.body || err?.message);
       }
     }
   }));
 
-  if (toDelete.length) {
-    toDelete.forEach(s => set.delete(s));
-    if (set.size === 0) pushSubscriptions.delete(userId);
+  if (staleEndpoints.length) {
+    await deleteUserSubscriptions(userId, staleEndpoints);
   }
 }
 
 // -------------------------------------------------------------
 // WebSocket Signaling
 // -------------------------------------------------------------
-const wss = new WebSocketServer({ port: 3001 });
+const wss = new WebSocketServer({
+  port: 3001,
+  maxPayload: 256 * 1024,
+  perMessageDeflate: false
+});
 const clients = new Map(); // Map<clientId, {ws, ip, isAlive, radius, location, discoveryMode, profile?}>
 
 // Quadtree couvrant le globe entier (en degrés lat/lon)
@@ -150,7 +222,7 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
-app.use(express.json()); // Middleware JSON
+app.use(express.json({ limit: '64kb' }));
 
 const {
   TURN_STATIC_SECRET,
@@ -221,13 +293,21 @@ app.get('/api/geoip', async (req, res) => {
 });
 
 // Endpoint pour sauvegarder un abonnement push (multi-device)
-app.post('/api/save-subscription', (req, res) => {
+app.post('/api/save-subscription', async (req, res) => {
   const { userId, subscription } = req.body;
   if (!userId || !subscription) {
     return res.status(400).json({ error: 'Missing userId or subscription' });
   }
-  addSubscription(userId, subscription);
-  const total = pushSubscriptions.get(userId)?.size || 0;
+  await addSubscription(userId, subscription);
+  let total = 0;
+  if (redis) {
+    try {
+      const key = `${REDIS_PUSH_PREFIX}${userId}`;
+      total = await redis.hlen(key);
+    } catch { /* ignore */ }
+  } else {
+    total = pushSubscriptions.get(userId)?.size || 0;
+  }
   console.log(`[Push] Subscription saved for ${userId} (devices: ${total})`);
   res.status(201).json({ success: true });
 });
@@ -327,7 +407,7 @@ function getPublicRoomInfo(client) {
     else if (radius <= 25) precision = 5;
     else if (radius <= 100) precision = 4;
     else precision = 3;
-    
+
     const hash = ngeohash.encode(client.location.latitude, client.location.longitude, precision);
     return {
       roomId: `group:km:p${precision}:${hash}`,
@@ -353,8 +433,8 @@ function broadcastPeerUpdates() {
       if (clientId === otherClientId) return;
       if (client.ip && client.ip === otherClient.ip) {
         if (!nearbyPeerIds.has(otherClientId)) {
-          nearbyPeers.add({ 
-            peerId: otherClientId, 
+          nearbyPeers.add({
+            peerId: otherClientId,
             distanceLabel: 'LAN',
             profile: otherClient?.profile ? {
               name: otherClient.profile.name,
@@ -372,8 +452,8 @@ function broadcastPeerUpdates() {
       clients.forEach((otherClient, otherClientId) => {
         if (clientId === otherClientId || nearbyPeerIds.has(otherClientId)) return;
         if (client.countryCode === otherClient.countryCode) {
-          nearbyPeers.add({ 
-            peerId: otherClientId, 
+          nearbyPeers.add({
+            peerId: otherClientId,
             distanceLabel: 'Country',
             profile: otherClient?.profile ? {
               name: otherClient.profile.name,
@@ -390,8 +470,8 @@ function broadcastPeerUpdates() {
       clients.forEach((otherClient, otherClientId) => {
         if (clientId === otherClientId || nearbyPeerIds.has(otherClientId)) return;
         if (client.countryCode === otherClient.countryCode && client.normalizedCityName === otherClient.normalizedCityName) {
-          nearbyPeers.add({ 
-            peerId: otherClientId, 
+          nearbyPeers.add({
+            peerId: otherClientId,
             distanceLabel: 'City',
             profile: otherClient?.profile ? {
               name: otherClient.profile.name,
@@ -437,24 +517,24 @@ function broadcastPeerUpdates() {
 
           if (distance <= clientHorizonKm) {
             const distanceLabel = distance < 1 ? `${(distance * 1000).toFixed(0)} m` : `${distance.toFixed(2)} km`;
-             nearbyPeers.add({ 
-  peerId: candidate.clientId, 
-  distanceKm: distance, 
-  distanceLabel,
-  profile: otherClient?.profile ? {
-    name: otherClient.profile.name,
-    avatar: otherClient.profile.avatar,
-    avatarVersion: otherClient.profile.avatarVersion
-  } : undefined
-});
+            nearbyPeers.add({
+              peerId: candidate.clientId,
+              distanceKm: distance,
+              distanceLabel,
+              profile: otherClient?.profile ? {
+                name: otherClient.profile.name,
+                avatar: otherClient.profile.avatar,
+                avatarVersion: otherClient.profile.avatarVersion
+              } : undefined
+            });
             nearbyPeerIds.add(candidate.clientId);
           }
         }
       }
     }
 
-    sendTo(client.ws, { 
-      type: 'nearby-peers', 
+    sendTo(client.ws, {
+      type: 'nearby-peers',
       peers: Array.from(nearbyPeers),
       roomId,
       roomLabel,
@@ -463,12 +543,23 @@ function broadcastPeerUpdates() {
   });
 }
 
-
 // -------------------------------------------------------------
 // WebSocket Server Logic
 // -------------------------------------------------------------
 wss.on('connection', (ws, req) => {
   let clientId = null;
+
+  // Vérif d’Origin spécifique WS (CORS HTTP ≠ WS)
+  const origin = req.headers.origin;
+  const allowNoOrigin = process.env.NODE_ENV !== 'production';
+  const ok =
+    (allowNoOrigin && !origin) ||
+    origin === 'https://web.nonetchat.com' ||
+    origin === 'https://nonetchat.com';
+  if (!ok) {
+    try { ws.close(1008, 'Origin not allowed'); } catch {}
+    return;
+  }
 
   ws.on('message', (message) => {
     (async () => {
@@ -543,6 +634,12 @@ wss.on('connection', (ws, req) => {
 
       const clientData = clients.get(clientId);
 
+      // Anti-spoof : le serveur impose l'identité de l'émetteur
+      const safeFrom = clientId;
+      if (payload && typeof payload === 'object') {
+          payload.from = safeFrom; // on écrase toute valeur fournie par le client
+      }
+
       switch (type) {
         case 'update-location': {
           const loc = payload?.location;
@@ -577,7 +674,8 @@ wss.on('connection', (ws, req) => {
 
         // ---- Messages applicatifs (optionnel, utile si store-and-forward) ----
         case 'chat-message': {
-          const { to, from, text, convId, senderName, senderAvatar } = payload || {};
+          const { to, text, convId, senderName, senderAvatar } = payload || {};
+          const from = safeFrom;
           const recipient = to ? clients.get(to) : null;
           if (recipient) {
             sendTo(recipient.ws, { type, from, payload: { text, convId } });
@@ -601,12 +699,12 @@ wss.on('connection', (ws, req) => {
           break;
         }
 
-
         // ---- Signalisation WebRTC (réveil si offline) ----
         case 'offer':
         case 'answer':
         case 'candidate': {
-          const { to, from } = payload || {};
+          const { to } = payload || {};
+          const from = safeFrom;
           const recipient = to ? clients.get(to) : null;
           if (recipient) {
             sendTo(recipient.ws, { type, from, payload: payload.payload });
@@ -627,7 +725,6 @@ wss.on('connection', (ws, req) => {
           }
           break;
         }
-
 
         case 'server-profile-update': {
           const name = payload?.name;
@@ -656,8 +753,6 @@ wss.on('connection', (ws, req) => {
           break;
         }
 
-
-
         default:
           console.warn(`[WS] Unknown message type from ${clientId}: ${type}`);
       }
@@ -683,8 +778,8 @@ wss.on('connection', (ws, req) => {
     if (clientId && clients.has(clientId)) {
       clients.get(clientId).isAlive = true;
     }
-    });
   });
+});
 
 // -------------------------------------------------------------
 // HTTP server
@@ -703,6 +798,7 @@ function shutdown(signal) {
   try { httpServer.close(); } catch {}
   try { wss.close(); } catch {}
   try { geoipReader?.close?.(); } catch {}
+  try { redis?.quit?.(); } catch {}
   // Terminer les sockets
   clients.forEach((c) => { try { c.ws.terminate(); } catch {} });
   process.exit(0);
