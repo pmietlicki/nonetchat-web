@@ -11,6 +11,7 @@
     "@timohausmann/quadtree-js": "^1.2.6",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
+    "ioredis": "^5.7.0",
     "mime-types": "^2.1.35",
     "ngeohash": "^0.6.3",
     "peer": "^1.0.2",
