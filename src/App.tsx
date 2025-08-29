@@ -9,12 +9,13 @@ import ProfileModal from './components/ProfileModal';
 import DiagnosticPanel from './components/DiagnosticPanel';
 import NotificationSettings from './components/NotificationSettings';
 import BlockedUsersList from './components/BlockedUsersList';
+import ShareModal from './components/ShareModal';
 import { User } from './types';
 import PeerService, { PeerMessage } from './services/PeerService';
 import IndexedDBService from './services/IndexedDBService';
 import ProfileService from './services/ProfileService';
 import NotificationService from './services/NotificationService';
-import { MessageSquare, Users, X, User as UserIcon, Bell, Cog, Globe, Home, Ban } from 'lucide-react'; // Ajout Globe, ArrowLeft, Home, Ban
+import { MessageSquare, Users, X, User as UserIcon, Bell, Cog, Globe, Home, Ban, Share2 } from 'lucide-react'; // Ajout Globe, ArrowLeft, Home, Ban, Share2
 import CryptoService from './services/CryptoService';
 import { useState, useRef, useEffect } from 'react';
 import { t, detectBrowserLanguage, onLanguageChange } from './i18n';
@@ -69,6 +70,7 @@ function App() {
   const [showLegalDocuments, setShowLegalDocuments] = useState(false);
   const [legalDocumentsTab, setLegalDocumentsTab] = useState<'privacy' | 'terms' | 'legal'>('privacy');
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const [locationInfo, setLocationInfo] = useState<{ city: string; country: string } | null>(null);
 
   const globalFileReceivers = useRef(
@@ -1196,6 +1198,15 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
             </div>
 
             <button
+              onClick={() => setShowShareModal(true)}
+              className="p-2 rounded-full hover:bg-gray-100"
+              title={t('share.title')}
+              aria-label={t('share.title')}
+            >
+              <Share2 size={20} />
+            </button>
+
+            <button
               onClick={() => setShowNotificationSettings(true)}
               className="p-2 rounded-full hover:bg-gray-100"
               title={t('header.notifications_aria')}
@@ -1438,6 +1449,11 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
         isOpen={isBlockedUsersOpen} 
         onClose={() => setIsBlockedUsersOpen(false)}
         peerService={peerService}
+      />
+
+      <ShareModal 
+        isOpen={showShareModal} 
+        onClose={() => setShowShareModal(false)}
       />
 
       <ConsentBanner

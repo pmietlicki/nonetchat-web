@@ -44,6 +44,16 @@
       "body": "Les messages ici sont éphémères et visibles par tous dans votre zone actuelle."
     }
   },
+  "share": {
+    "title": "Partager NoNetChat",
+    "subtitle": "Invitez vos amis à découvrir NoNetChat Web",
+    "description": "Messagerie hyperlocale P2P sécurisée et géolocalisée",
+    "native": "Partager",
+    "email": "Email",
+    "copy_link": "Ou copiez le lien",
+    "copy": "Copier",
+    "copied": "Copié"
+  },
   "settings": {
     "title": "Paramètres",
     "close_aria": "Fermer les paramètres",
