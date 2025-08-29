@@ -292,7 +292,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     [selectedPeer.id, dbService]
   );
 
-  // Subscriptions
+  // --- Abonnements aux événements PeerService (données, statut, etc.)
   useEffect(() => {
     if (selectedPeer.id) {
       peerService.ensureChatChannel(selectedPeer.id);
@@ -306,13 +306,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     peerService.on('message-read', handleMessageRead);
     peerService.on('reaction-received', handleReactionReceived);
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && isAtBottom) {
-        markAsRead();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
     return () => {
       if (typeof peerService.removeListener === 'function') {
         peerService.removeListener('data', handleData);
@@ -321,17 +314,28 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         peerService.removeListener('message-read', handleMessageRead);
         peerService.removeListener('reaction-received', handleReactionReceived);
       }
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-
+      // Nettoyage des refs et blobs
       if (longPressRef.current !== null) {
         clearTimeout(longPressRef.current);
         longPressRef.current = null;
       }
-
       blobUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
       blobUrlsRef.current.clear();
     };
-  }, [selectedPeer.id, handleData, handleFileChunk, handleMessageDelivered, handleMessageRead, isAtBottom, handleReactionReceived, peerService]);
+  }, [selectedPeer.id, handleData, handleFileChunk, handleMessageDelivered, handleMessageRead, handleReactionReceived, peerService]);
+
+  // --- Effet séparé pour la gestion de la visibilité et du scroll
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isAtBottom) {
+        markAsRead();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isAtBottom]);
 
   // Mise à jour live si la fenêtre est ouverte
   useEffect(() => {
