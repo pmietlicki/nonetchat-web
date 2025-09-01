@@ -1266,6 +1266,15 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
             )}
             
             <button
+              onClick={() => setShowShareModal(true)}
+              className="p-2 rounded-full hover:bg-gray-100"
+              aria-label="Share"
+              title="Share"
+            >
+              <Share2 size={20} />
+            </button>
+            
+            <button
               onClick={() => setIsProfileOpen(true)}
               className="p-2 rounded-full hover:bg-gray-100"
               aria-label={t('header.profile_aria')}
