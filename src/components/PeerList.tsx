@@ -259,7 +259,7 @@ const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId
       status: 'online',                                                                                                                                                  
       joinedAt: new Date().toISOString(), // Fixed date for stability                                                                                                   
       gender: 'male',                                                                                                                                                    
-      age: 25,                                                                                                                                                           
+      age: 40,                                                                                                                                                           
     },                                                                                                                                                                   
   ];
   const peerService = PeerService.getInstance();
