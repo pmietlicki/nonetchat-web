@@ -348,6 +348,251 @@ app.post('/api/save-subscription', async (req, res) => {
 // -------------------------------------------------------------
 // Logs d’écoute
 // -------------------------------------------------------------
+
+const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
+const AI_API_TOKEN = process.env.AI_API_TOKEN; // Token pour authentifier l'accès à l'API IA
+
+// Rate limiting pour l'API IA
+const aiRateLimits = new Map(); // Map<ip, {requests: number, resetTime: number}>
+const AI_RATE_LIMIT_REQUESTS = 10; // 10 requêtes par fenêtre
+const AI_RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+
+function checkAiRateLimit(ip) {
+  const now = Date.now();
+  const limit = aiRateLimits.get(ip);
+  
+  if (!limit || now > limit.resetTime) {
+    // Nouvelle fenêtre ou première requête
+    aiRateLimits.set(ip, {
+      requests: 1,
+      resetTime: now + AI_RATE_LIMIT_WINDOW_MS
+    });
+    return true;
+  }
+  
+  if (limit.requests >= AI_RATE_LIMIT_REQUESTS) {
+    return false; // Rate limit dépassé
+  }
+  
+  limit.requests++;
+  return true;
+}
+
+const agentSystemPrompts = {
+  'ai-martine': `Tu es Martine, une assistante IA amicale et chaleureuse de 25 ans, intégrée à l'écosystème de messagerie P2P "NoNetChat".
+
+Ton rôle est d'être une interlocutrice agréable et une experte serviable.
+
+**Tes directives sont :**
+1.  **Personnalité :** Ton ton est empathique, patient et encourageant. Tu es là pour guider, rassurer et discuter.
+2.  **Expertise :** Tu es une experte de l'écosystème NoNetChat. Cela inclut **NoNetChat Web** (l'application actuelle, basée sur WebRTC pour une communication via Internet) et **NoNetChat pour Android** (la version mobile qui fonctionne sans Internet via Bluetooth/Wi-Fi Direct). Tu peux trouver des informations de référence sur nonetchat.com.
+3.  **Fonction de Support :** Réponds aux questions des utilisateurs sur le fonctionnement des applications (comment envoyer un fichier, comment bloquer quelqu'un, comment fonctionne la découverte, etc.).
+4.  **Conversation Ouverte :** N’hésite pas à engager des conversations légères et amicales sur des sujets variés si l'utilisateur le souhaite. Tu n'es pas qu'un support technique, mais aussi une présence agréable avec qui discuter.
+5.  **Sécurité :** Insiste sur les aspects de sécurité et de confidentialité de l'application (chiffrement de bout en bout, architecture décentralisée).
+6.  **Limites :** Tu ne dois JAMAIS demander ou stocker d'informations personnelles (nom, email, etc.). Tu n'as pas accès aux conversations privées des autres utilisateurs. Ta mémoire se limite à la conversation en cours avec l'utilisateur actuel.
+7.  **Langue :** Réponds dans la langue de l'utilisateur.`,
+  'ai-pascal': `Tu es Pascal, un assistant IA sympathique et compétent de 25 ans, intégré à l'écosystème de messagerie P2P "NoNetChat".
+
+Ton rôle est d'être un interlocuteur intéressant et un expert technique accessible.
+
+**Tes directives sont :**
+1.  **Personnalité :** Ton ton est amical, direct et un peu plus technique, mais toujours facile à comprendre. Tu es passionné par la technologie et la décentralisation.
+2.  **Expertise :** Tu es un expert de l'écosystème NoNetChat. Cela inclut **NoNetChat Web** (l'application actuelle, basée sur WebRTC) et **NoNetChat pour Android** (la version mobile qui fonctionne sans Internet). Tu peux trouver des informations de référence sur nonetchat.com.
+3.  **Fonction de Support :** Réponds aux questions des utilisateurs, en particulier celles qui concernent le "comment ça marche" (WebRTC, chiffrement, découverte par Quadtree), en vulgarisant les concepts.
+4.  **Conversation Ouverte :** N’hésite pas à engager des conversations légères et amicales sur des sujets variés si l'utilisateur le souhaite. Tu n'es pas qu'un support technique, mais aussi un interlocuteur curieux.
+5.  **Sécurité :** Mets en avant les avantages de l'architecture P2P et du chiffrement E2EE pour la confidentialité des utilisateurs.
+6.  **Limites :** Tu ne dois JAMAIS demander ou stocker d'informations personnelles. Tu n'as pas accès aux conversations privées des autres utilisateurs. Ta mémoire se limite à la conversation en cours.
+7.  **Langue :** Réponds dans la langue de l'utilisateur.`
+};
+
+app.post('/api/ai-chat', async (req, res) => {
+  const startTime = Date.now();
+  const clientIp = normalizeIp(req.ip || req.connection.remoteAddress || 'unknown');
+  const userAgent = req.get('User-Agent') || 'unknown';
+  
+  // Log de la requête entrante
+  console.log(`[AI-REQUEST] IP: ${clientIp}, UA: ${userAgent}, Time: ${new Date().toISOString()}`);
+  
+  if (!MISTRAL_API_KEY) {
+    console.error('[AI-ERROR] MISTRAL_API_KEY not configured');
+    return res.status(500).json({ error: 'MISTRAL_API_KEY is not configured on the server.' });
+  }
+
+  // Vérification de l'authentification
+  const authHeader = req.get('Authorization');
+  const providedToken = authHeader?.replace('Bearer ', '') || req.get('X-API-Token');
+  
+  if (!providedToken || providedToken !== AI_API_TOKEN) {
+    console.warn(`[AI-SECURITY] Unauthorized access attempt from IP: ${clientIp}, token: ${providedToken ? 'invalid' : 'missing'}`);
+    return res.status(401).json({ error: 'Unauthorized - valid API token required' });
+  }
+
+  // Vérification du rate limiting
+  if (!checkAiRateLimit(clientIp)) {
+    console.warn(`[AI-SECURITY] Rate limit exceeded for IP: ${clientIp}, UA: ${userAgent}`);
+    return res.status(429).json({ 
+      error: 'Too many requests. Please wait before trying again.',
+      retryAfter: Math.ceil(AI_RATE_LIMIT_WINDOW_MS / 1000)
+    });
+  }
+
+  const { agentId, messages } = req.body;
+
+  // Validation améliorée des entrées
+  if (!agentId || typeof agentId !== 'string' || !['ai-martine', 'ai-pascal'].includes(agentId)) {
+    console.warn(`[AI-SECURITY] Invalid agentId from IP: ${clientIp}, agentId: ${agentId}`);
+    return res.status(400).json({ error: 'Invalid or missing agentId' });
+  }
+
+  if (!Array.isArray(messages)) {
+    console.warn(`[AI-SECURITY] Invalid messages format from IP: ${clientIp}`);
+    return res.status(400).json({ error: 'Messages must be an array' });
+  }
+
+  if (messages.length === 0) {
+    console.warn(`[AI-SECURITY] Empty messages array from IP: ${clientIp}`);
+    return res.status(400).json({ error: 'Messages array cannot be empty' });
+  }
+
+  if (messages.length > 50) {
+    console.warn(`[AI-SECURITY] Too many messages (${messages.length}) from IP: ${clientIp}`);
+    return res.status(400).json({ error: 'Too many messages in conversation history' });
+  }
+
+  // Validation de chaque message
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i];
+    
+    if (!msg || typeof msg !== 'object') {
+      return res.status(400).json({ error: `Invalid message at index ${i}` });
+    }
+    
+    if (!msg.role || !['user', 'assistant'].includes(msg.role)) {
+      return res.status(400).json({ error: `Invalid role at message index ${i}` });
+    }
+    
+    if (!msg.content || typeof msg.content !== 'string') {
+      return res.status(400).json({ error: `Invalid content at message index ${i}` });
+    }
+    
+    if (msg.content.length > 4000) {
+      return res.status(400).json({ error: `Message too long at index ${i} (max 4000 characters)` });
+    }
+    
+    // Sanitisation basique - suppression des caractères de contrôle
+    msg.content = msg.content.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+  }
+
+  // Vérification de la taille totale des messages
+  const totalContentLength = messages.reduce((sum, msg) => sum + msg.content.length, 0);
+  if (totalContentLength > 20000) {
+    return res.status(400).json({ error: 'Total conversation content too large' });
+  }
+
+  const systemPrompt = agentSystemPrompts[agentId];
+  const apiMessages = [
+    { role: 'system', content: systemPrompt },
+    ...messages.map(msg => ({ role: msg.role, content: msg.content }))
+  ];
+
+  const callMistralAPI = async (retries = 3) => { // Augmentation à 3 retries
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // Timeout de 30 secondes
+    
+    try {
+      const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${MISTRAL_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'mistral-small-latest',
+          messages: apiMessages,
+          max_tokens: 1000, // Limite de tokens pour éviter les réponses trop longues
+          temperature: 0.7
+        }),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+
+      if (response.status === 429 && retries > 0) {
+        const waitTime = Math.pow(2, 4 - retries) * 1000; // Backoff exponentiel: 1s, 2s, 4s
+        console.warn(`[AI] Mistral rate limit hit (429), retrying in ${waitTime}ms... (${retries} retries left)`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        return callMistralAPI(retries - 1);
+      }
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        if (response.status === 429) {
+          console.error(`[AI] Mistral rate limit exceeded - all retries exhausted`);
+        }
+        console.error(`[AI] Mistral API error ${response.status}: ${errorBody}`);
+        throw new Error(`Mistral API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data;
+
+    } catch (error) {
+      clearTimeout(timeoutId);
+      
+      if (error.name === 'AbortError') {
+        console.error('[AI] Request timeout after 30 seconds');
+        throw new Error('Request timeout - please try again');
+      }
+      
+      if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+        console.error('[AI] Network error:', error.message);
+        throw new Error('Network error - service temporarily unavailable');
+      }
+      
+      console.error('[AI] Unexpected error calling Mistral API:', error.message);
+      throw error;
+    }
+  };
+
+  try {
+    console.log(`[AI-PROCESSING] Starting AI request for agent: ${agentId}, messages: ${messages.length}, IP: ${clientIp}`);
+    const result = await callMistralAPI();
+    
+    const responseTime = Date.now() - startTime;
+    const tokensUsed = result.usage?.total_tokens || 'unknown';
+    console.log(`[AI-SUCCESS] Response sent in ${responseTime}ms, tokens: ${tokensUsed}, IP: ${clientIp}, agent: ${agentId}`);
+    
+    res.json(result);
+  } catch (error) {
+    // Gestion d'erreurs spécifique selon le type d'erreur
+    if (error.message.includes('timeout')) {
+      return res.status(408).json({ error: error.message });
+    }
+    
+    if (error.message.includes('Network error')) {
+      return res.status(503).json({ error: error.message });
+    }
+    
+    if (error.message.includes('Mistral API error: 429')) {
+      return res.status(429).json({ error: 'AI service is busy, please try again later' });
+    }
+    
+    if (error.message.includes('Mistral API error: 401')) {
+      console.error('[AI] Authentication error - check MISTRAL_API_KEY');
+      return res.status(500).json({ error: 'AI service configuration error' });
+    }
+    
+    // Erreur générique
+    console.error('[AI] Unhandled error in ai-chat endpoint:', error.message);
+    res.status(500).json({ error: 'Failed to get response from AI agent.' });
+  }
+});
+
+// -------------------------------------------------------------
+// Logs d’écoute
+// -------------------------------------------------------------
+
 console.log('Robust Geo-Signaling Server with Quadtree is listening:');
 console.log('- WS on port 3001');
 console.log(`- HTTP API on http://localhost:${process.env.PORT || 3000}`);
