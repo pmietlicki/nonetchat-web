@@ -428,7 +428,7 @@ const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId
                         {peer.id.startsWith('ai-') && (
                           <span
                             className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 border border-purple-200 rounded-full shadow-sm"
-                            title="Assistant IA - Toujours disponible pour vous aider"
+                            title="AI agent - always available"
                           >
                             <Bot size={10} className="text-purple-600" />
                             IA
