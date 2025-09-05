@@ -1351,25 +1351,59 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
 
   public async getAiResponse(agentId: string, messages: { role: 'user' | 'assistant'; content: string }[]): Promise<any> {
     this.diagnosticService.log(`Requesting AI response from agent: ${agentId}`);
-    try {
-      const apiUrl = this.signalingUrl.replace(/^wss?:\/\//, 'https://').replace(/^ws?:\/\//, 'http://');
-      const res = await fetch(`${apiUrl}/api/ai-chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_AI_API_TOKEN || 'default-dev-token'}`,
-        },
-        body: JSON.stringify({ agentId, messages }),
-      });
+    
+    const makeRequest = async (retryCount: number = 0): Promise<any> => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 secondes timeout côté client
+      
+      try {
+        const apiUrl = this.signalingUrl.replace(/^wss?:\/\//, 'https://').replace(/^ws?:\/\//, 'http://');
+        const res = await fetch(`${apiUrl}/api/ai-chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_AI_API_TOKEN || 'default-dev-token'}`,
+          },
+          body: JSON.stringify({ agentId, messages }),
+          signal: controller.signal
+        });
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ error: 'Failed to parse error response' }));
-        throw new Error(`AI API request failed with status ${res.status}: ${errorData.error}`);
+        clearTimeout(timeoutId);
+
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ error: 'Failed to parse error response' }));
+          
+          // Retry sur les erreurs temporaires (408, 429, 500, 502, 503, 504)
+          if ([408, 429, 500, 502, 503, 504].includes(res.status) && retryCount < 3) {
+            const waitTime = Math.pow(2, retryCount) * 1000; // Backoff exponentiel: 1s, 2s, 4s
+            this.diagnosticService.log(`AI request failed with status ${res.status}, retrying in ${waitTime}ms... (attempt ${retryCount + 1}/3)`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+            return makeRequest(retryCount + 1);
+          }
+          
+          throw new Error(`AI API request failed with status ${res.status}: ${errorData.error}`);
+        }
+
+        return await res.json();
+      } catch (error: any) {
+        clearTimeout(timeoutId);
+        
+        // Retry sur timeout ou erreurs réseau
+        if ((error.name === 'AbortError' || error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') && retryCount < 3) {
+          const waitTime = Math.pow(2, retryCount) * 1000; // Backoff exponentiel: 1s, 2s, 4s
+          this.diagnosticService.log(`AI request failed (${error.name || error.code}), retrying in ${waitTime}ms... (attempt ${retryCount + 1}/3)`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+          return makeRequest(retryCount + 1);
+        }
+        
+        throw error;
       }
-
-      return await res.json();
+    };
+    
+    try {
+      return await makeRequest();
     } catch (error) {
-      this.diagnosticService.log('Failed to get AI response', error);
+      this.diagnosticService.log('Failed to get AI response after all retries', error);
       throw error;
     }
   }
