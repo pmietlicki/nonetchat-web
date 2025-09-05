@@ -497,7 +497,7 @@ app.post('/api/ai-chat', async (req, res) => {
 
   const callMistralAPI = async (retries = 3) => { // Augmentation à 3 retries
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // Timeout de 30 secondes
+    const timeoutId = setTimeout(() => controller.abort(), 2000); // Timeout de 2 seconde
     
     try {
       const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
