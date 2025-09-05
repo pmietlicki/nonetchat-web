@@ -39,11 +39,14 @@ describe('PeerList', () => {
     vi.clearAllMocks();
   });
 
-  it('devrait afficher les agents IA même quand aucun pair n\'est connecté', () => {
+  it('devrait afficher les agents IA avec leurs badges même quand aucun pair n\'est connecté', () => {
     render(<PeerList peers={[]} onSelectPeer={mockOnSelectPeer} isConnected={true} />);
     // Les agents IA sont toujours affichés
-    expect(screen.getByText('Martine AI Assistant)')).toBeInTheDocument();
-    expect(screen.getByText('Pascal (AI Assistant)')).toBeInTheDocument();
+    expect(screen.getByText('Martine')).toBeInTheDocument();
+    expect(screen.getByText('Pascal')).toBeInTheDocument();
+    // Vérifier la présence des badges IA
+    const iaBadges = screen.getAllByText('IA');
+    expect(iaBadges).toHaveLength(2);
   });
 
   it('devrait afficher un message quand la connexion est requise', () => {
@@ -51,7 +54,7 @@ describe('PeerList', () => {
     expect(screen.getByText('peerList.connection_required_title')).toBeInTheDocument();
   });
 
-  it('devrait afficher une liste de pairs avec les agents IA', () => {
+  it('devrait afficher une liste de pairs avec les agents IA et leurs badges', () => {
     render(<PeerList peers={mockPeers} onSelectPeer={mockOnSelectPeer} isConnected={true} />);
     
     // Vérifier que les noms des pairs sont affichés
@@ -59,13 +62,17 @@ describe('PeerList', () => {
     expect(screen.getByText('Bob')).toBeInTheDocument();
     
     // Vérifier que les agents IA sont aussi affichés
-    expect(screen.getByText('Martine (AI Assistant)')).toBeInTheDocument();
-    expect(screen.getByText('Pascal (AI Assistant)')).toBeInTheDocument();
+    expect(screen.getByText('Martine')).toBeInTheDocument();
+    expect(screen.getByText('Pascal')).toBeInTheDocument();
+    
+    // Vérifier la présence des badges IA (seulement pour les agents IA)
+    const iaBadges = screen.getAllByText('IA');
+    expect(iaBadges).toHaveLength(2);
 
     // Vérifier que le nombre d'éléments de liste est correct (2 pairs + 2 agents IA)
-     const peerContainers = screen.getAllByRole('listitem');
-     expect(peerContainers).toHaveLength(4);
-   });
+    const peerContainers = screen.getAllByRole('listitem');
+    expect(peerContainers).toHaveLength(4);
+  });
 
   it('devrait appeler onSelectPeer avec le bon ID lors d\'un clic', () => {
     render(<PeerList peers={mockPeers} onSelectPeer={mockOnSelectPeer} isConnected={true} />);

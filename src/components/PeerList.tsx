@@ -1,7 +1,7 @@
 // src/components/PeerList.tsx
 import React, { useMemo, useState } from 'react';
 import { User } from '../types';
-import { Users, Circle, Wifi, MessageSquare, Info, X, MapPin, Ban } from 'lucide-react';
+import { Users, Circle, Wifi, MessageSquare, Info, X, MapPin, Ban, Bot } from 'lucide-react';
 import { t } from '../i18n';
 import PeerService from '../services/PeerService';
 
@@ -245,7 +245,7 @@ const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId
     const aiAgents: User[] = [
     {                                                                                                                                                                    
       id: 'ai-martine',                                                                                                                                                  
-      name: 'Martine (AI Assistant)',                                                                                                                                    
+      name: 'Martine',                                                                                                                                    
       avatar: `https://i.pravatar.cc/150?u=ai-pascal`,                                                                                                                  
       status: 'online',                                                                                                                                                  
       joinedAt: new Date().toISOString(), // Fixed date for stability                                                                                                   
@@ -254,7 +254,7 @@ const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId
     },                                                                                                                                                                   
     {                                                                                                                                                                    
       id: 'ai-pascal',                                                                                                                                                   
-      name: 'Pascal (AI Assistant)',                                                                                                                                     
+      name: 'Pascal',                                                                                                                                     
       avatar: `https://i.pravatar.cc/150?u=ai-martine`,                                                                                                                   
       status: 'online',                                                                                                                                                  
       joinedAt: new Date().toISOString(), // Fixed date for stability                                                                                                   
@@ -423,6 +423,17 @@ const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-medium text-gray-900 truncate">{peer.name || t('peerList.user_default_name')}</p>
+
+                        {/* Badge IA */}
+                        {peer.id.startsWith('ai-') && (
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 border border-purple-200 rounded-full shadow-sm"
+                            title="Assistant IA - Toujours disponible pour vous aider"
+                          >
+                            <Bot size={10} className="text-purple-600" />
+                            IA
+                          </span>
+                        )}
 
                         {/* Badge distance à droite (mobile aussi) */}
                         {peer.distanceLabel && (
