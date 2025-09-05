@@ -42,7 +42,7 @@ describe('PeerList', () => {
   it('devrait afficher les agents IA même quand aucun pair n\'est connecté', () => {
     render(<PeerList peers={[]} onSelectPeer={mockOnSelectPeer} isConnected={true} />);
     // Les agents IA sont toujours affichés
-    expect(screen.getByText('Martine AI Assistant)')).toBeInTheDocument();
+    expect(screen.getByText('Martine (AI Assistant)')).toBeInTheDocument();
     expect(screen.getByText('Pascal (AI Assistant)')).toBeInTheDocument();
   });
 
