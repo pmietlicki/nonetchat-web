@@ -888,8 +888,9 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
 
 
   // Afficher tous les pairs en ligne, même si leur profil n'est pas encore arrivé
+  // Exclure les agents IA de la liste principale des pairs
   const peerList = Array.from(peers.values())
-    .filter(p => p.status === 'online')
+    .filter(p => p.status === 'online' && !p.id.startsWith('ai-'))
     .map(p => ({
       ...p,
       name: (p.name && p.name.trim()) ? p.name : t('user.default_name'),
