@@ -590,6 +590,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
     if (selectedPeer.status !== 'online') return;
 
+    // Empêcher l'envoi de fichiers aux agents IA
+    if (selectedFile && selectedPeer.id.startsWith('ai-')) {
+      console.warn('File sending disabled for AI agents.');
+      setSelectedFile(null);
+      return;
+    }
+
     if (selectedFile) {
       const messageId = uuidv4();
       addMessage({
@@ -1243,21 +1250,24 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
         {/* Rangée compacte */}
         <div className="flex items-center w-full overflow-visible gap-1.5 sm:gap-2">
-          {/* Trombone (masqué sous 360px) */}
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="shrink-0 p-2 text-gray-500 hover:text-gray-700 max-[360px]:hidden"
-            disabled={selectedPeer.status !== 'online'}
-            title={selectedPeer.status !== 'online' ? t('chat.input.file_disabled_offline') : t('chat.input.attach_file')}
-            aria-label={t('chat.input.attach_file')}
-          >
-            <Paperclip size={18} />
-          </button>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
+          {/* Trombone (masqué sous 360px et pour les agents IA) */}
+          {!selectedPeer.id.startsWith('ai-') && (
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="shrink-0 p-2 text-gray-500 hover:text-gray-700 max-[360px]:hidden"
+              disabled={selectedPeer.status !== 'online'}
+              title={selectedPeer.status !== 'online' ? t('chat.input.file_disabled_offline') : t('chat.input.attach_file')}
+              aria-label={t('chat.input.attach_file')}
+            >
+              <Paperclip size={18} />
+            </button>
+          )}
+          {!selectedPeer.id.startsWith('ai-') && (
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
               if (file) {
                 if (file.size > MAX_FILE_SIZE) {
                   alert(
@@ -1273,6 +1283,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
             }}
             className="hidden"
           />
+          )}
 
           {/* Champ texte : flex-1 + min-w-0 pour rétrécir correctement */}
           <div className="flex-1 min-w-0">

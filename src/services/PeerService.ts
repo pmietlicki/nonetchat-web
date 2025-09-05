@@ -1157,6 +1157,12 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
   }
 
   public async sendFile(peerId: string, file: File, messageId: string, onProgress?: (progress: number) => void) {
+    // Empêcher l'envoi de fichiers aux agents IA
+    if (peerId.startsWith('ai-')) {
+      this.diagnosticService.log(`File sending disabled for AI agents : ${peerId}`);
+      return;
+    }
+
     const dataChannel = this.dataChannels.get(peerId);
     if (!dataChannel || dataChannel.readyState !== 'open') {
       this.diagnosticService.log(`Cannot send file to ${peerId}, data channel not open. Queuing not yet supported for files.`);
@@ -1254,6 +1260,12 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
   }
 
   public async blockPeer(peerId: string) {
+    // Empêcher le blocage des agents IA
+    if (peerId.startsWith('ai-')) {
+      this.diagnosticService.log(`Cannot block AI agent: ${peerId}`);
+      return;
+    }
+    
     if (this.blockList.has(peerId)) return;
     this.blockList.add(peerId);
     await this.dbService.addToBlockList(peerId);
@@ -1319,6 +1331,12 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
   }
 
   private closePeerConnection(peerId: string) {
+    // Empêcher la fermeture de connexion pour les agents IA
+    if (peerId.startsWith('ai-')) {
+      this.diagnosticService.log(`Cannot close connection for AI agent: ${peerId}`);
+      return;
+    }
+    
     const pc = this.peerConnections.get(peerId);
     if (pc) {
       pc.close();

@@ -506,19 +506,21 @@ const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId
                       >
                         <MessageSquare size={16} />
                       </button>
-                      <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            if (window.confirm(t('peerList.block_user_confirm', { name: peer.name }))) {
-                                peerService.blockPeer(peer.id);
-                            }
-                        }}
-                        className="text-red-600 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors"
-                        title={t('peerList.block_user_title')}
-                        aria-label={t('peerList.block_user_title')}
-                      >
-                        <Ban size={16} />
-                      </button>
+                      {!peer.id.startsWith('ai-') && (
+                        <button
+                          onClick={(e) => {
+                              e.stopPropagation();
+                              if (window.confirm(t('peerList.block_user_confirm', { name: peer.name }))) {
+                                  peerService.blockPeer(peer.id);
+                              }
+                          }}
+                          className="text-red-600 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors"
+                          title={t('peerList.block_user_title')}
+                          aria-label={t('peerList.block_user_title')}
+                        >
+                          <Ban size={16} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

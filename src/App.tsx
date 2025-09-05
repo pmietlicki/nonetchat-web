@@ -266,6 +266,11 @@ useEffect(() => {
     };
 
     const onPeerLeft = (peerId: string) => {
+      // Empêcher que les agents IA soient marqués comme offline
+      if (peerId.startsWith('ai-')) {
+        return;
+      }
+      
       setPeers(prev => {
         const m = new Map(prev);
         const existing = m.get(peerId);
@@ -759,8 +764,9 @@ useEffect(() => {
         seen.add(peerId);
       }
          // Marquer offline ceux qui n'ont pas été vus sur cette frame
+         // Exclure les agents IA de cette logique car ils ne sont pas dans nearby-peers du serveur
    for (const [id, u] of m) {
-     if (u.status === 'online' && !seen.has(id)) {
+     if (u.status === 'online' && !seen.has(id) && !id.startsWith('ai-')) {
        m.set(id, { ...u, status: 'offline' });
      }
    }
