@@ -61,6 +61,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
+  const [isAiReplying, setIsAiReplying] = useState(false);
 
   // --- Gestes & long press
   const longPressRef = useRef<number | null>(null);
@@ -294,7 +295,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
   // --- Abonnements aux événements PeerService (données, statut, etc.)
   useEffect(() => {
-    if (selectedPeer.id) {
+    if (selectedPeer.id && !selectedPeer.id.startsWith('ai-')) {
       peerService.ensureChatChannel(selectedPeer.id);
     }
     loadMessages();
@@ -522,6 +523,71 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
 
   // --- Envoi message / fichier
   const handleSendMessage = async () => {
+    const isAiChat = selectedPeer.id.startsWith('ai-');
+
+    if (isAiChat) {
+      if (!newMessage.trim() || isAiReplying) return;
+
+      const userMessageContent = newMessage;
+      const userMessageId = uuidv4();
+      setNewMessage('');
+
+      addMessage({
+        id: userMessageId,
+        senderId: myId,
+        receiverId: selectedPeer.id,
+        content: userMessageContent,
+        timestamp: Date.now(),
+        type: 'text',
+        encrypted: false, // AI chat is not E2EE
+        status: 'sent',
+      });
+
+      setIsAiReplying(true);
+
+      try {
+        // Format message history for the API
+        const history = [...messages, { id: userMessageId, senderId: myId, content: userMessageContent, timestamp: Date.now(), type: 'text', encrypted: false, status: 'sent' }]
+          .map(msg => ({
+            role: msg.senderId === myId ? 'user' as const : 'assistant' as const,
+            content: msg.content,
+          }));
+        
+        const aiResponse = await peerService.getAiResponse(selectedPeer.id, history);
+        const aiMessageContent = aiResponse?.choices?.[0]?.message?.content;
+
+        if (aiMessageContent) {
+          addMessage({
+            id: uuidv4(),
+            senderId: selectedPeer.id,
+            receiverId: myId,
+            content: aiMessageContent,
+            timestamp: Date.now(),
+            type: 'text',
+            encrypted: false,
+            status: 'delivered',
+          });
+        } else {
+          throw new Error('Invalid AI response structure');
+        }
+      } catch (error) {
+        console.error('AI response error:', error);
+        addMessage({
+          id: uuidv4(),
+          senderId: selectedPeer.id,
+          receiverId: myId,
+          content: t('chat.ai_error'),
+          timestamp: Date.now(),
+          type: 'text',
+          encrypted: false,
+          status: 'delivered',
+        });
+      } finally {
+        setIsAiReplying(false);
+      }
+      return;
+    }
+
     if (selectedPeer.status !== 'online') return;
 
     if (selectedFile) {
@@ -812,27 +878,31 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                if (window.confirm(t('chat.block_user_confirm', { name: selectedPeer.name }))) {
-                  peerService.blockPeer(selectedPeer.id);
-                  onBack();
-                }
-              }}
-              className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-colors"
-              title={t('chat.header.block_user_title')}
-              aria-label={t('chat.header.block_user_title')}
-            >
-              <Ban size={20} />
-            </button>
-            <button
-              onClick={deleteConversation}
-              className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
-              title={t('chat.header.delete_conversation_title')}
-              aria-label={t('chat.header.delete_conversation_title')}
-            >
-              <Trash2 size={20} />
-            </button>
+            {!selectedPeer.id.startsWith('ai-') && (
+              <>
+                <button
+                  onClick={() => {
+                    if (window.confirm(t('chat.block_user_confirm', { name: selectedPeer.name }))) {
+                      peerService.blockPeer(selectedPeer.id);
+                      onBack();
+                    }
+                  }}
+                  className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-colors"
+                  title={t('chat.header.block_user_title')}
+                  aria-label={t('chat.header.block_user_title')}
+                >
+                  <Ban size={20} />
+                </button>
+                <button
+                  onClick={deleteConversation}
+                  className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                  title={t('chat.header.delete_conversation_title')}
+                  aria-label={t('chat.header.delete_conversation_title')}
+                >
+                  <Trash2 size={20} />
+                </button>
+              </>
+            )}
             {(activeFileTransfers.current.size > 0 || sendingProgress.size > 0 || receivingProgress.size > 0) && (
               <button
                 onClick={() => setShowCancelOptions(!showCancelOptions)}
@@ -1105,6 +1175,17 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
             </div>
           </div>
         ))}
+        {isAiReplying && (
+          <div className="flex justify-start">
+            <div className="relative max-w-[80%] md:max-w-md px-4 py-2 rounded-lg bg-gray-100 text-gray-800">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0s' }}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+              </div>
+            </div>
+          </div>
+        )}
         <div ref={messagesEndRef} />
 
         {newMessagesCount > 0 && !isAtBottom && (
@@ -1253,7 +1334,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
           {/* Micro */}
           <div className="shrink-0">
             <VoiceRecorderButton
-              disabled={selectedPeer.status !== 'online' || !!selectedFile}
+              disabled={selectedPeer.id.startsWith('ai-') || selectedPeer.status !== 'online' || !!selectedFile}
               maxDurationMs={MAX_VOICE_DURATION * 1000}
               onRecorded={sendVoiceFile}
             />

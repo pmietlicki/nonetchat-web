@@ -242,6 +242,26 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ peer, isOpen, o
 };
 
 const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId, isConnected }) => {
+    const aiAgents: User[] = [
+    {                                                                                                                                                                    
+      id: 'ai-martine',                                                                                                                                                  
+      name: 'Martine (AI Assistant)',                                                                                                                                    
+      avatar: `https://i.pravatar.cc/150?u=ai-pascal`,                                                                                                                  
+      status: 'online',                                                                                                                                                  
+      joinedAt: new Date().toISOString(), // Fixed date for stability                                                                                                   
+      gender: 'female',                                                                                                                                                  
+      age: 25,                                                                                                                                                           
+    },                                                                                                                                                                   
+    {                                                                                                                                                                    
+      id: 'ai-pascal',                                                                                                                                                   
+      name: 'Pascal (AI Assistant)',                                                                                                                                     
+      avatar: `https://i.pravatar.cc/150?u=ai-martine`,                                                                                                                   
+      status: 'online',                                                                                                                                                  
+      joinedAt: new Date().toISOString(), // Fixed date for stability                                                                                                   
+      gender: 'male',                                                                                                                                                    
+      age: 25,                                                                                                                                                           
+    },                                                                                                                                                                   
+  ];
   const peerService = PeerService.getInstance();
   const [selectedProfilePeer, setSelectedProfilePeer] = useState<User | null>(null);
   const [genderFilter, setGenderFilter] = useState<GenderFilter>('all');
@@ -361,7 +381,7 @@ const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId
             <p>{t('peerList.connection_required_title')}</p>
             <p className="text-sm">{t('peerList.connection_required_body')}</p>
           </div>
-        ) : filteredAndSorted.length === 0 ? (
+        ) : (aiAgents.length + filteredAndSorted.length) === 0 ? (
           <div className="p-4 text-center text-gray-500">
             <Users size={48} className="mx-auto mb-2 text-gray-300" />
             <p>{t('peerList.no_peers_title')}</p>
@@ -369,7 +389,7 @@ const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId
           </div>
         ) : (
           <div className="space-y-1">
-            {filteredAndSorted.map((peer) => (
+            {[...aiAgents, ...filteredAndSorted].map((peer) => (
               <ProfileTooltip key={`${peer.id}-${peer.joinedAt}`} peer={peer}>
                 <div
                   role="listitem"

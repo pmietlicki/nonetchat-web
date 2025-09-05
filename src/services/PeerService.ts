@@ -699,11 +699,18 @@ class PeerService extends EventEmitter {
 
 
   public async ensureChatChannel(peerId: string) {
-  let pc = this.peerConnections.get(peerId);
-   if (!pc) {
-     await this.createPeerConnection(peerId, 'initiator'); // crée la PC
-     pc = this.peerConnections.get(peerId)!;
-   }
+    // Les agents IA n'ont pas besoin de connexion WebRTC
+    // Ils utilisent getAiResponse() qui fait un appel HTTP direct
+    if (peerId.startsWith('ai-')) {
+      this.diagnosticService.log(`Skipping WebRTC channel creation for AI agent: ${peerId}`);
+      return;
+    }
+
+    let pc = this.peerConnections.get(peerId);
+    if (!pc) {
+      await this.createPeerConnection(peerId, 'initiator'); // crée la PC
+      pc = this.peerConnections.get(peerId)!;
+    }
 
     // Ne rien faire si le canal existe déjà
     if (this.dataChannels.has(peerId)) {
@@ -1322,6 +1329,31 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
     }
     this.peersMeta.delete(peerId);
     this.emit('peer-left', peerId);
+  }
+
+  public async getAiResponse(agentId: string, messages: { role: 'user' | 'assistant'; content: string }[]): Promise<any> {
+    this.diagnosticService.log(`Requesting AI response from agent: ${agentId}`);
+    try {
+      const apiUrl = this.signalingUrl.replace(/^wss?:\/\//, 'https://').replace(/^ws?:\/\//, 'http://');
+      const res = await fetch(`${apiUrl}/api/ai-chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_AI_API_TOKEN || 'default-dev-token'}`,
+        },
+        body: JSON.stringify({ agentId, messages }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Failed to parse error response' }));
+        throw new Error(`AI API request failed with status ${res.status}: ${errorData.error}`);
+      }
+
+      return await res.json();
+    } catch (error) {
+      this.diagnosticService.log('Failed to get AI response', error);
+      throw error;
+    }
   }
 
   public destroy() {
