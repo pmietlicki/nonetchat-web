@@ -95,7 +95,8 @@
     }
   },
   "chat": {
-    "voice_note": "Sesli not",
+    "voice_note": "Sesli mesaj",
+    "ai_error": "Üzgünüm, şu anda yanıt vermekte zorlanıyorum. Lütfen bir süre sonra tekrar deneyin.",
     "sending_in_progress": "(Gönderiliyor...)",
     "sending_progress": "(Gönderiliyor: {{progress}}%)",
     "sending_error": "(Gönderme hatası)",

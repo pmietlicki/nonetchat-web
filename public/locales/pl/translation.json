@@ -95,7 +95,8 @@
     }
   },
   "chat": {
-    "voice_note": "Notatka głosowa",
+    "voice_note": "Wiadomość głosowa",
+    "ai_error": "Przepraszam, mam obecnie problemy z odpowiadaniem. Spróbuj ponownie za chwilę.",
     "sending_in_progress": "(Wysyłanie...)",
     "sending_progress": "(Wysyłanie: {{progress}}%)",
     "sending_error": "(Błąd wysyłania)",

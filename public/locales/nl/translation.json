@@ -96,6 +96,7 @@
   },
   "chat": {
     "voice_note": "Spraakbericht",
+    "ai_error": "Sorry, ik heb momenteel moeite met reageren. Probeer het over een moment opnieuw.",
     "sending_in_progress": "(Verzenden...)",
     "sending_progress": "(Verzenden: {{progress}}%)",
     "sending_error": "(Verzendfout)",

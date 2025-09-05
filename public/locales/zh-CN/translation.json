@@ -96,6 +96,7 @@
   },
   "chat": {
     "voice_note": "语音便笺",
+    "ai_error": "抱歉，我现在回复有困难。请稍后再试。",
     "sending_in_progress": "(正在发送...)",
     "sending_progress": "(正在发送: {{progress}}%)",
     "sending_error": "(发送错误)",

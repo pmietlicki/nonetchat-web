@@ -95,9 +95,10 @@
     }
   },
   "chat": {
-    "voice_note": "مذكرة صوتية",
+    "voice_note": "رسالة صوتية",
+    "ai_error": "عذراً، أواجه صعوبة في الرد حالياً. يرجى المحاولة مرة أخرى بعد قليل.",
     "sending_in_progress": "(جاري الإرسال...)",
-    "sending_progress": "(إرسال: {{progress}}%)",
+    "sending_progress": "(جاري الإرسال: {{progress}}%)",
     "sending_error": "(خطأ في الإرسال)",
     "receiving_in_progress": "(جاري الاستلام...)",
     "file_size_error": "حجم الملف غير صحيح: تم استلام {{totalSize}} بايت، المتوقع {{expectedSize}} بايت (الفرق: {{sizeDifference}})",

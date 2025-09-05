@@ -95,10 +95,11 @@
     }
   },
   "chat": {
-    "voice_note": "Notă vocală",
+    "voice_note": "Mesaj vocal",
+    "ai_error": "Îmi pare rău, am dificultăți să răspund în acest moment. Vă rog să încercați din nou într-o clipă.",
     "sending_in_progress": "(Se trimite...)",
     "sending_progress": "(Se trimite: {{progress}}%)",
-    "sending_error": "(Eroare la trimitere)",
+    "sending_error": "(Eroare de trimitere)",
     "receiving_in_progress": "(Se primește...)",
     "file_size_error": "Dimensiune incorectă a fișierului: s-au primit {{totalSize}} octeți, se așteptau {{expectedSize}} octeți (diferență: {{sizeDifference}})",
     "decryption_empty_error": "Fișierul decriptat este gol",

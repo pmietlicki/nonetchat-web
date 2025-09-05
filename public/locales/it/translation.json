@@ -96,6 +96,7 @@
   },
   "chat": {
     "voice_note": "Nota vocale",
+    "ai_error": "Mi dispiace, sto avendo difficoltà a rispondere in questo momento. Riprova tra un momento.",
     "sending_in_progress": "(Invio in corso...)",
     "sending_progress": "(Invio: {{progress}}%)",
     "sending_error": "(Errore di invio)",

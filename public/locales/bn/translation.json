@@ -95,10 +95,11 @@
     }
   },
   "chat": {
-    "voice_note": "ভয়েস নোট",
+    "voice_note": "ভয়েস মেসেজ",
+    "ai_error": "দুঃখিত, আমি এখন উত্তর দিতে সমস্যায় পড়েছি। অনুগ্রহ করে একটু পরে আবার চেষ্টা করুন।",
     "sending_in_progress": "(পাঠানো হচ্ছে...)",
     "sending_progress": "(পাঠানো হচ্ছে: {{progress}}%)",
-    "sending_error": "(পাঠাতে ত্রুটি)",
+    "sending_error": "(পাঠানোর ত্রুটি)",
     "receiving_in_progress": "(গ্রহণ করা হচ্ছে...)",
     "file_size_error": "ফাইলের আকার ভুল: প্রাপ্ত {{totalSize}} বাইট, প্রত্যাশিত {{expectedSize}} বাইট (পার্থক্য: {{sizeDifference}})",
     "decryption_empty_error": "ডিক্রিপ্ট করা ফাইলটি খালি",

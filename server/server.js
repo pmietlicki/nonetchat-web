@@ -495,7 +495,7 @@ app.post('/api/ai-chat', async (req, res) => {
     ...messages.map(msg => ({ role: msg.role, content: msg.content }))
   ];
 
-  const callMistralAPI = async (retries = 3) => { // Augmentation à 3 retries
+  const callMistralAPI = async (retries = 5) => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 4000); // Timeout de 4 secondes
     

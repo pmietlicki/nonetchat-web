@@ -96,9 +96,10 @@
   },
   "chat": {
     "voice_note": "Nota de voz",
+    "ai_error": "Desculpe, estou tendo dificuldades para responder no momento. Tente novamente em um instante.",
     "sending_in_progress": "(Enviando...)",
     "sending_progress": "(Enviando: {{progress}}%)",
-    "sending_error": "(Erro ao enviar)",
+    "sending_error": "(Erro de envio)",
     "receiving_in_progress": "(Recebendo...)",
     "file_size_error": "Tamanho de arquivo incorreto: {{totalSize}} bytes recebidos, {{expectedSize}} bytes esperados (diferença: {{sizeDifference}})",
     "decryption_empty_error": "O arquivo descriptografado está vazio",

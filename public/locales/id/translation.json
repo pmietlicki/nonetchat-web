@@ -95,7 +95,8 @@
     }
   },
   "chat": {
-    "voice_note": "Catatan suara",
+    "voice_note": "Pesan suara",
+    "ai_error": "Maaf, saya sedang mengalami kesulitan merespons saat ini. Silakan coba lagi sebentar lagi.",
     "sending_in_progress": "(Mengirim...)",
     "sending_progress": "(Mengirim: {{progress}}%)",
     "sending_error": "(Kesalahan pengiriman)",

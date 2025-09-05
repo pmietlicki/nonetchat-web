@@ -96,6 +96,7 @@
   },
   "chat": {
     "voice_note": "語音便箋",
+    "ai_error": "抱歉，我現在回覆有困難。請稍後再試。",
     "sending_in_progress": "(正在傳送...)",
     "sending_progress": "(正在傳送: {{progress}}%)",
     "sending_error": "(傳送錯誤)",

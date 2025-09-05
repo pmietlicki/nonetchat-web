@@ -95,9 +95,10 @@
     }
   },
   "chat": {
-    "voice_note": "Sprachnotiz",
-    "sending_in_progress": "(Senden...)",
-    "sending_progress": "(Senden: {{progress}}%)",
+    "voice_note": "Sprachnachricht",
+    "ai_error": "Entschuldigung, ich habe derzeit Schwierigkeiten zu antworten. Bitte versuchen Sie es in einem Moment erneut.",
+    "sending_in_progress": "(Wird gesendet...)",
+    "sending_progress": "(Wird gesendet: {{progress}}%)",
     "sending_error": "(Sendefehler)",
     "receiving_in_progress": "(Empfange...)",
     "file_size_error": "Falsche Dateigröße: {{totalSize}} Bytes empfangen, {{expectedSize}} Bytes erwartet (Unterschied: {{sizeDifference}})",

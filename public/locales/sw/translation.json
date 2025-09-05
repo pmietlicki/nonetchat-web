@@ -96,8 +96,9 @@
   },
   "chat": {
     "voice_note": "Ujumbe wa sauti",
-    "sending_in_progress": "(Inatuma...)",
-    "sending_progress": "(Inatuma: {{progress}}%)",
+    "ai_error": "Samahani, nina shida kujibu kwa sasa. Tafadhali jaribu tena baada ya muda mfupi.",
+    "sending_in_progress": "(Inatumwa...)",
+    "sending_progress": "(Inatumwa: {{progress}}%)",
     "sending_error": "(Hitilafu ya kutuma)",
     "receiving_in_progress": "(Inapokea...)",
     "file_size_error": "Ukubwa wa faili usio sahihi: {{totalSize}} baiti zimepokelewa, {{expectedSize}} baiti zilitarajiwa (tofauti: {{sizeDifference}})",

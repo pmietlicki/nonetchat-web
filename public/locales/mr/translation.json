@@ -95,10 +95,11 @@
     }
   },
   "chat": {
-    "voice_note": "व्हॉइस नोट",
+    "voice_note": "व्हॉइस मेसेज",
+    "ai_error": "क्षमस्व, मला सध्या उत्तर देण्यात अडचण येत आहे. कृपया थोड्या वेळाने पुन्हा प्रयत्न करा.",
     "sending_in_progress": "(पाठवत आहे...)",
     "sending_progress": "(पाठवत आहे: {{progress}}%)",
-    "sending_error": "(पाठवताना त्रुटी)",
+    "sending_error": "(पाठवण्यात त्रुटी)",
     "receiving_in_progress": "(प्राप्त होत आहे...)",
     "file_size_error": "चुकीचा फाइल आकार: {{totalSize}} बाइट्स प्राप्त झाले, {{expectedSize}} बाइट्स अपेक्षित (फरक: {{sizeDifference}})",
     "decryption_empty_error": "डिक्रिप्ट केलेली फाइल रिकामी आहे",

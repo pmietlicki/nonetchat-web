@@ -106,6 +106,7 @@
   },
   "chat": {
     "voice_note": "Voice note",
+    "ai_error": "Sorry, I'm having trouble responding right now. Please try again in a moment.",
     "sending_in_progress": "(Sending...)",
     "sending_progress": "(Sending: {{progress}}%)",
     "sending_error": "(Sending error)",

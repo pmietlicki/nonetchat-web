@@ -95,9 +95,10 @@
     }
   },
   "chat": {
-    "voice_note": "음성 메모",
-    "sending_in_progress": "(보내는 중...)",
-    "sending_progress": "(보내는 중: {{progress}}%)",
+    "voice_note": "음성 메시지",
+    "ai_error": "죄송합니다. 현재 응답에 문제가 있습니다. 잠시 후 다시 시도해 주세요.",
+    "sending_in_progress": "(전송 중...)",
+    "sending_progress": "(전송 중: {{progress}}%)",
     "sending_error": "(전송 오류)",
     "receiving_in_progress": "(수신 중...)",
     "file_size_error": "잘못된 파일 크기: {{totalSize}}바이트를 받았지만 {{expectedSize}}바이트가 예상되었습니다(차이: {{sizeDifference}})",
