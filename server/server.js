@@ -518,9 +518,9 @@ app.post('/api/ai-chat', async (req, res) => {
       
       clearTimeout(timeoutId);
 
-      if (response.status === 429 && retries > 0) {
+      if (response.status >= 400 && response.status < 500 && retries > 0) {
         const waitTime = Math.pow(2, 4 - retries) * 1000; // Backoff exponentiel: 1s, 2s, 4s
-        console.warn(`[AI] Mistral rate limit hit (429), retrying in ${waitTime}ms... (${retries} retries left)`);
+        console.warn(`[AI] Mistral API error (${response.status}), retrying in ${waitTime}ms... (${retries} retries left)`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
         return callMistralAPI(retries - 1);
       }
