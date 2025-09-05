@@ -823,6 +823,39 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
 
   const handleSelectPeer = (peerId: string) => {
     setSelectedPeerId(peerId);
+    
+    // Gérer les agents IA qui ne sont pas dans la Map peers
+    if (!peers.has(peerId) && peerId.startsWith('ai-')) {
+      const aiAgents = [
+        {
+          id: 'ai-martine',
+          name: 'Martine',
+          avatar: `https://i.pravatar.cc/150?u=ai-pascal`,
+          status: 'online' as const,
+          joinedAt: new Date().toISOString(),
+          gender: 'female' as const,
+          age: 28,
+        },
+        {
+          id: 'ai-pascal',
+          name: 'Pascal',
+          avatar: `https://i.pravatar.cc/150?u=ai-martine`,
+          status: 'online' as const,
+          joinedAt: new Date().toISOString(),
+          gender: 'male' as const,
+          age: 25,
+        },
+      ];
+      
+      const aiAgent = aiAgents.find(agent => agent.id === peerId);
+      if (aiAgent) {
+        setPeers(prev => {
+          const m = new Map(prev);
+          m.set(peerId, aiAgent);
+          return m;
+        });
+      }
+    }
   };
 
   const handleSelectConversation = async (participantId: string) => {
