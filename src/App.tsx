@@ -760,6 +760,7 @@ useEffect(() => {
           distanceLabel: distanceLabel || existing.distanceLabel,
           name: profile?.name ?? existing.name,
           avatar: profile?.avatar ?? existing.avatar,
+          countryCode: profile?.countryCode ?? existing.countryCode,
         });
         seen.add(peerId);
       }
