@@ -9,6 +9,7 @@ export interface User {
   publicKey?: string;
   distanceKm?: number;
   distanceLabel?: string;
+  countryCode?: string;
 }
 
 export interface Message {

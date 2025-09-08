@@ -5,6 +5,19 @@ import { Users, Circle, Wifi, MessageSquare, Info, X, MapPin, Ban, Bot } from 'l
 import { t } from '../i18n';
 import PeerService from '../services/PeerService';
 
+// Fonction pour convertir un code pays ISO en emoji de drapeau
+const getCountryFlag = (countryCode: string | undefined): string => {
+  if (!countryCode || countryCode.length !== 2) return '';
+  
+  // Convertit le code pays en emoji de drapeau en utilisant les indicateurs régionaux Unicode
+  const codePoints = countryCode
+    .toUpperCase()
+    .split('')
+    .map(char => 127397 + char.charCodeAt(0));
+  
+  return String.fromCodePoint(...codePoints);
+};
+
 type GenderFilter = 'all' | 'male' | 'female' | 'other';
 type SortMode = 'distanceAsc' | 'distanceDesc' | 'ageAsc' | 'ageDesc';
 
@@ -71,7 +84,14 @@ const ProfileTooltip: React.FC<ProfileTooltipProps> = ({ peer, children }) => {
               }}
             />
             <div>
-              <h4 className="font-semibold text-gray-900">{peer.name || t('peerList.user_default_name')}</h4>
+              <div className="flex items-center gap-2">
+                <h4 className="font-semibold text-gray-900">{peer.name || t('peerList.user_default_name')}</h4>
+                {getCountryFlag(peer.countryCode) && (
+                  <span className="text-sm" title={peer.countryCode ? `Pays: ${peer.countryCode}` : ''}>
+                    {getCountryFlag(peer.countryCode)}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -164,7 +184,14 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ peer, isOpen, o
               (e.currentTarget as HTMLImageElement).src = `https://i.pravatar.cc/150?u=${encodeURIComponent(peer.id)}&d=identicon`;
             }}
           />
-          <h4 className="text-lg font-semibold">{peer.name || t('peerList.user_default_name')}</h4>
+          <div className="flex items-center gap-2 justify-center">
+            <h4 className="text-lg font-semibold">{peer.name || t('peerList.user_default_name')}</h4>
+            {getCountryFlag(peer.countryCode) && (
+              <span className="text-lg" title={peer.countryCode ? `Pays: ${peer.countryCode}` : ''}>
+                {getCountryFlag(peer.countryCode)}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="space-y-3">
@@ -423,6 +450,16 @@ const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-medium text-gray-900 truncate">{peer.name || t('peerList.user_default_name')}</p>
+
+                        {/* Drapeau du pays */}
+                        {getCountryFlag(peer.countryCode) && (
+                          <span
+                            className="text-sm"
+                            title={peer.countryCode ? `Pays: ${peer.countryCode}` : ''}
+                          >
+                            {getCountryFlag(peer.countryCode)}
+                          </span>
+                        )}
 
                         {/* Badge IA */}
                         {peer.id.startsWith('ai-') && (
