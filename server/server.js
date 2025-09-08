@@ -944,7 +944,7 @@ wss.on('connection', (ws, req) => {
         };
         clients.set(clientId, clientData);
 
-        console.log(`[WS] Client ${clientId} registered from IP ${ip} (${cityName || 'N/A'}, ${countryName || 'N/A'}). Total: ${clients.size}`);
+        console.log(`[WS] Client ${clientId} registered from IP ${ip} (${cityName || 'N/A'}, ${countryName || 'N/A'} - ${countryCode || 'N/A'}). Total: ${clients.size}`);
         rebuildGeoTree();
         broadcastPeerUpdates();
         return;
