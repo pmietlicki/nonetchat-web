@@ -43,10 +43,10 @@ describe('PeerList', () => {
     render(<PeerList peers={[]} onSelectPeer={mockOnSelectPeer} isConnected={true} />);
     // Les agents IA sont toujours affichés
     expect(screen.getByText('Martine')).toBeInTheDocument();
-    expect(screen.getByText('Pascal')).toBeInTheDocument();
+    // Pascal est désactivé, donc on ne le cherche plus
     // Vérifier la présence des badges IA
     const iaBadges = screen.getAllByText('IA');
-    expect(iaBadges).toHaveLength(2);
+    expect(iaBadges).toHaveLength(1);
   });
 
   it('devrait afficher un message quand la connexion est requise', () => {
@@ -63,15 +63,15 @@ describe('PeerList', () => {
     
     // Vérifier que les agents IA sont aussi affichés
     expect(screen.getByText('Martine')).toBeInTheDocument();
-    expect(screen.getByText('Pascal')).toBeInTheDocument();
+    // Pascal est désactivé, donc on ne le cherche plus
     
     // Vérifier la présence des badges IA (seulement pour les agents IA)
     const iaBadges = screen.getAllByText('IA');
-    expect(iaBadges).toHaveLength(2);
+    expect(iaBadges).toHaveLength(1);
 
-    // Vérifier que le nombre d'éléments de liste est correct (2 pairs + 2 agents IA)
+    // Vérifier que le nombre d'éléments de liste est correct (2 pairs + 1 agent IA)
     const peerContainers = screen.getAllByRole('listitem');
-    expect(peerContainers).toHaveLength(4);
+    expect(peerContainers).toHaveLength(3);
   });
 
   it('devrait appeler onSelectPeer avec le bon ID lors d\'un clic', () => {
