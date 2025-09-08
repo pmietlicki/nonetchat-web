@@ -63,10 +63,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
   const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
   const [isAiReplying, setIsAiReplying] = useState(false);
 
-  // --- Gestes & long press
+  // Gestes & long press
   const longPressRef = useRef<number | null>(null);
   const pressPosRef = useRef<{ x: number; y: number } | null>(null);
   const MOVE_CANCEL_THRESHOLD = 10; // px
+  
+  // Refs pour les timeouts de scroll
+  const scrollTimeoutRefs = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
 
   // Swipe-to-send (mobile)
   const swipeStartRef = useRef<{ x: number; y: number } | null>(null);
@@ -320,6 +323,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         clearTimeout(longPressRef.current);
         longPressRef.current = null;
       }
+      // Nettoyage des timeouts de scroll
+      scrollTimeoutRefs.current.forEach(timeoutId => clearTimeout(timeoutId));
+      scrollTimeoutRefs.current.clear();
       blobUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
       blobUrlsRef.current.clear();
     };
@@ -383,10 +389,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       if (!isAtBottom) {
         setNewMessagesCount(prev => prev + 1);
       } else if (document.visibilityState === 'visible') {
-        setTimeout(() => scrollToBottom(), 100);
+        const timeoutId = setTimeout(() => {
+          scrollToBottom();
+          scrollTimeoutRefs.current.delete(timeoutId);
+        }, 100);
+        scrollTimeoutRefs.current.add(timeoutId);
       }
     } else {
-      setTimeout(() => scrollToBottom(), 100);
+      const timeoutId = setTimeout(() => {
+        scrollToBottom();
+        scrollTimeoutRefs.current.delete(timeoutId);
+      }, 100);
+      scrollTimeoutRefs.current.add(timeoutId);
     }
 
     try {
