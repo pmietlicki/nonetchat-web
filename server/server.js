@@ -758,7 +758,8 @@ function broadcastPeerUpdates() {
             profile: otherClient?.profile ? {
               name: otherClient.profile.name,
               avatar: otherClient.profile.avatar,
-              avatarVersion: otherClient.profile.avatarVersion
+              avatarVersion: otherClient.profile.avatarVersion,
+              countryCode: otherClient.countryCode
             } : undefined
           });
           nearbyPeerIds.add(otherClientId);
@@ -777,7 +778,8 @@ function broadcastPeerUpdates() {
             profile: otherClient?.profile ? {
               name: otherClient.profile.name,
               avatar: otherClient.profile.avatar,
-              avatarVersion: otherClient.profile.avatarVersion
+              avatarVersion: otherClient.profile.avatarVersion,
+              countryCode: otherClient.countryCode
             } : undefined
           });
           nearbyPeerIds.add(otherClientId);
@@ -795,7 +797,8 @@ function broadcastPeerUpdates() {
             profile: otherClient?.profile ? {
               name: otherClient.profile.name,
               avatar: otherClient.profile.avatar,
-              avatarVersion: otherClient.profile.avatarVersion
+              avatarVersion: otherClient.profile.avatarVersion,
+              countryCode: otherClient.countryCode
             } : undefined
           });
           nearbyPeerIds.add(otherClientId);
@@ -843,7 +846,8 @@ function broadcastPeerUpdates() {
               profile: otherClient?.profile ? {
                 name: otherClient.profile.name,
                 avatar: otherClient.profile.avatar,
-                avatarVersion: otherClient.profile.avatarVersion
+                avatarVersion: otherClient.profile.avatarVersion,
+                countryCode: otherClient.countryCode
               } : undefined
             });
             nearbyPeerIds.add(candidate.clientId);
