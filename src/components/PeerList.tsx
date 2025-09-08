@@ -252,7 +252,7 @@ const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId
       gender: 'female',                                                                                                                                                  
       age: 25,                                                                                                                                                           
     },                                                                                                                                                                   
-    {                                                                                                                                                                    
+    /*{                                                                                                                                                                    
       id: 'ai-pascal',                                                                                                                                                   
       name: 'Pascal',                                                                                                                                     
       avatar: `https://i.pravatar.cc/150?u=ai-martine`,                                                                                                                   
@@ -260,7 +260,7 @@ const PeerList: React.FC<PeerListProps> = ({ peers, onSelectPeer, selectedPeerId
       joinedAt: new Date().toISOString(), // Fixed date for stability                                                                                                   
       gender: 'male',                                                                                                                                                    
       age: 40,                                                                                                                                                           
-    },                                                                                                                                                                   
+    },*/                                                                                                                                                                   
   ];
   const peerService = PeerService.getInstance();
   const [selectedProfilePeer, setSelectedProfilePeer] = useState<User | null>(null);

@@ -842,7 +842,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
           gender: 'female' as const,
           age: 28,
         },
-        {
+        /*{
           id: 'ai-pascal',
           name: 'Pascal',
           avatar: `https://i.pravatar.cc/150?u=ai-martine`,
@@ -850,7 +850,7 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
           joinedAt: new Date().toISOString(),
           gender: 'male' as const,
           age: 25,
-        },
+        },*/
       ];
       
       const aiAgent = aiAgents.find(agent => agent.id === peerId);

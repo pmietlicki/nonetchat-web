@@ -439,7 +439,8 @@ app.post('/api/ai-chat', async (req, res) => {
   const { agentId, messages } = req.body;
 
   // Validation améliorée des entrées
-  if (!agentId || typeof agentId !== 'string' || !['ai-martine', 'ai-pascal'].includes(agentId)) {
+  //  if (!agentId || typeof agentId !== 'string' || !['ai-martine'].includes(agentId)) {
+  if (!agentId || typeof agentId !== 'string' || !['ai-martine'].includes(agentId)) {
     console.warn(`[AI-SECURITY] Invalid agentId from IP: ${clientIp}, agentId: ${agentId}`);
     return res.status(400).json({ error: 'Invalid or missing agentId' });
   }
