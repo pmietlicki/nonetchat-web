@@ -666,6 +666,12 @@ function rebuildGeoTree() {
 function getPublicRoomInfo(client) {
   if (!client) return { roomId: null, roomLabel: 'Public' };
 
+  if (client.radius === 'world') {
+    return {
+      roomId: 'group:public:world',
+      roomLabel: 'Monde',
+    };
+  }
   if (client.radius === 'country' && client.countryCode) {
     return {
       roomId: `group:country:${client.countryCode}`,
@@ -701,8 +707,42 @@ function getPublicRoomInfo(client) {
 // -------------------------------------------------------------
 function broadcastPeerUpdates() {
   const now = Date.now();
+  const SAMPLE_SIZE = 150;
 
   clients.forEach((client, clientId) => {
+    if (client.radius === 'world') {
+      const allOtherClients = Array.from(clients.keys()).filter(id => id !== clientId);
+      // Fisher-Yates shuffle pour une meilleure distribution aléatoire
+      const shuffled = [...allOtherClients];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      const sample = shuffled.slice(0, SAMPLE_SIZE);
+
+      const nearbyPeers = sample.map(peerId => {
+        const otherClient = clients.get(peerId);
+        return {
+          peerId,
+          distanceLabel: 'Monde',
+          profile: otherClient?.profile ? {
+            name: otherClient.profile.name,
+            avatar: otherClient.profile.avatar,
+            avatarVersion: otherClient.profile.avatarVersion
+          } : undefined
+        };
+      });
+
+      sendTo(client.ws, {
+        type: 'nearby-peers',
+        peers: nearbyPeers,
+        roomId: 'group:public:world',
+        roomLabel: 'Monde',
+        tServer: Date.now(),
+      });
+      return; // Passe au client suivant
+    }
+
     const nearbyPeers = new Set();
     const nearbyPeerIds = new Set();
     const { roomId, roomLabel } = getPublicRoomInfo(client);
@@ -932,7 +972,7 @@ wss.on('connection', (ws, req) => {
             };
           }
           // Accepte le rayon numérique ou les mots-clés
-          if (typeof payload.radius === 'number' || payload.radius === 'country' || payload.radius === 'city') {
+          if (typeof payload.radius === 'number' || payload.radius === 'country' || payload.radius === 'city' || payload.radius === 'world') {
             clientData.radius = payload.radius;
           }
           clientData.discoveryMode = 'geo'; // reste 'geo' pour la logique du quadtree si le rayon redevient numérique
