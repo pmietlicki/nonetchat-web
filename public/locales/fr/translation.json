@@ -68,8 +68,9 @@
     "country": "Pays entier",
     "unavailable": "(indisponible)",
     "cancel": "Annuler",
+    "manage": "Gérer",
     "save": "Sauvegarder",
-    "manage": "Gérer"
+    "world": "Monde entier"
   },
   "header": {
     "logo_alt": "Logo NoNetChat",

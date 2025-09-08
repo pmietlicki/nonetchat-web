@@ -90,14 +90,14 @@ function App() {
     () => localStorage.getItem('signalingUrl') || DEFAULT_SIGNALING_URL
   );
   const [tempSignalingUrl, setTempSignalingUrl] = useState(signalingUrl);
-  const [searchRadius, setSearchRadius] = useState<number | 'country' | 'city'>(
+  const [searchRadius, setSearchRadius] = useState<number | 'country' | 'city' | 'world'>(
     () => {
       const stored = localStorage.getItem('searchRadius');
-      if (stored === 'country' || stored === 'city') return stored;
-      return stored ? parseFloat(stored) : 'city';
+      if (stored === 'country' || stored === 'city' || stored === 'world') return stored;
+      return stored ? parseFloat(stored) : 'world';
     }
   );
-  const [tempSearchRadius, setTempSearchRadius] = useState<number | 'country' | 'city'>(searchRadius);
+  const [tempSearchRadius, setTempSearchRadius] = useState<number | 'country' | 'city' | 'world'>(searchRadius);
   const [currentLanguage, setCurrentLanguage] = useState(() => {
     return localStorage.getItem('preferredLanguage') || detectBrowserLanguage();
   });
@@ -1003,6 +1003,19 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
               <div>
                 <span className="block text-sm font-medium text-gray-700 mb-2">{t('settings.discovery_mode_label')}</span>
                 <div className="space-y-2 rounded-md bg-gray-50 p-3">
+                  <div className="flex items-center">
+                    <input
+                      id="radius-mode-world"
+                      name="radius-mode"
+                      type="radio"
+                      checked={tempSearchRadius === 'world'}
+                      onChange={() => setTempSearchRadius('world')}
+                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    />
+                    <label htmlFor="radius-mode-world" className="ml-3 block text-sm font-medium text-gray-900">
+                      {t('settings.world')}
+                    </label>
+                  </div>
                   <div className="flex items-center">
                     <input
                       id="radius-mode-km"

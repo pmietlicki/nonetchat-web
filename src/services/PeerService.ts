@@ -72,7 +72,7 @@ class PeerService extends EventEmitter {
   // --- TURN auth éphémère injectée depuis /api/turn-credentials ---
   private turnAuth: { username: string; credential: string } | null = null;
 
-  private searchRadius: number | 'country' | 'city' = 'city'; // Default city radius
+  private searchRadius: number | 'country' | 'city' | 'world' = 'world'; // Default world radius
 
   private getIceConfig(): RTCConfiguration {
     const u = this.turnAuth?.username;
@@ -278,7 +278,7 @@ class PeerService extends EventEmitter {
     };
   }
 
-  public setSearchRadius(radius: number | 'country' | 'city') {
+  public setSearchRadius(radius: number | 'country' | 'city' | 'world') {
     this.searchRadius = radius;
     this.diagnosticService.log(`Search radius updated to ${typeof radius === 'string' ? radius : `${radius}km`}`);
     this.startLocationUpdates();
@@ -506,6 +506,14 @@ class PeerService extends EventEmitter {
       case 'nearby-peers': {
         const { peers, roomId, roomLabel } = message;
         this.emit('room-update', { roomId, roomLabel });
+
+        // Logique pour le mode "Monde entier"
+        if (roomId === 'group:public:world') {
+          this.diagnosticService.log('Received worldwide peer list. Skipping automatic connections.');
+          this.emit('nearby-peers', peers); // On notifie l'UI directement
+          // On ne met PAS à jour publicPeers ou updatePublicNeighbors pour ce mode.
+          break;
+        }
 
         const switched = roomId !== this.publicRoomId;
         if (switched) {
