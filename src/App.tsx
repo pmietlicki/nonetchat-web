@@ -1005,19 +1005,6 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                 <div className="space-y-2 rounded-md bg-gray-50 p-3">
                   <div className="flex items-center">
                     <input
-                      id="radius-mode-world"
-                      name="radius-mode"
-                      type="radio"
-                      checked={tempSearchRadius === 'world'}
-                      onChange={() => setTempSearchRadius('world')}
-                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                    />
-                    <label htmlFor="radius-mode-world" className="ml-3 block text-sm font-medium text-gray-900">
-                      {t('settings.world')}
-                    </label>
-                  </div>
-                  <div className="flex items-center">
-                    <input
                       id="radius-mode-km"
                       name="radius-mode"
                       type="radio"
@@ -1074,6 +1061,19 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
                     />
                     <label htmlFor="radius-mode-country" className="ml-3 block text-sm font-medium text-gray-900 disabled:opacity-50">
                       {t('settings.country')} {locationInfo?.country ? `(${locationInfo.country})` : `${t('settings.unavailable')}`}
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      id="radius-mode-world"
+                      name="radius-mode"
+                      type="radio"
+                      checked={tempSearchRadius === 'world'}
+                      onChange={() => setTempSearchRadius('world')}
+                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    />
+                    <label htmlFor="radius-mode-world" className="ml-3 block text-sm font-medium text-gray-900">
+                      {t('settings.world')}
                     </label>
                   </div>
                 </div>
