@@ -181,7 +181,7 @@ class CryptoService {
       return new TextDecoder().decode(decryptedData);
     } catch (error) {
       console.error('Decryption failed:', error);
-      return 'Failed to decrypt message';
+      throw new Error('decrypt-failed');
     }
   }
 
@@ -284,8 +284,8 @@ class CryptoService {
       const iv = encryptedArray.slice(0, 12);
       const keyData = encryptedArray.slice(12, 44);
       const originalSizeData = encryptedArray.slice(44, 48);
-      // Utilisable si besoin
-      const _originalSize = new DataView(originalSizeData.buffer).getUint32(0, true);
+      // Utilisable si besoin (pour vérification ultérieure)
+      const originalSize = new DataView(originalSizeData.buffer).getUint32(0, true);
 
       const encryptedData = encryptedArray.slice(48);
 
@@ -306,7 +306,12 @@ class CryptoService {
       const compressedBlob = new Blob([decryptedData]);
       const decompressedBlob = await this.decompressFile(compressedBlob);
 
-      console.log(`Décompression: ${compressedBlob.size} bytes -> ${decompressedBlob.size} bytes`);
+      if (originalSize && decompressedBlob.size !== originalSize) {
+        console.warn('La taille décompressée diffère de la taille originale attendue', {
+          expected: originalSize,
+          actual: decompressedBlob.size,
+        });
+      }
 
       return decompressedBlob;
     } catch (error) {

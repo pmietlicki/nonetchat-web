@@ -564,14 +564,21 @@ const avatar = payload.avatar
   };
 }, [myId, selectedPeerId, peers, peerService, dbService, notificationService]);
 
- useEffect(() => {
+useEffect(() => {
   const onFileChunk = (peerId: string, messageId: string, chunk: ArrayBuffer) => {
     const r = globalFileReceivers.current.get(messageId);
     if (r && r.peerId === peerId) r.chunks.push(chunk);
   };
+  const onFileTransferError = (_peerId: string, messageId: string) => {
+    void dbService.updateMessageStatus(messageId, 'error');
+  };
   peerService.on('file-chunk', onFileChunk);
-  return () => peerService.removeListener('file-chunk', onFileChunk);
-}, [peerService]);
+  peerService.on('file-transfer-error', onFileTransferError);
+  return () => {
+    peerService.removeListener('file-chunk', onFileChunk);
+    peerService.removeListener('file-transfer-error', onFileTransferError);
+  };
+}, [peerService, dbService]);
 
 
   // ✅ Helper VAPID: base64url -> Uint8Array

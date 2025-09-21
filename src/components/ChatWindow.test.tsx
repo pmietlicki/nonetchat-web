@@ -81,6 +81,8 @@ describe('ChatWindow', () => {
     mockDbService.updateMessageStatus.mockResolvedValue(undefined);
     mockDbService.markConversationAsRead.mockResolvedValue(undefined);
     mockNotificationService.markConversationAsRead.mockResolvedValue(undefined);
+    mockPeerService.sendMessage.mockResolvedValue('sent');
+    mockPeerService.sendFile.mockResolvedValue(undefined);
   });
 
   it('devrait afficher les messages existants et les informations du pair au chargement', async () => {

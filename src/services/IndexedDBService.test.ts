@@ -9,9 +9,6 @@ beforeAll(() => {
   vi.stubGlobal('IDBKeyRange', IDBKeyRange);
 });
 
-// Mock de l'avatar pour ne pas dépendre du ProfileService
-const mockAvatar = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-
 describe('IndexedDBService', () => {
   let dbService: IndexedDBService;
 
@@ -34,6 +31,7 @@ describe('IndexedDBService', () => {
     expect(db.objectStoreNames).toContain('cryptoKeys');
     expect(db.objectStoreNames).toContain('avatars');
     expect(db.objectStoreNames).toContain('blockList');
+    expect(db.objectStoreNames).toContain('pendingMessages');
   });
 
   it('devrait sauvegarder et récupérer les clés de chiffrement', async () => {
@@ -126,5 +124,24 @@ describe('IndexedDBService', () => {
 
     const conversation = await dbService.getConversation(conversationId);
     expect(conversation).toBeNull();
+  });
+
+  it('devrait persister et purger les messages en attente', async () => {
+    const now = Date.now();
+    const pendingMessage = {
+      id: 'pending-1',
+      peerId: 'peer-123',
+      message: { type: 'chat-message', payload: 'Bonjour', messageId: 'pending-1' },
+      createdAt: now,
+    };
+
+    await dbService.savePendingMessage(pendingMessage);
+    const stored = await dbService.getPendingMessages();
+    expect(stored).toHaveLength(1);
+    expect(stored[0]).toMatchObject({ id: 'pending-1', peerId: 'peer-123' });
+
+    await dbService.deletePendingMessage('pending-1');
+    const afterDelete = await dbService.getPendingMessages();
+    expect(afterDelete).toHaveLength(0);
   });
 });

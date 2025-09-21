@@ -6,7 +6,24 @@ import ProfileService, { PublicProfile } from './ProfileService';
 import { User } from '../types';
 
 export type PeerMessage =
-  | { type: 'profile' | 'profile-update' | 'chat-message' | 'key-exchange' | 'file-start' | 'file-chunk' | 'file-end' | 'message-delivered' | 'message-read' | 'avatar-request' | 'avatar-thumb' | 'reaction'; payload: any; messageId?: string };
+  | {
+      type:
+        | 'profile'
+        | 'profile-update'
+        | 'chat-message'
+        | 'key-exchange'
+        | 'file-start'
+        | 'file-chunk'
+        | 'file-end'
+        | 'message-delivered'
+        | 'message-read'
+        | 'avatar-request'
+        | 'avatar-thumb'
+        | 'reaction'
+        | 'message-error';
+      payload: any;
+      messageId?: string;
+    };
 
 export type NearbyPeer = { peerId: string; distance: string };
 
@@ -34,7 +51,7 @@ class PeerService extends EventEmitter {
   private ws: WebSocket | null = null;
   private peerConnections: Map<string, RTCPeerConnection> = new Map();
   private dataChannels: Map<string, RTCDataChannel> = new Map();
-  private messageQueue: Map<string, PeerMessage[]> = new Map();
+  private messageQueue: Map<string, QueuedMessage[]> = new Map();
 
   private myId: string = '';
   // Profil applicatif (hérité) – conservé pour compat, mais on n’envoie plus l’image dedans
@@ -108,6 +125,79 @@ class PeerService extends EventEmitter {
       return JSON.parse(raw) as { latitude: number; longitude: number; accuracyMeters: number; timestamp: number; method: string };
     } catch {
       return null;
+    }
+  }
+
+  private getQueue(peerId: string): QueuedMessage[] {
+    return this.messageQueue.get(peerId) ?? [];
+  }
+
+  private enqueueMessage(peerId: string, message: PeerMessage, options: { queueId?: string; persisted?: boolean } = {}) {
+    const id = options.queueId || message.messageId || uuidv4();
+    const queue = this.getQueue(peerId);
+    if (!queue.some((item) => item.id === id)) {
+      const queued: QueuedMessage = { id, message, persisted: Boolean(options.persisted) };
+      queue.push(queued);
+      this.messageQueue.set(peerId, queue);
+    } else if (options.persisted) {
+      const existing = queue.find((item) => item.id === id);
+      if (existing) existing.persisted = true;
+    }
+    return id;
+  }
+
+  private removeQueuedMessage(peerId: string, queueId: string) {
+    const queue = this.messageQueue.get(peerId);
+    if (!queue) return;
+    const idx = queue.findIndex((item) => item.id === queueId);
+    if (idx === -1) return;
+    queue.splice(idx, 1);
+    if (queue.length === 0) this.messageQueue.delete(peerId);
+    else this.messageQueue.set(peerId, queue);
+  }
+
+  private async persistQueuedChatMessage(peerId: string, queueId: string, message: PeerMessage) {
+    if (message.type !== 'chat-message') return;
+    const queue = this.messageQueue.get(peerId);
+    const entry = queue?.find((item) => item.id === queueId);
+    if (!entry || entry.persisted) return;
+    try {
+      await this.dbService.savePendingMessage({
+        id: queueId,
+        peerId,
+        message,
+        createdAt: Date.now(),
+      });
+      entry.persisted = true;
+    } catch (error) {
+      this.diagnosticService.log('Failed to persist pending message', { peerId, messageId: message.messageId, error });
+    }
+  }
+
+  private async deletePersistedQueuedMessage(queueId: string) {
+    try {
+      await this.dbService.deletePendingMessage(queueId);
+    } catch (error) {
+      this.diagnosticService.log('Failed to remove pending message from storage', { queueId, error });
+    }
+  }
+
+  private async restorePendingMessages() {
+    try {
+      const pending = await this.dbService.getPendingMessages();
+      for (const record of pending) {
+        const peerId = record.peerId;
+        const message = record.message as PeerMessage;
+        this.enqueueMessage(peerId, message, { queueId: record.id, persisted: true });
+        if (message.type === 'chat-message' && !peerId.startsWith('ai-')) {
+          void this.ensureChatChannel(peerId);
+        }
+      }
+      if (pending.length) {
+        this.diagnosticService.log(`Restored ${pending.length} pending message(s) from storage.`);
+      }
+    } catch (error) {
+      this.diagnosticService.log('Failed to restore pending messages', error);
     }
   }
 
@@ -222,6 +312,7 @@ class PeerService extends EventEmitter {
 
     await this.cryptoService.initialize();
     await this.loadBlockList();
+    await this.restorePendingMessages();
 
     try {
       await this.fetchTurnAuth(this.myId);
@@ -914,7 +1005,7 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
     channel.onopen = async () => {
       this.diagnosticService.log(`Data channel with ${peerId} opened. Initiating key exchange.`);
       const myPublicKey = await this.cryptoService.getPublicKeyJwk();
-      this.sendToPeer(peerId, { type: 'key-exchange', payload: myPublicKey });
+      void this.sendToPeer(peerId, { type: 'key-exchange', payload: myPublicKey });
     };
 
     channel.onmessage = async (event) => {
@@ -942,10 +1033,18 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
         this.diagnosticService.log(`Secure channel established with ${peerId}`);
         this.emit('peer-joined', peerId);
 
-        const queue = this.messageQueue.get(peerId) || [];
+        const queue = [...this.getQueue(peerId)];
         if (queue.length > 0) {
-          for (const msg of queue) await this.sendToPeer(peerId, msg);
-          this.messageQueue.delete(peerId);
+          for (const queued of queue) {
+            try {
+              const status = await this.sendToPeer(peerId, queued.message, { fromQueue: true, queuedId: queued.id });
+              if (status !== 'sent') {
+                this.diagnosticService.log('Queued message still pending after retry', { peerId, queueId: queued.id, status });
+              }
+            } catch (error) {
+              this.diagnosticService.log('Failed to resend queued message', { peerId, queueId: queued.id, error });
+            }
+          }
         }
 
         // Envoi du profil public léger (sans image)
@@ -961,7 +1060,7 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
 
         // Si le pair annonce un avatarHash et qu’on n’a pas de miniature, on la demande
         if (p.avatarHash && !entry.avatarThumbDataUrl) {
-          this.sendToPeer(peerId, { type: 'avatar-request', payload: { hash: p.avatarHash } });
+          void this.sendToPeer(peerId, { type: 'avatar-request', payload: { hash: p.avatarHash } });
         }
 
         // Émettre vers l’UI un payload enrichi avec un champ avatar (miniature si dispo, sinon pravatar)
@@ -991,7 +1090,7 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
           this.diagnosticService.log('avatar-thumb too large, skipping');
           return;
         }
-        this.sendToPeer(peerId, { type: 'avatar-thumb', payload: { hash, dataUrl: tiny, mime: mine.avatarMime || 'image/webp' } });
+        void this.sendToPeer(peerId, { type: 'avatar-thumb', payload: { hash, dataUrl: tiny, mime: mine.avatarMime || 'image/webp' } });
         return;
       }
 
@@ -1012,16 +1111,32 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
       }
 
       if (message.type === 'chat-message') {
-        const decrypted = await this.cryptoService.decryptMessage(peerId, message.payload);
-        this.emit('data', peerId, { type: 'chat-message', payload: decrypted, messageId: message.messageId });
-        if (message.messageId) this.sendMessageDeliveredAck(peerId, message.messageId);
+        try {
+          const decrypted = await this.cryptoService.decryptMessage(peerId, message.payload);
+          this.emit('data', peerId, { type: 'chat-message', payload: decrypted, messageId: message.messageId });
+          if (message.messageId) this.sendMessageDeliveredAck(peerId, message.messageId);
+        } catch (error) {
+          this.diagnosticService.log('Failed to decrypt incoming chat message', { peerId, messageId: message.messageId, error });
+          if (message.messageId) {
+            this.emit('message-decrypt-failed', peerId, message.messageId);
+            void this.sendToPeer(peerId, { type: 'message-error', payload: { messageId: message.messageId, reason: 'decrypt-failed' } });
+          }
+        }
         return;
       }
 
       if (message.type === 'file-start') {
-        const decryptedMetadata = await this.cryptoService.decryptMessage(peerId, message.payload);
-        const metadata = JSON.parse(decryptedMetadata);
-        this.emit('data', peerId, { type: 'file-start', payload: metadata, messageId: message.messageId });
+        try {
+          const decryptedMetadata = await this.cryptoService.decryptMessage(peerId, message.payload);
+          const metadata = JSON.parse(decryptedMetadata);
+          this.emit('data', peerId, { type: 'file-start', payload: metadata, messageId: message.messageId });
+        } catch (error) {
+          this.diagnosticService.log('Failed to decrypt file metadata', { peerId, messageId: message.messageId, error });
+          if (message.messageId) {
+            void this.sendToPeer(peerId, { type: 'message-error', payload: { messageId: message.messageId, reason: 'decrypt-failed' } });
+            this.emit('file-transfer-error', peerId, message.messageId, 'decrypt-failed');
+          }
+        }
         return;
       }
 
@@ -1037,6 +1152,15 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
 
       if (message.type === 'message-read') {
         this.emit('message-read', peerId, message.messageId);
+        return;
+      }
+
+      if (message.type === 'message-error') {
+        const { messageId, reason } = message.payload as { messageId?: string; reason?: string };
+        if (messageId) {
+          await this.dbService.updateMessageStatus(messageId, 'error');
+          this.emit('outgoing-message-error', peerId, messageId, reason);
+        }
         return;
       }
 
@@ -1078,9 +1202,7 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
     const dc = this.dataChannels.get(peerId);
     if (dc && dc.readyState === 'open') dc.send(json);
     else {
-      const q = this.messageQueue.get(peerId) || [];
-      q.push({ type: 'profile', payload });
-      this.messageQueue.set(peerId, q);
+      this.enqueueMessage(peerId, { type: 'profile', payload });
     }
   }
 
@@ -1129,39 +1251,71 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
   this.dataChannels.forEach((channel, peerId) => {
     if (channel.readyState === 'open') channel.send(json);
     else {
-      const q = this.messageQueue.get(peerId) || [];
-      q.push(msg);
-      this.messageQueue.set(peerId, q);
+      this.enqueueMessage(peerId, msg);
     }
   });
 }
 
 
-  public async sendToPeer(peerId: string, message: PeerMessage) {
-    const dataChannel = this.dataChannels.get(peerId);
+  public async sendToPeer(peerId: string, message: PeerMessage, options: { fromQueue?: boolean; queuedId?: string } = {}): Promise<'sent' | 'queued'> {
+    const queueId = options.queuedId || message.messageId || uuidv4();
     let payload = message.payload;
 
     if (message.type === 'chat-message') {
-      payload = await this.cryptoService.encryptMessage(peerId, payload);
+      try {
+        payload = await this.cryptoService.encryptMessage(peerId, payload);
+      } catch (error) {
+        this.diagnosticService.log('Failed to encrypt message', { peerId, messageId: message.messageId, error });
+        throw error;
+      }
     }
 
     const out = JSON.stringify({ ...message, payload });
-    // Sécurité: éviter les gros paquets sur DC (16KB soft limit pour profils/avatars)
     if ((message.type === 'profile' || message.type === 'profile-update' || message.type === 'avatar-thumb') && out.length > 16 * 1024) {
       this.diagnosticService.log('Dropping oversized message', { type: message.type, bytes: out.length });
-      return;
+      throw new Error('Message payload exceeds allowed size');
     }
 
+    const dataChannel = this.dataChannels.get(peerId);
     if (dataChannel && dataChannel.readyState === 'open') {
-      dataChannel.send(out);
-    } else {
-      if (!this.messageQueue.has(peerId)) this.messageQueue.set(peerId, []);
-      this.messageQueue.get(peerId)!.push(message);
+      try {
+        dataChannel.send(out);
+        if (message.type === 'chat-message' && message.messageId) {
+          await this.deletePersistedQueuedMessage(queueId);
+          try {
+            await this.dbService.updateMessageStatus(message.messageId, 'sent');
+          } catch (error) {
+            this.diagnosticService.log('Failed to update message status after send', { peerId, messageId: message.messageId, error });
+          }
+          this.emit('outgoing-message-sent', peerId, message.messageId);
+        }
+        this.removeQueuedMessage(peerId, queueId);
+        return 'sent';
+      } catch (error) {
+        this.diagnosticService.log('Data channel send failed', { peerId, messageId: message.messageId, error });
+        if (!options.fromQueue) {
+          this.enqueueMessage(peerId, message, { queueId });
+          if (message.type === 'chat-message' && message.messageId) {
+            await this.persistQueuedChatMessage(peerId, queueId, message);
+          }
+        }
+        throw error;
+      }
     }
+
+    if (options.fromQueue) {
+      return 'queued';
+    }
+
+    this.enqueueMessage(peerId, message, { queueId });
+    if (message.type === 'chat-message' && message.messageId) {
+      await this.persistQueuedChatMessage(peerId, queueId, message);
+    }
+    return 'queued';
   }
 
-  public sendMessage(peerId: string, content: string, messageId?: string) {
-    this.sendToPeer(peerId, { type: 'chat-message', payload: content, messageId });
+  public async sendMessage(peerId: string, content: string, messageId?: string): Promise<'sent' | 'queued'> {
+    return this.sendToPeer(peerId, { type: 'chat-message', payload: content, messageId });
   }
 
   public async sendFile(peerId: string, file: File, messageId: string, onProgress?: (progress: number) => void) {
@@ -1174,50 +1328,99 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
     const dataChannel = this.dataChannels.get(peerId);
     if (!dataChannel || dataChannel.readyState !== 'open') {
       this.diagnosticService.log(`Cannot send file to ${peerId}, data channel not open. Queuing not yet supported for files.`);
-      return;
+      throw new Error('data-channel-not-open');
     }
 
-    try {
-      this.diagnosticService.log(`Encrypting file: ${messageId}`, { name: file.name, size: file.size });
-      const encryptedBlob = await this.cryptoService.encryptFile(file);
+    this.diagnosticService.log(`Encrypting file: ${messageId}`, { name: file.name, size: file.size });
+    const encryptedBlob = await this.cryptoService.encryptFile(file);
 
-      const CHUNK_SIZE = 16384; // 16 KiB
-      this.diagnosticService.log(`Starting encrypted file transfer: ${messageId}`, {
-        originalSize: file.size,
-        encryptedSize: encryptedBlob.size,
+    const CHUNK_SIZE = 16384; // 16 KiB
+    this.diagnosticService.log(`Starting encrypted file transfer: ${messageId}`, {
+      originalSize: file.size,
+      encryptedSize: encryptedBlob.size,
+    });
+
+    const encryptedMetadata = await this.cryptoService.encryptMessage(
+      peerId,
+      JSON.stringify({ name: file.name, size: file.size, type: file.type, encryptedSize: encryptedBlob.size }),
+    );
+
+    const startStatus = await this.sendToPeer(peerId, { type: 'file-start', messageId, payload: encryptedMetadata });
+    if (startStatus !== 'sent') {
+      throw new Error('file-start-queued');
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      const fileReader = new FileReader();
+
+      let settled = false;
+      const settle = (fn: () => void) => {
+        if (!settled) {
+          settled = true;
+          cleanup();
+          fn();
+        }
+      };
+
+      const onError = (event: Event) => {
+        this.diagnosticService.log('Data channel error during file transfer', { peerId, messageId, event });
+        settle(() => reject(new Error('data-channel-error')));
+      };
+      const onClose = () => {
+        this.diagnosticService.log('Data channel closed during file transfer', { peerId, messageId });
+        settle(() => reject(new Error('data-channel-closed')));
+      };
+
+      const cleanup = () => {
+        dataChannel.removeEventListener('error', onError as any);
+        dataChannel.removeEventListener('close', onClose as any);
+        fileReader.onload = null;
+        fileReader.onerror = null;
+      };
+
+      dataChannel.addEventListener('error', onError as any, { once: true });
+      dataChannel.addEventListener('close', onClose as any, { once: true });
+
+      const waitBufferedLow = () => new Promise<void>((resolveBuffered) => {
+        if (dataChannel.bufferedAmount <= dataChannel.bufferedAmountLowThreshold) {
+          resolveBuffered();
+          return;
+        }
+        const handler = () => {
+          dataChannel.removeEventListener('bufferedamountlow', handler);
+          resolveBuffered();
+        };
+        dataChannel.addEventListener('bufferedamountlow', handler);
       });
 
-      const encryptedMetadata = await this.cryptoService.encryptMessage(
-        peerId,
-        JSON.stringify({ name: file.name, size: file.size, type: file.type, encryptedSize: encryptedBlob.size }),
-      );
-
-      this.sendToPeer(peerId, { type: 'file-start', messageId, payload: encryptedMetadata });
-
       dataChannel.bufferedAmountLowThreshold = 1_000_000;
-      const waitBufferedLow = () => new Promise<void>((resolve) => dataChannel.addEventListener('bufferedamountlow', () => resolve(), { once: true }));
 
       let offset = 0;
-      const fileReader = new FileReader();
       const messageIdBytes = new TextEncoder().encode(messageId);
 
       const readSlice = (o: number) => {
         try {
           const slice = encryptedBlob.slice(o, o + CHUNK_SIZE);
           fileReader.readAsArrayBuffer(slice);
-        } catch (e) {
-          this.diagnosticService.log('File slice error', e);
+        } catch (error) {
+          this.diagnosticService.log('File slice error', error);
+          settle(() => reject(error instanceof Error ? error : new Error('file-slice-error')));
         }
+      };
+
+      fileReader.onerror = (event) => {
+        this.diagnosticService.log('File read error during transfer', { peerId, messageId, event });
+        settle(() => reject(new Error('file-read-error')));
       };
 
       fileReader.onload = async (e) => {
         if (!e.target?.result) {
-          this.diagnosticService.log('File read error');
+          this.diagnosticService.log('File read error: empty result', { peerId, messageId });
+          settle(() => reject(new Error('file-read-empty')));
           return;
         }
 
         const chunk = e.target.result as ArrayBuffer;
-
         const combinedBuffer = new Uint8Array(messageIdBytes.length + chunk.byteLength);
         combinedBuffer.set(messageIdBytes, 0);
         combinedBuffer.set(new Uint8Array(chunk), messageIdBytes.length);
@@ -1226,9 +1429,15 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
           await waitBufferedLow();
         }
 
-        offset += chunk.byteLength;
-        dataChannel.send(combinedBuffer.buffer);
+        try {
+          dataChannel.send(combinedBuffer.buffer);
+        } catch (error) {
+          this.diagnosticService.log('Failed to send file chunk', { peerId, messageId, error });
+          settle(() => reject(error instanceof Error ? error : new Error('chunk-send-error')));
+          return;
+        }
 
+        offset += chunk.byteLength;
         if (onProgress) {
           const progress = Math.round((offset / encryptedBlob.size) * 100);
           onProgress(progress);
@@ -1238,27 +1447,34 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
           readSlice(offset);
         } else {
           this.diagnosticService.log(`Encrypted file transfer complete: ${messageId}`);
-          this.sendToPeer(peerId, { type: 'file-end', messageId, payload: {} });
+          try {
+            const endStatus = await this.sendToPeer(peerId, { type: 'file-end', messageId, payload: {} }, { queuedId: messageId });
+            if (endStatus !== 'sent') {
+              settle(() => reject(new Error('file-end-queued')));
+              return;
+            }
+            settle(resolve);
+          } catch (error) {
+            this.diagnosticService.log('Failed to send file-end', { peerId, messageId, error });
+            settle(() => reject(error instanceof Error ? error : new Error('file-end-error')));
+          }
         }
       };
 
       readSlice(0);
-    } catch (error) {
-      this.diagnosticService.log(`File encryption failed: ${messageId}`, error);
-      throw error;
-    }
+    });
   }
 
   public sendMessageDeliveredAck(peerId: string, messageId: string) {
-    this.sendToPeer(peerId, { type: 'message-delivered', payload: null, messageId });
+    void this.sendToPeer(peerId, { type: 'message-delivered', payload: null, messageId });
   }
 
   public sendMessageReadAck(peerId: string, messageId: string) {
-    this.sendToPeer(peerId, { type: 'message-read', payload: null, messageId });
+    void this.sendToPeer(peerId, { type: 'message-read', payload: null, messageId });
   }
 
   public sendReaction(peerId: string, messageId: string, emoji: string) {
-    this.sendToPeer(peerId, { type: 'reaction', payload: { messageId, emoji } });
+    void this.sendToPeer(peerId, { type: 'reaction', payload: { messageId, emoji } });
   }
 
   private async loadBlockList() {
@@ -1435,3 +1651,8 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
 }
 
 export default PeerService;
+type QueuedMessage = {
+  id: string;
+  message: PeerMessage;
+  persisted: boolean;
+};

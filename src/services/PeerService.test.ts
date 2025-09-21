@@ -20,6 +20,10 @@ vi.mock('./IndexedDBService', () => ({
   default: {
     getInstance: () => ({
       getBlockList: vi.fn().mockResolvedValue([]),
+      savePendingMessage: vi.fn().mockResolvedValue(undefined),
+      deletePendingMessage: vi.fn().mockResolvedValue(undefined),
+      getPendingMessages: vi.fn().mockResolvedValue([]),
+      updateMessageStatus: vi.fn().mockResolvedValue(undefined),
     }),
   },
 }));
@@ -48,8 +52,14 @@ const mockPeerConnection = () => ({
   createOffer: vi.fn().mockResolvedValue({ type: 'offer', sdp: 'offer-sdp' }),
   createAnswer: vi.fn().mockResolvedValue({ type: 'answer', sdp: 'answer-sdp' }),
   createDataChannel: vi.fn(() => mockDataChannel),
-  setLocalDescription: vi.fn(function(desc) { (this as any).localDescription = desc; return Promise.resolve(); }),
-  setRemoteDescription: vi.fn(function(desc) { (this as any).remoteDescription = desc; return Promise.resolve(); }),
+  setLocalDescription: vi.fn((desc) => {
+    (mockPeerConnectionInstance as any).localDescription = desc;
+    return Promise.resolve();
+  }),
+  setRemoteDescription: vi.fn((desc) => {
+    (mockPeerConnectionInstance as any).remoteDescription = desc;
+    return Promise.resolve();
+  }),
   addIceCandidate: vi.fn().mockResolvedValue(undefined),
   close: vi.fn(),
   iceConnectionState: 'new',
@@ -57,7 +67,9 @@ const mockPeerConnection = () => ({
   onconnectionstatechange: null,
   ondatachannel: null,
 });
-vi.stubGlobal('RTCPeerConnection', vi.fn(mockPeerConnection));
+const mockPeerConnectionInstance = mockPeerConnection();
+const mockPeerConnectionFactory = vi.fn(() => mockPeerConnectionInstance);
+vi.stubGlobal('RTCPeerConnection', mockPeerConnectionFactory as unknown as typeof RTCPeerConnection);
 vi.stubGlobal('RTCSessionDescription', vi.fn(desc => desc));
 
 const mockGeolocation = {
@@ -152,10 +164,12 @@ describe('PeerService', () => {
     await (peerService as any).createPeerConnection('peer-B');
 
     expect(sendToServerSpy).toHaveBeenCalled();
-    const offerMessage = sendToServerSpy.mock.calls.map(c => c[0]).find(m => m.type === 'offer');
+    const offerMessage = sendToServerSpy.mock.calls
+      .map((c) => c[0] as { type: string; payload: any })
+      .find((m) => m.type === 'offer');
     expect(offerMessage).toBeDefined();
-    expect(offerMessage.payload.to).toBe('peer-B');
-    expect(offerMessage.payload.payload.type).toBe('offer');
+    expect(offerMessage!.payload.to).toBe('peer-B');
+    expect(offerMessage!.payload.payload.type).toBe('offer');
   });
 
   it('devrait recevoir une offre et envoyer une réponse', async () => {
@@ -166,10 +180,12 @@ describe('PeerService', () => {
     await (peerService as any).handleOffer('peer-z', incomingOffer);
 
     expect(sendToServerSpy).toHaveBeenCalled();
-    const answerMessage = sendToServerSpy.mock.calls.map(c => c[0]).find(m => m.type === 'answer');
+    const answerMessage = sendToServerSpy.mock.calls
+      .map((c) => c[0] as { type: string; payload: any })
+      .find((m) => m.type === 'answer');
     expect(answerMessage).toBeDefined();
-    expect(answerMessage.payload.to).toBe('peer-z');
-    expect(answerMessage.payload.payload.type).toBe('answer');
+    expect(answerMessage!.payload.to).toBe('peer-z');
+    expect(answerMessage!.payload.payload.type).toBe('answer');
   });
 
   // D'autres tests plus complexes seront ajoutés ici...

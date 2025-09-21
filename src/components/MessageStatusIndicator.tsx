@@ -3,7 +3,7 @@ import { Check, CheckCheck, Clock, AlertCircle } from 'lucide-react';
 import { t } from '../i18n';
 
 interface MessageStatusIndicatorProps {
-  status: 'sending' | 'sent' | 'delivered' | 'read';
+  status: 'sending' | 'sent' | 'delivered' | 'read' | 'error';
   className?: string;
 }
 

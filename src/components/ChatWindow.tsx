@@ -26,7 +26,7 @@ interface Message {
   timestamp: number;
   type: 'text' | 'file';
   encrypted: boolean;
-  status: 'sending' | 'sent' | 'delivered' | 'read';
+  status: 'sending' | 'sent' | 'delivered' | 'read' | 'error';
   fileData?: {
     name: string;
     size: number;
@@ -136,8 +136,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       ));
     } catch (e) {
       console.error('[Voice] send error', e);
+      await dbService.updateMessageStatus(messageId, 'error');
       setMessages(prev => prev.map(m =>
-        m.id === messageId ? { ...m, content: `${displayName} ${t('chat.sending_error')}` } : m
+        m.id === messageId ? { ...m, content: `${displayName} ${t('chat.sending_error')}`, status: 'error' } : m
       ));
     }
   };
@@ -296,6 +297,37 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     [selectedPeer.id, dbService]
   );
 
+  const handleOutgoingSent = useCallback((peerId: string, messageId: string) => {
+    if (peerId !== selectedPeer.id) return;
+    void dbService.updateMessageStatus(messageId, 'sent');
+    setMessages(prev => prev.map(m => (m.id === messageId ? { ...m, status: 'sent' } : m)));
+  }, [selectedPeer.id, dbService]);
+
+  const handleOutgoingError = useCallback((peerId: string, messageId: string, reason?: string) => {
+    if (peerId !== selectedPeer.id) return;
+    const suffix = reason ? ` (${reason})` : '';
+    void dbService.updateMessageStatus(messageId, 'error');
+    setMessages(prev => prev.map(m => (
+      m.id === messageId
+        ? {
+            ...m,
+            status: 'error',
+            content: `${m.content.includes(t('chat.sending_error')) ? m.content.replace(t('chat.sending_error'), '').trim() : m.content} ${t('chat.sending_error')}${suffix}`.trim(),
+          }
+        : m
+    )));
+  }, [selectedPeer.id, dbService]);
+
+  const handleFileTransferError = useCallback((peerId: string, messageId: string) => {
+    if (peerId !== selectedPeer.id) return;
+    void dbService.updateMessageStatus(messageId, 'error');
+    setMessages(prev => prev.map(m => (
+      m.id === messageId
+        ? { ...m, status: 'error', content: `${m.content} ${t('chat.decryption_error', { fileName: m.fileData?.name ?? t('filePreview.default_filename') })}` }
+        : m
+    )));
+  }, [selectedPeer.id, dbService]);
+
   // --- Abonnements aux événements PeerService (données, statut, etc.)
   useEffect(() => {
     if (selectedPeer.id && !selectedPeer.id.startsWith('ai-')) {
@@ -309,6 +341,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     peerService.on('message-delivered', handleMessageDelivered);
     peerService.on('message-read', handleMessageRead);
     peerService.on('reaction-received', handleReactionReceived);
+    peerService.on('outgoing-message-sent', handleOutgoingSent);
+    peerService.on('outgoing-message-error', handleOutgoingError);
+    peerService.on('file-transfer-error', handleFileTransferError);
 
     return () => {
       if (typeof peerService.removeListener === 'function') {
@@ -317,6 +352,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         peerService.removeListener('message-delivered', handleMessageDelivered);
         peerService.removeListener('message-read', handleMessageRead);
         peerService.removeListener('reaction-received', handleReactionReceived);
+        peerService.removeListener('outgoing-message-sent', handleOutgoingSent);
+        peerService.removeListener('outgoing-message-error', handleOutgoingError);
+        peerService.removeListener('file-transfer-error', handleFileTransferError);
       }
       // Nettoyage des refs et blobs
       if (longPressRef.current !== null) {
@@ -329,7 +367,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       blobUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
       blobUrlsRef.current.clear();
     };
-  }, [selectedPeer.id, handleData, handleFileChunk, handleMessageDelivered, handleMessageRead, handleReactionReceived, peerService]);
+  }, [selectedPeer.id, handleData, handleFileChunk, handleMessageDelivered, handleMessageRead, handleReactionReceived, handleOutgoingSent, handleOutgoingError, handleFileTransferError, peerService]);
 
   // --- Effet séparé pour la gestion de la visibilité et du scroll
   useEffect(() => {
@@ -654,8 +692,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       } catch (error) {
         console.error("Erreur lors de l'envoi du fichier:", error);
         setMessages(prev =>
-          prev.map(m => (m.id === messageId ? { ...m, content: `${selectedFile.name} ${t('chat.sending_error')}` } : m))
+          prev.map(m => (
+            m.id === messageId
+              ? { ...m, content: `${selectedFile.name} ${t('chat.sending_error')}`, status: 'error' }
+              : m
+          ))
         );
+        await dbService.updateMessageStatus(messageId, 'error');
         setSelectedFile(null);
       }
       return;
@@ -677,9 +720,21 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       });
       setNewMessage('');
 
-      await peerService.sendMessage(selectedPeer.id, messageContent, messageId);
-      dbService.updateMessageStatus(messageId, 'sent');
-      setMessages(prev => prev.map(m => (m.id === messageId ? { ...m, status: 'sent' } : m)));
+      try {
+        const result = await peerService.sendMessage(selectedPeer.id, messageContent, messageId);
+        if (result === 'sent') {
+          await dbService.updateMessageStatus(messageId, 'sent');
+          setMessages(prev => prev.map(m => (m.id === messageId ? { ...m, status: 'sent' } : m)));
+        }
+      } catch (error) {
+        console.error('Erreur lors de l\'envoi du message:', error);
+        await dbService.updateMessageStatus(messageId, 'error');
+        setMessages(prev =>
+          prev.map(m =>
+            m.id === messageId ? { ...m, status: 'error', content: `${messageContent} ${t('chat.sending_error')}` } : m
+          )
+        );
+      }
     }
   };
 

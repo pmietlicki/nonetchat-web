@@ -8,7 +8,7 @@ interface StoredMessage {
   timestamp: number;
   type: 'text' | 'file';
   encrypted: boolean;
-  status: 'sending' | 'sent' | 'delivered' | 'read';
+  status: 'sending' | 'sent' | 'delivered' | 'read' | 'error';
   reactions?: { [emoji: string]: string[] };
   fileData?: {
     name: string;
@@ -82,6 +82,13 @@ export type PublicMessage = {
   ts: number;            // epoch ms
 };
 
+type PendingMessageRecord = {
+  id: string;
+  peerId: string;
+  message: unknown;
+  createdAt: number;
+};
+
 class IndexedDBService {
   private static instance: IndexedDBService;
   private db: IDBDatabase | null = null;
@@ -93,7 +100,7 @@ class IndexedDBService {
   // v8 : ajout du store fileBlobs pour le stockage des fichiers reçus
   // v9 : ajout du store public_messages pour le cache éphémère des messages publics
   // v10 : ajout du store blockList
-  private readonly version = 10;
+  private readonly version = 11;
 
   public static getInstance(): IndexedDBService {
     if (!IndexedDBService.instance) {
@@ -204,6 +211,13 @@ class IndexedDBService {
           publicStore.createIndex('ts', 'ts', { unique: false });
           // dédup éventuelle (optionnelle)
           publicStore.createIndex('room_msgId', ['roomId', 'msgId'], { unique: true });
+        }
+
+        // pendingMessages : outbox persistante pour messages non envoyés
+        if (!db.objectStoreNames.contains('pendingMessages')) {
+          const pendingStore = db.createObjectStore('pendingMessages', { keyPath: 'id' });
+          pendingStore.createIndex('peerId', 'peerId', { unique: false });
+          pendingStore.createIndex('createdAt', 'createdAt', { unique: false });
         }
 
         // Migration legacy < 5 : ajouter status aux messages
@@ -456,8 +470,38 @@ async toggleMessageReaction(
   });
 }
 
+  async savePendingMessage(record: PendingMessageRecord): Promise<void> {
+    const db = this.ensureDb();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(['pendingMessages'], 'readwrite');
+      tx.objectStore('pendingMessages').put(record);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
 
-  async updateMessageStatus(messageId: string, status: 'sending' | 'sent' | 'delivered' | 'read'): Promise<void> {
+  async deletePendingMessage(id: string): Promise<void> {
+    const db = this.ensureDb();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(['pendingMessages'], 'readwrite');
+      tx.objectStore('pendingMessages').delete(id);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  async getPendingMessages(): Promise<PendingMessageRecord[]> {
+    const db = this.ensureDb();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(['pendingMessages'], 'readonly');
+      const req = tx.objectStore('pendingMessages').getAll();
+      req.onsuccess = () => resolve((req.result as PendingMessageRecord[]) || []);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+
+  async updateMessageStatus(messageId: string, status: 'sending' | 'sent' | 'delivered' | 'read' | 'error'): Promise<void> {
     const db = this.ensureDb();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(['messages'], 'readwrite');
