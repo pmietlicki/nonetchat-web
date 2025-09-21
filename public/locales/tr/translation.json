@@ -402,7 +402,7 @@
       "description": "NoNetChat, sizi yakındaki kullanıcılarla buluşturmak için coğrafi konumunuza erişmek istiyor. Konum verileriniz güvenli bir şekilde ve GDPR'ye uygun olarak işlenir.",
       "privacy_title": "Gizliliğinize saygı",
       "privacy_point1": "Uçtan uca şifrelenmiş veriler",
-      "privacy_point2": "Yalnızca yerel depolama",
+      "privacy_point2": "Yalnızca cihazınızda şifrelenmemiş yerel depolama",
       "privacy_point3": "Sunucu koordinatlarının otomatik olarak silinmesi",
       "privacy_point4": "Merkezi veri sunucusu yok",
       "show_details": "Teknik ayrıntıları göster",

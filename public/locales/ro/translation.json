@@ -402,7 +402,7 @@
       "description": "NoNetChat dorește să acceseze locația dvs. geografică pentru a vă conecta cu utilizatorii din apropiere. Datele dvs. de localizare sunt prelucrate în siguranță și în conformitate cu GDPR.",
       "privacy_title": "Respect pentru confidențialitatea dvs.",
       "privacy_point1": "Date criptate end-to-end",
-      "privacy_point2": "Doar stocare locală",
+      "privacy_point2": "Stocare locală necriptată doar pe dispozitivul dvs.",
       "privacy_point3": "Ștergerea automată a coordonatelor serverului",
       "privacy_point4": "Niciun server de date central",
       "show_details": "Afișează detalii tehnice",

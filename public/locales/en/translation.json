@@ -411,8 +411,8 @@
       "title": "Geolocation Permission",
       "description": "NoNetChat wants to access your geographical location to connect you with nearby users. Your location data is processed securely and in compliance with GDPR.",
       "privacy_title": "Respect for your privacy",
-      "privacy_point1": "End-to-end encrypted data",
-      "privacy_point2": "Local storage only",
+      "privacy_point1": "Transport-level encryption (AES-GCM)",
+      "privacy_point2": "Unencrypted local storage on your device only",
       "privacy_point3": "Automatic deletion of server coordinates",
       "privacy_point4": "No central data server",
       "show_details": "Show technical details",
@@ -467,8 +467,8 @@
         },
         "messages": {
           "title": "Messages and conversations",
-          "encrypted": "End-to-end encrypted messages (AES-GCM)",
-          "local_only": "Local storage only (IndexedDB)",
+          "encrypted": "Messages encrypted in transit (AES-GCM)",
+          "local_only": "Stored unencrypted on your device only (IndexedDB/localStorage)",
           "metadata": "Technical metadata (timestamp, status)",
           "legal_basis": "Performance of the service contract (Art. 6.1.b GDPR)"
         }
@@ -499,7 +499,7 @@
       },
       "security": {
         "title": "Security and protection",
-        "encryption": "End-to-end encryption with ephemeral ECDH keys",
+        "encryption": "Peer-to-peer exchanges use AES-GCM; local storage remains unencrypted on your device",
         "local_storage": "Exclusive local storage (no central server)",
         "p2p": "Decentralized P2P architecture",
         "no_central_server": "No data collection by a central server"
@@ -519,9 +519,9 @@
       "service_description": {
         "title": "Service description",
         "content": "NoNetChat is a decentralized, peer-to-peer messaging application that allows users to communicate securely without a central server. The service offers:",
-        "feature1": "End-to-end encrypted messaging",
+        "feature1": "Communications encrypted while in transit",
         "feature2": "Direct P2P connections",
-        "feature3": "Local data storage",
+        "feature3": "Unencrypted local data storage on your device",
         "feature4": "Peer discovery by geolocation"
       },
       "user_obligations": {
@@ -573,7 +573,7 @@
         "provider": "Provider",
         "provider_value": "Decentralized architecture - no central hosting",
         "note": "Note",
-        "note_value": "Data is stored locally on the user's device"
+        "note_value": "Data is stored locally unencrypted on the user's device"
       },
       "intellectual_property": {
         "title": "Intellectual property",

@@ -402,7 +402,7 @@
       "description": "NoNetChat chce uzyskać dostęp do Twojej lokalizacji geograficznej, aby połączyć Cię z pobliskimi użytkownikami. Twoje dane o lokalizacji są przetwarzane w sposób bezpieczny i zgodny z RODO.",
       "privacy_title": "Szacunek dla Twojej prywatności",
       "privacy_point1": "Dane szyfrowane end-to-end",
-      "privacy_point2": "Tylko lokalna pamięć masowa",
+      "privacy_point2": "Tylko niezaszyfrowane lokalne przechowywanie na Twoim urządzeniu",
       "privacy_point3": "Automatyczne usuwanie współrzędnych serwera",
       "privacy_point4": "Brak centralnego serwera danych",
       "show_details": "Pokaż szczegóły techniczne",

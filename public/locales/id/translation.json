@@ -402,7 +402,7 @@
       "description": "NoNetChat ingin mengakses lokasi geografis Anda untuk menghubungkan Anda dengan pengguna terdekat. Data lokasi Anda diproses dengan aman dan sesuai dengan GDPR.",
       "privacy_title": "Menghormati privasi Anda",
       "privacy_point1": "Data terenkripsi ujung ke ujung",
-      "privacy_point2": "Hanya penyimpanan lokal",
+      "privacy_point2": "Penyimpanan lokal tidak terenkripsi hanya di perangkat Anda",
       "privacy_point3": "Penghapusan otomatis koordinat server",
       "privacy_point4": "Tidak ada server data pusat",
       "show_details": "Tampilkan detail teknis",

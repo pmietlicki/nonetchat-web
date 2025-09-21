@@ -402,7 +402,7 @@
       "description": "NoNetChat 希望存取您的地理位置，以便將您與附近的使用者連線起來。您的位置資料會得到安全處理，並符合 GDPR。",
       "privacy_title": "尊重您的隱私",
       "privacy_point1": "端對端加密資料",
-      "privacy_point2": "僅本地儲存",
+      "privacy_point2": "僅在您的裝置上進行未加密的本地儲存",
       "privacy_point3": "自動刪除伺服器座標",
       "privacy_point4": "沒有中央資料伺服器",
       "show_details": "顯示技術細節",

@@ -411,8 +411,8 @@
       "title": "Autorisation de géolocalisation",
       "description": "NoNetChat souhaite accéder à votre position géographique pour vous connecter avec des utilisateurs proches. Vos données de localisation sont traitées de manière sécurisée et conforme au RGPD.",
       "privacy_title": "Respect de votre vie privée",
-      "privacy_point1": "Données chiffrées de bout en bout",
-      "privacy_point2": "Stockage local uniquement",
+      "privacy_point1": "Chiffrement des échanges lors de la transmission (AES-GCM)",
+      "privacy_point2": "Stockage local non chiffré sur votre appareil uniquement",
       "privacy_point3": "Suppression automatique des coordonnées serveur",
       "privacy_point4": "Aucun serveur central de données",
       "show_details": "Afficher les détails techniques",
@@ -467,8 +467,8 @@
         },
         "messages": {
           "title": "Messages et conversations",
-          "encrypted": "Messages chiffrés de bout en bout (AES-GCM)",
-          "local_only": "Stockage local uniquement (IndexedDB)",
+          "encrypted": "Messages chiffrés lors de la transmission (AES-GCM)",
+          "local_only": "Stockés en clair (non chiffrés) sur votre appareil uniquement (IndexedDB/localStorage)",
           "metadata": "Métadonnées techniques (horodatage, statut)",
           "legal_basis": "Exécution du contrat de service (Art. 6.1.b RGPD)"
         }
@@ -499,8 +499,8 @@
       },
       "security": {
         "title": "Sécurité et protection",
-        "encryption": "Chiffrement de bout en bout avec clés éphémères ECDH",
-        "local_storage": "Stockage local exclusif (pas de serveur central)",
+        "encryption": "Chiffrement des échanges entre pairs (AES-GCM) ; stockage local non chiffré sur votre appareil",
+        "local_storage": "Stockage local exclusif sur l'appareil de l'utilisateur (pas de serveur central)",
         "p2p": "Architecture P2P décentralisée",
         "no_central_server": "Aucune collecte de données par un serveur central"
       },
@@ -519,9 +519,9 @@
       "service_description": {
         "title": "Description du service",
         "content": "NoNetChat est une application de messagerie décentralisée, peer-to-peer, qui permet aux utilisateurs de communiquer de manière sécurisée sans serveur central. Le service offre :",
-        "feature1": "Messagerie chiffrée de bout en bout",
+        "feature1": "Chiffrement des communications pendant leur transport",
         "feature2": "Connexions P2P directes",
-        "feature3": "Stockage local des données",
+        "feature3": "Stockage local des données non chiffrées sur votre appareil",
         "feature4": "Découverte de pairs par géolocalisation"
       },
       "user_obligations": {
@@ -573,7 +573,7 @@
         "provider": "Fournisseur",
         "provider_value": "Architecture décentralisée - pas d'hébergement central",
         "note": "Note",
-        "note_value": "Les données sont stockées localement sur l'appareil de l'utilisateur"
+        "note_value": "Les données sont stockées localement de manière non chiffrée sur l'appareil de l'utilisateur"
       },
       "intellectual_property": {
         "title": "Propriété intellectuelle",
@@ -644,3 +644,4 @@
     "cancel": "Annuler"
   }
 }
+

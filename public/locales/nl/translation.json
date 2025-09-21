@@ -402,7 +402,7 @@
       "description": "NoNetChat wil toegang tot uw geografische locatie om u te verbinden met gebruikers in de buurt. Uw locatiegegevens worden veilig en in overeenstemming met de AVG verwerkt.",
       "privacy_title": "Respect voor uw privacy",
       "privacy_point1": "End-to-end versleutelde gegevens",
-      "privacy_point2": "Alleen lokale opslag",
+      "privacy_point2": "Alleen onversleutelde lokale opslag op uw apparaat",
       "privacy_point3": "Automatische verwijdering van servercoördinaten",
       "privacy_point4": "Geen centrale dataserver",
       "show_details": "Technische details weergeven",

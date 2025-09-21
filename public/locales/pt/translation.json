@@ -402,7 +402,7 @@
       "description": "O NoNetChat deseja acessar sua localização geográfica para conectá-lo a usuários próximos. Seus dados de localização são processados com segurança e em conformidade com o GDPR.",
       "privacy_title": "Respeito à sua privacidade",
       "privacy_point1": "Dados criptografados de ponta a ponta",
-      "privacy_point2": "Apenas armazenamento local",
+      "privacy_point2": "Armazenamento local não criptografado apenas no seu dispositivo",
       "privacy_point3": "Exclusão automática das coordenadas do servidor",
       "privacy_point4": "Nenhum servidor de dados central",
       "show_details": "Mostrar detalhes técnicos",
@@ -458,7 +458,7 @@
         "messages": {
           "title": "Mensagens e conversas",
           "encrypted": "Mensagens criptografadas de ponta a ponta (AES-GCM)",
-          "local_only": "Apenas armazenamento local (IndexedDB)",
+          "local_only": "Armazenado não criptografado apenas no seu dispositivo (IndexedDB/localStorage)",
           "metadata": "Metadados técnicos (timestamp, status)",
           "legal_basis": "Execução do contrato de serviço (Art. 6.1.b GDPR)"
         }

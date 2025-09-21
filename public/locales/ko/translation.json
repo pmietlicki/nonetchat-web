@@ -402,7 +402,7 @@
       "description": "NoNetChat은 근처 사용자와 연결하기 위해 귀하의 지리적 위치에 액세스하려고 합니다. 귀하의 위치 데이터는 안전하게 처리되며 GDPR을 준수합니다.",
       "privacy_title": "개인 정보 보호 존중",
       "privacy_point1": "종단 간 암호화된 데이터",
-      "privacy_point2": "로컬 저장소만",
+      "privacy_point2": "귀하의 기기에서만 암호화되지 않은 로컬 저장소",
       "privacy_point3": "서버 좌표 자동 삭제",
       "privacy_point4": "중앙 데이터 서버 없음",
       "show_details": "기술적 세부 정보 표시",
