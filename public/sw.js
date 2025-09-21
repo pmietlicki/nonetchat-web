@@ -91,10 +91,17 @@ self.addEventListener('fetch', event => {
 
 // ---- IndexedDB helpers (inchangés) ----
 function openDB() {
+  // Ouvre la DB sans forcer de version pour éviter les VersionError
+  // si l'app a migré le schéma (la version actuelle côté app est gérée ailleurs).
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('NoNetChatWeb', 7);
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
+    try {
+      const request = indexedDB.open('NoNetChatWeb');
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+    } catch (e) {
+      // En environnement où indexedDB n'est pas dispo ou en cas d'erreur imprévue
+      reject(e);
+    }
   });
 }
 function getFromStore(db, storeName, key) {

@@ -8,6 +8,10 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      // On garde notre SW manuel (/sw.js). Empêche le plugin d'injecter un registre auto
+      // et évite tout conflit en nommant différemment le SW généré par le plugin.
+      injectRegister: null,
+      filename: 'pwa-sw.js',
       registerType: 'autoUpdate',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
