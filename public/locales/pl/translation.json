@@ -263,11 +263,21 @@
     "authorize": "Autoryzuj",
     "dnd": "Tryb Nie przeszkadzać",
     "dnd_description": "Tymczasowo wyłącz wszystkie powiadomienia",
+    "nearby": "Powiadomienia o osobach w pobliżu",
+    "nearby_description": "Powiadom mnie, gdy zostanie wykryty nowy użytkownik w pobliżu",
     "tips_title": "💡 Wskazówki:",
     "tip1": "• Powiadomienia systemowe działają tylko wtedy, gdy karta jest otwarta",
     "tip2": "• Tryb 'Nie przeszkadzać' wyłącza wszystkie powiadomienia",
     "tip3": "• Ustawienia są zapisywane automatycznie",
     "close": "Zamknij"
+  },
+  "notifications": {
+    "nearby": {
+      "title": "{{name}} jest w pobliżu",
+      "body": "Nowa osoba jest dostępna w Twojej okolicy.",
+      "body_with_distance": "Nowa osoba jest w pobliżu ({{distance}}).",
+      "unknown_user": "Ktoś"
+    }
   },
   "peerList": {
     "title": "Połączeni peery ({{count}})",

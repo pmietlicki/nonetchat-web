@@ -263,11 +263,21 @@
     "authorize": "Otorisasi",
     "dnd": "Mode Jangan Ganggu",
     "dnd_description": "Nonaktifkan sementara semua notifikasi",
+    "nearby": "Peringatan orang terdekat",
+    "nearby_description": "Beri tahu saya ketika pengguna baru terdeteksi di sekitar",
     "tips_title": "💡 Kiat:",
     "tip1": "• Notifikasi sistem hanya berfungsi jika tab terbuka",
     "tip2": "• Mode 'Jangan Ganggu' menonaktifkan semua notifikasi",
     "tip3": "• Pengaturan disimpan secara otomatis",
     "close": "Tutup"
+  },
+  "notifications": {
+    "nearby": {
+      "title": "{{name}} ada di sekitar",
+      "body": "Orang baru tersedia di sekitar Anda.",
+      "body_with_distance": "Orang baru ada di sekitar ({{distance}}).",
+      "unknown_user": "Seseorang"
+    }
   },
   "peerList": {
     "title": "Rekan terhubung ({{count}})",

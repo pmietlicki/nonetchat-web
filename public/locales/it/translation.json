@@ -263,11 +263,21 @@
     "authorize": "Autorizza",
     "dnd": "Modalità Non disturbare",
     "dnd_description": "Disabilita temporaneamente tutte le notifiche",
+    "nearby": "Avvisi di persone vicine",
+    "nearby_description": "Notificami quando viene rilevato un nuovo utente nelle vicinanze",
     "tips_title": "💡 Suggerimenti:",
     "tip1": "• Le notifiche di sistema funzionano solo se la scheda è aperta",
     "tip2": "• La modalità 'Non disturbare' disabilita tutte le notifiche",
     "tip3": "• Le impostazioni vengono salvate automaticamente",
     "close": "Chiudi"
+  },
+  "notifications": {
+    "nearby": {
+      "title": "{{name}} è nelle vicinanze",
+      "body": "Una nuova persona è disponibile intorno a te.",
+      "body_with_distance": "Una nuova persona è nelle vicinanze ({{distance}}).",
+      "unknown_user": "Qualcuno"
+    }
   },
   "peerList": {
     "title": "Peer connessi ({{count}})",

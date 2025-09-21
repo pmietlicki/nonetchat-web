@@ -273,11 +273,21 @@
     "authorize": "Autoriser",
     "dnd": "Mode Ne pas déranger",
     "dnd_description": "Désactiver temporairement toutes les notifications",
+    "nearby": "Alertes de proximité",
+    "nearby_description": "Me prévenir lorsqu'un nouvel utilisateur est détecté à proximité",
     "tips_title": "💡 Conseils :",
     "tip1": "• Les notifications système ne fonctionnent que si l'onglet est ouvert",
     "tip2": "• Le mode \"Ne pas déranger\" désactive toutes les notifications",
     "tip3": "• Les paramètres sont sauvegardés automatiquement",
     "close": "Fermer"
+  },
+  "notifications": {
+    "nearby": {
+      "title": "{{name}} est à proximité",
+      "body": "Une nouvelle personne est disponible autour de vous.",
+      "body_with_distance": "Une nouvelle personne est à proximité ({{distance}}).",
+      "unknown_user": "Quelqu'un"
+    }
   },
   "peerList": {
     "title": "Pairs connectés ({{count}})",
@@ -644,4 +654,3 @@
     "cancel": "Annuler"
   }
 }
-

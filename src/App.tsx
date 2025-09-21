@@ -788,6 +788,22 @@ useEffect(() => {
 }, [peerService]);
 
 
+useEffect(() => {
+  const onNearbyPeerDetected = (info: { peerId: string; profile?: any; distanceLabel?: string }) => {
+    notificationService.notifyNearbyPeer({
+      peerId: info.peerId,
+      displayName: info.profile?.displayName || info.profile?.name,
+      distanceLabel: info.distanceLabel,
+      avatar: info.profile?.avatar,
+    });
+  };
+  peerService.on('nearby-peer-detected', onNearbyPeerDetected);
+  return () => {
+    peerService.removeListener('nearby-peer-detected', onNearbyPeerDetected);
+  };
+}, [peerService, notificationService]);
+
+
 const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) => {
   await profileService.saveProfile({
     displayName: profileData.name,

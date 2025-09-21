@@ -263,11 +263,21 @@
     "authorize": "Autorizează",
     "dnd": "Modul Nu deranja",
     "dnd_description": "Dezactivează temporar toate notificările",
+    "nearby": "Alerte pentru persoane din apropiere",
+    "nearby_description": "Anunță-mă când este detectat un utilizator nou în apropiere",
     "tips_title": "💡 Sfaturi:",
     "tip1": "• Notificările de sistem funcționează numai dacă fila este deschisă",
     "tip2": "• Modul 'Nu deranja' dezactivează toate notificările",
     "tip3": "• Setările sunt salvate automat",
     "close": "Închide"
+  },
+  "notifications": {
+    "nearby": {
+      "title": "{{name}} este în apropiere",
+      "body": "O persoană nouă este disponibilă în jurul tău.",
+      "body_with_distance": "O persoană nouă este în apropiere ({{distance}}).",
+      "unknown_user": "Cineva"
+    }
   },
   "peerList": {
     "title": "Parteneri conectați ({{count}})",

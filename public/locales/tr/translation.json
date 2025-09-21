@@ -263,11 +263,21 @@
     "authorize": "Yetkilendir",
     "dnd": "Rahatsız etmeyin modu",
     "dnd_description": "Tüm bildirimleri geçici olarak devre dışı bırak",
+    "nearby": "Yakındaki kişi uyarıları",
+    "nearby_description": "Yakında yeni bir kullanıcı tespit edildiğinde beni bilgilendir",
     "tips_title": "💡 İpuçları:",
     "tip1": "• Sistem bildirimleri yalnızca sekme açıkken çalışır",
     "tip2": "• 'Rahatsız etmeyin' modu tüm bildirimleri devre dışı bırakır",
     "tip3": "• Ayarlar otomatik olarak kaydedilir",
     "close": "Kapat"
+  },
+  "notifications": {
+    "nearby": {
+      "title": "{{name}} yakında",
+      "body": "Çevrenizde yeni bir kişi mevcut.",
+      "body_with_distance": "Yakında yeni bir kişi var ({{distance}}).",
+      "unknown_user": "Birisi"
+    }
   },
   "peerList": {
     "title": "Bağlı eşler ({{count}})",

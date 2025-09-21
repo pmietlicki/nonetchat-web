@@ -1,8 +1,11 @@
+import { t } from '../i18n';
+
 interface NotificationSettings {
   globalEnabled: boolean;
   soundEnabled: boolean;
   systemNotificationsEnabled: boolean;
   doNotDisturb: boolean;
+  nearbyNotificationsEnabled: boolean;
   conversationSettings: Map<string, {
     soundEnabled: boolean;
     notificationsEnabled: boolean;
@@ -27,6 +30,8 @@ class NotificationService {
   private audioContext: AudioContext | null = null;
   private notificationSound: AudioBuffer | null = null;
   private listeners: Map<string, Function[]> = new Map();
+  private nearbyNotifiedAt: Map<string, number> = new Map();
+  private readonly nearbyCooldownMs = 15 * 60 * 1000; // 15 minutes
 
   private constructor() {
     this.settings = this.loadSettings();
@@ -48,6 +53,7 @@ class NotificationService {
       const parsed = JSON.parse(stored);
       return {
         ...parsed,
+        nearbyNotificationsEnabled: parsed.nearbyNotificationsEnabled ?? true,
         conversationSettings: new Map(parsed.conversationSettings || [])
       };
     }
@@ -56,6 +62,7 @@ class NotificationService {
       soundEnabled: true,
       systemNotificationsEnabled: true,
       doNotDisturb: false,
+      nearbyNotificationsEnabled: true,
       conversationSettings: new Map()
     };
   }
@@ -226,11 +233,44 @@ class NotificationService {
     }
   }
 
+  private async showNearbyPeerSystemNotification(details: { title: string; body: string; icon?: string; tag: string }): Promise<void> {
+    if (!('Notification' in window) || Notification.permission !== 'granted') {
+      return;
+    }
+    const icon = details.icon || '/manifest-icon-192.png';
+
+    try {
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification(details.title, {
+          body: details.body,
+          icon,
+          badge: '/manifest-icon-96.png',
+          tag: details.tag,
+          data: { type: 'nearby-peer', peerId: details.tag },
+          requireInteraction: false,
+        });
+        return;
+      }
+    } catch (error) {
+      console.warn('Failed to show notification via service worker', error);
+    }
+
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(details.title, {
+        body: details.body,
+        icon,
+        tag: details.tag,
+        requireInteraction: false,
+      });
+    }
+  }
+
   private updateAppBadge(): void {
     const count = this.getTotalUnreadCount();
     
     // App Badging API (PWA)
-    if (navigator.setAppBadge) {
+    if ('setAppBadge' in navigator) {
       if (count > 0) {
         (navigator as any).setAppBadge(count);
       } else {
@@ -336,6 +376,50 @@ class NotificationService {
     this.unreadMessages.clear();
     this.updateAppBadge();
     this.emit('unread-count-changed', 0);
+  }
+
+  private pruneNearbyHistory(reference = Date.now()): void {
+    const threshold = reference - this.nearbyCooldownMs;
+    for (const [peerId, ts] of this.nearbyNotifiedAt.entries()) {
+      if (ts < threshold) this.nearbyNotifiedAt.delete(peerId);
+    }
+  }
+
+  notifyNearbyPeer(details: { peerId: string; displayName?: string; distanceLabel?: string; avatar?: string }): void {
+    if (!details.peerId) return;
+    if (!this.settings.globalEnabled || this.settings.doNotDisturb || !this.settings.nearbyNotificationsEnabled) {
+      return;
+    }
+
+    const now = Date.now();
+    this.pruneNearbyHistory(now);
+    const lastNotified = this.nearbyNotifiedAt.get(details.peerId);
+    if (lastNotified && now - lastNotified < this.nearbyCooldownMs) {
+      return;
+    }
+    this.nearbyNotifiedAt.set(details.peerId, now);
+
+    const displayName = details.displayName?.trim() || t('notifications.nearby.unknown_user');
+    const distanceText = details.distanceLabel;
+    const title = t('notifications.nearby.title', { name: displayName });
+    const body = distanceText
+      ? t('notifications.nearby.body_with_distance', { distance: distanceText })
+      : t('notifications.nearby.body');
+
+    if (this.settings.soundEnabled) {
+      this.playNotificationSound();
+    }
+
+    if (this.settings.systemNotificationsEnabled) {
+      void this.showNearbyPeerSystemNotification({
+        title,
+        body,
+        icon: details.avatar,
+        tag: `nearby-peer-${details.peerId}`,
+      });
+    }
+
+    this.emit('nearby-peer-notified', { peerId: details.peerId, displayName, distanceLabel: distanceText });
   }
 }
 

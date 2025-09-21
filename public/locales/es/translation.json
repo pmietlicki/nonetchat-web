@@ -263,11 +263,21 @@
     "authorize": "Autorizar",
     "dnd": "Modo No molestar",
     "dnd_description": "Deshabilitar temporalmente todas las notificaciones",
+    "nearby": "Alertas de personas cercanas",
+    "nearby_description": "Notificarme cuando se detecte un nuevo usuario cerca",
     "tips_title": "💡 Consejos:",
     "tip1": "• Las notificaciones del sistema solo funcionan si la pestaña está abierta",
     "tip2": "• El modo 'No molestar' deshabilita todas las notificaciones",
     "tip3": "• La configuración se guarda automáticamente",
     "close": "Cerrar"
+  },
+  "notifications": {
+    "nearby": {
+      "title": "{{name}} está cerca",
+      "body": "Una nueva persona está disponible a tu alrededor.",
+      "body_with_distance": "Una nueva persona está cerca ({{distance}}).",
+      "unknown_user": "Alguien"
+    }
   },
   "peerList": {
     "title": "Pares conectados ({{count}})",

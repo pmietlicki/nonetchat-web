@@ -68,6 +68,8 @@ class PeerService extends EventEmitter {
   private seenPublicMessages: Set<string> = new Set(); // LRU cache can be implemented later
   private K_NEIGHBORS = 7;
   private publicPeerDistance: Map<string, number> = new Map();
+  private nearbyNotificationHistory: Map<string, number> = new Map();
+  private readonly NEARBY_NOTIFICATION_COOLDOWN = 15 * 60 * 1000;
 
   private cryptoService: CryptoService;
   private diagnosticService: DiagnosticService;
@@ -483,6 +485,38 @@ class PeerService extends EventEmitter {
     }
   }
 
+  private pruneNearbyNotificationHistory(reference = Date.now()) {
+    const threshold = reference - this.NEARBY_NOTIFICATION_COOLDOWN;
+    for (const [peerId, ts] of this.nearbyNotificationHistory.entries()) {
+      if (ts < threshold) this.nearbyNotificationHistory.delete(peerId);
+    }
+  }
+
+  private emitNearbyPeerDetected(peers: Array<{ peerId: string; distanceLabel?: string; profile?: any }>) {
+    const now = Date.now();
+    this.pruneNearbyNotificationHistory(now);
+    for (const peer of peers) {
+      const id = peer.peerId;
+      if (!id || id === this.myId) continue;
+      if (this.blockList.has(id)) continue;
+      const last = this.nearbyNotificationHistory.get(id);
+      if (last && now - last < this.NEARBY_NOTIFICATION_COOLDOWN) continue;
+      this.nearbyNotificationHistory.set(id, now);
+
+      const distanceLabel = (peer as any).distanceLabel;
+      const distanceKm = (peer as any).distanceKm;
+      this.emit('nearby-peer-detected', {
+        peerId: id,
+        distanceLabel:
+          distanceLabel ??
+          (typeof distanceKm === 'number'
+            ? `${Math.max(distanceKm, 0).toFixed(distanceKm >= 10 ? 0 : 1)} km`
+            : undefined),
+        profile: peer.profile,
+      });
+    }
+  }
+
   private strHash(str: string): number {
     let hash = 5381;
     let i = str.length;
@@ -595,6 +629,7 @@ class PeerService extends EventEmitter {
     this.diagnosticService.log('Received message from server', message);
     switch (message.type) {
       case 'nearby-peers': {
+        const previousPeers = new Set(this.publicPeers);
         const { peers, roomId, roomLabel } = message;
         this.emit('room-update', { roomId, roomLabel });
 
@@ -622,9 +657,12 @@ class PeerService extends EventEmitter {
         nextSet.add(this.myId);
         this.publicPeers = nextSet;
 
+        const newPeers = allPeers.filter(p => !previousPeers.has(p.peerId));
+
         this.updatePublicNeighbors();
         this.emit('public-peers-change', this.publicPeers);
         this.emit('nearby-peers', allPeers);
+        if (newPeers.length > 0 && !switched) this.emitNearbyPeerDetected(newPeers);
         break;
       }
 
@@ -1646,6 +1684,7 @@ private setupPublicCtrlDataChannel(peerId: string, channel: RTCDataChannel) {
   this.publicCtrlChannels.clear();
   this.messageQueue.clear();
   this.peersMeta.clear();
+  this.nearbyNotificationHistory.clear();
 }
 
 }

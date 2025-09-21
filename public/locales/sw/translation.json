@@ -263,11 +263,21 @@
     "authorize": "Idhinisha",
     "dnd": "Hali ya Usinisumbue",
     "dnd_description": "Zima arifa zote kwa muda",
+    "nearby": "Arifa za watu wa karibu",
+    "nearby_description": "Nijulishe mtumiaji mpya anapoonekana karibu",
     "tips_title": "💡 Vidokezo:",
     "tip1": "• Arifa za mfumo hufanya kazi tu ikiwa kichupo kimefunguliwa",
     "tip2": "• Hali ya 'Usisumbue' inazima arifa zote",
     "tip3": "• Mipangilio huhifadhiwa kiotomatiki",
     "close": "Funga"
+  },
+  "notifications": {
+    "nearby": {
+      "title": "{{name}} yu karibu",
+      "body": "Mtu mpya yupo karibu nawe.",
+      "body_with_distance": "Mtu mpya yu karibu ({{distance}}).",
+      "unknown_user": "Mtu fulani"
+    }
   },
   "peerList": {
     "title": "Wenza waliounganishwa ({{count}})",

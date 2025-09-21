@@ -263,11 +263,21 @@
     "authorize": "Autoriseren",
     "dnd": "Niet storen-modus",
     "dnd_description": "Alle meldingen tijdelijk uitschakelen",
+    "nearby": "Meldingen van mensen in de buurt",
+    "nearby_description": "Meld me wanneer een nieuwe gebruiker in de buurt wordt gedetecteerd",
     "tips_title": "💡 Tips:",
     "tip1": "• Systeemmeldingen werken alleen als het tabblad geopend is",
     "tip2": "• De modus 'Niet storen' schakelt alle meldingen uit",
     "tip3": "• Instellingen worden automatisch opgeslagen",
     "close": "Sluiten"
+  },
+  "notifications": {
+    "nearby": {
+      "title": "{{name}} is in de buurt",
+      "body": "Een nieuwe persoon is beschikbaar in je omgeving.",
+      "body_with_distance": "Een nieuwe persoon is in de buurt ({{distance}}).",
+      "unknown_user": "Iemand"
+    }
   },
   "peerList": {
     "title": "Verbonden peers ({{count}})",

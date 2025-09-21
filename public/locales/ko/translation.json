@@ -263,11 +263,21 @@
     "authorize": "승인",
     "dnd": "방해 금지 모드",
     "dnd_description": "모든 알림을 일시적으로 비활성화",
+    "nearby": "근처 사람 알림",
+    "nearby_description": "근처에서 새로운 사용자가 감지되면 알림",
     "tips_title": "💡 팁:",
     "tip1": "• 시스템 알림은 탭이 열려 있는 경우에만 작동합니다.",
     "tip2": "• '방해 금지' 모드는 모든 알림을 비활성화합니다.",
     "tip3": "• 설정은 자동으로 저장됩니다.",
     "close": "닫기"
+  },
+  "notifications": {
+    "nearby": {
+      "title": "{{name}}님이 근처에 있습니다",
+      "body": "새로운 사람이 주변에 있습니다.",
+      "body_with_distance": "새로운 사람이 근처에 있습니다 ({{distance}}).",
+      "unknown_user": "누군가"
+    }
   },
   "peerList": {
     "title": "연결된 피어({{count}})",

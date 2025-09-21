@@ -263,11 +263,21 @@
     "authorize": "承認する",
     "dnd": "おやすみモード",
     "dnd_description": "すべての通知を一時的に無効にする",
+    "nearby": "近くの人の通知",
+    "nearby_description": "近くに新しいユーザーが検出されたときに通知する",
     "tips_title": "💡 ヒント:",
     "tip1": "• システム通知はタブが開いている場合にのみ機能します",
     "tip2": "• 「おやすみモード」はすべての通知を無効にします",
     "tip3": "• 設定は自動的に保存されます",
     "close": "閉じる"
+  },
+  "notifications": {
+    "nearby": {
+      "title": "{{name}}が近くにいます",
+      "body": "新しい人があなたの周りにいます。",
+      "body_with_distance": "新しい人が近くにいます（{{distance}}）。",
+      "unknown_user": "誰か"
+    }
   },
   "peerList": {
     "title": "接続中のピア ({{count}})",

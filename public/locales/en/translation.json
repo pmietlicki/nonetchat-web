@@ -273,11 +273,21 @@
     "authorize": "Authorize",
     "dnd": "Do Not Disturb mode",
     "dnd_description": "Temporarily disable all notifications",
+    "nearby": "Nearby peer alerts",
+    "nearby_description": "Notify me when a new user is detected nearby",
     "tips_title": "💡 Tips:",
     "tip1": "• System notifications only work if the tab is open",
     "tip2": "• 'Do Not Disturb' mode disables all notifications",
     "tip3": "• Settings are saved automatically",
     "close": "Close"
+  },
+  "notifications": {
+    "nearby": {
+      "title": "{{name}} is nearby",
+      "body": "A new person is available around you.",
+      "body_with_distance": "A new person is nearby ({{distance}}).",
+      "unknown_user": "Someone"
+    }
   },
   "peerList": {
     "title": "Connected peers ({{count}})",

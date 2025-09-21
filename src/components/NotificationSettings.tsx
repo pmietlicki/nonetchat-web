@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, BellOff, Volume2, VolumeX, Settings, X } from 'lucide-react';
+import { Bell, BellOff, Volume2, VolumeX, Settings, X, MapPin } from 'lucide-react';
 import NotificationService from '../services/NotificationService';
 import { t } from '../i18n';
 
@@ -125,6 +125,26 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOpen, onC
                   {t('notificationSettings.authorize')}
                 </button>
               )}
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <MapPin size={20} className="text-rose-500" />
+                <div>
+                  <div className="font-medium text-gray-900">{t('notificationSettings.nearby')}</div>
+                  <div className="text-sm text-gray-500">{t('notificationSettings.nearby_description')}</div>
+                </div>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settings.nearbyNotificationsEnabled && settings.globalEnabled}
+                  onChange={(e) => updateGlobalSetting('nearbyNotificationsEnabled', e.target.checked)}
+                  disabled={!settings.globalEnabled}
+                  className="sr-only peer"
+                />
+                <div className={`w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-rose-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500 ${!settings.globalEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
+              </label>
             </div>
 
             <div className="flex items-center justify-between">

@@ -263,11 +263,21 @@
     "authorize": "Autorisieren",
     "dnd": "Bitte nicht stören-Modus",
     "dnd_description": "Alle Benachrichtigungen vorübergehend deaktivieren",
+    "nearby": "Benachrichtigungen für Personen in der Nähe",
+    "nearby_description": "Benachrichtigen, wenn ein neuer Benutzer in der Nähe erkannt wird",
     "tips_title": "💡 Tipps:",
     "tip1": "• Systembenachrichtigungen funktionieren nur, wenn der Tab geöffnet ist",
     "tip2": "• Der Modus \"Bitte nicht stören\" deaktiviert alle Benachrichtigungen",
     "tip3": "• Einstellungen werden automatisch gespeichert",
     "close": "Schließen"
+  },
+  "notifications": {
+    "nearby": {
+      "title": "{{name}} ist in der Nähe",
+      "body": "Eine neue Person ist in Ihrer Umgebung verfügbar.",
+      "body_with_distance": "Eine neue Person ist in der Nähe ({{distance}}).",
+      "unknown_user": "Jemand"
+    }
   },
   "peerList": {
     "title": "Verbundene Peers ({{count}})",
