@@ -34,6 +34,15 @@ const PUBLIC_TOTAL_CAP = 3000;
 // TTL 6h (optionnel). Mets undefined pour désactiver le TTL.
 const PUBLIC_TTL_MS = 6 * 60 * 60 * 1000;
 
+const toFiniteNumber = (value: unknown): number | undefined => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+  return undefined;
+};
+
 const GeolocationError = ({ message, onDismiss, onRetry }:{ message:string; onDismiss:()=>void; onRetry:()=>void }) => (
   <div className="fixed top-16 left-1/2 -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 max-w-[90vw]">
     <span className="block sm:inline">{message}</span>
@@ -480,12 +489,20 @@ const avatar = payload.avatar
     // Si la conversation est ouverte, ChatWindow gère
     if (selectedPeerId === peerId) return;
 
-    const meta = data.payload || {};
+    const rawMeta = data.payload || {};
+    const encryptedSize = toFiniteNumber(rawMeta?.encryptedSize);
+    const originalSize = toFiniteNumber(rawMeta?.size);
+    const meta = {
+      ...rawMeta,
+      ...(encryptedSize !== undefined ? { encryptedSize } : {}),
+      ...(originalSize !== undefined ? { size: originalSize } : {}),
+    };
+
     globalFileReceivers.current.set(data.messageId!, {
       peerId,
       chunks: [],
       metadata: meta,
-      expectedSize: meta.encryptedSize || meta.size,
+      expectedSize: encryptedSize ?? originalSize,
       startTime: Date.now(),
     });
 
@@ -528,17 +545,33 @@ const avatar = payload.avatar
 
     try {
       const total = rec.chunks.reduce((s, c) => s + c.byteLength, 0);
-      const exp = rec.expectedSize || 0;
-      const diff = Math.abs(total - exp);
-      const tol = Math.max(1024, (exp * 0.1) / 100); // tolérance 0,1% ou 1KB
+      const encryptedSizeMeta = toFiniteNumber(rec.metadata?.encryptedSize);
 
-      if (exp && diff > tol) {
-        throw new Error(`Taille incorrecte: reçu ${total}, attendu ${exp}`);
+      if (encryptedSizeMeta !== undefined) {
+        const diff = Math.abs(total - encryptedSizeMeta);
+        const tolerance = Math.max(1024, encryptedSizeMeta * 0.001);
+        if (diff > tolerance) {
+          throw new Error(`Taille incorrecte: reçu ${total}, attendu ${encryptedSizeMeta}`);
+        }
+      } else {
+        console.warn('[App] encryptedSize missing in metadata, skipping strict size check.', {
+          messageId: data.messageId,
+          total,
+        });
       }
 
       const encryptedFile = new Blob(rec.chunks);
       const crypto = CryptoService.getInstance();
       const decrypted = await crypto.decryptFile(encryptedFile);
+
+      const declaredOriginalSize = toFiniteNumber(rec.metadata?.size);
+      if (declaredOriginalSize !== undefined && decrypted.size !== declaredOriginalSize) {
+        console.warn('[App] Decrypted file size differs from declared size.', {
+          messageId: data.messageId,
+          expected: declaredOriginalSize,
+          actual: decrypted.size,
+        });
+      }
 
       await dbService.saveFileBlob(data.messageId!, decrypted);
       await dbService.updateMessageFileData(data.messageId!, {

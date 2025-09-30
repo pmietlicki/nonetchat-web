@@ -36,6 +36,15 @@ interface Message {
   reactions?: { [emoji: string]: string[] };
 }
 
+const toFiniteNumber = (value: unknown): number | undefined => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+  return undefined;
+};
+
 const reactionEmojis = ['👍', '❤️', '😂', '😮', '😢', '😡'];
 const commonEmojis = ['😀', '😂', '😍', '🥰', '😊', '😎', '🤔', '😢', '😡', '👍', '👎', '❤️', '🔥', '💯', '🎉', '👏', '🙏', '💪', '🤝', '✨'];
 
@@ -148,10 +157,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
     if (peerId !== selectedPeer.id) return;
 
     if (data.type === 'file-start') {
+      const encryptedSize = toFiniteNumber(data.payload?.encryptedSize);
+      const originalSize = toFiniteNumber(data.payload?.size);
+      const metadata = {
+        ...data.payload,
+        ...(encryptedSize !== undefined ? { encryptedSize } : {}),
+        ...(originalSize !== undefined ? { size: originalSize } : {}),
+      };
+
       fileReceivers.current.set(data.messageId, {
         chunks: [],
-        metadata: data.payload,
-        expectedSize: data.payload.encryptedSize || data.payload.size,
+        metadata,
+        expectedSize: encryptedSize ?? originalSize,
         startTime: Date.now(),
       });
 
@@ -161,12 +178,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
         id: data.messageId,
         senderId: peerId,
         receiverId: myId,
-        content: `${data.payload.name} ${t('chat.receiving_in_progress')}`,
+        content: `${metadata.name} ${t('chat.receiving_in_progress')}`,
         timestamp: Date.now(),
         type: 'file',
         encrypted: true,
         status: 'delivered',
-        fileData: { ...data.payload, url: '' },
+        fileData: { ...metadata, url: '' },
       });
     } else if (data.type === 'file-chunk') {
       // chunks via event dédié
@@ -175,20 +192,34 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedPeer, myId, onBack }) =
       if (receiver) {
         try {
           const totalSize = receiver.chunks.reduce((sum, chunk) => sum + chunk.byteLength, 0);
-          const expectedEncryptedSize = receiver.metadata.encryptedSize || receiver.expectedSize;
-          if (expectedEncryptedSize && totalSize !== expectedEncryptedSize) {
-            const sizeDifference = Math.abs(totalSize - expectedEncryptedSize);
-            const tolerancePercent = 0.1; // 0,1%
-            const tolerance = Math.max(1024, (expectedEncryptedSize * tolerancePercent) / 100);
+          const encryptedSizeMeta = toFiniteNumber(receiver.metadata?.encryptedSize);
+
+          if (encryptedSizeMeta !== undefined) {
+            const sizeDifference = Math.abs(totalSize - encryptedSizeMeta);
+            const tolerance = Math.max(1024, encryptedSizeMeta * 0.001);
             if (sizeDifference > tolerance) {
-              throw new Error(t('chat.file_size_error', { totalSize, expectedSize: expectedEncryptedSize, sizeDifference }));
+              throw new Error(t('chat.file_size_error', { totalSize, expectedSize: encryptedSizeMeta, sizeDifference }));
             }
+          } else {
+            console.warn('[ChatWindow] encryptedSize missing in metadata, skipping strict size check.', {
+              messageId: data.messageId,
+              totalSize,
+            });
           }
 
           const encryptedFile = new Blob(receiver.chunks);
           const cryptoService = CryptoService.getInstance();
           const decryptedFile = await cryptoService.decryptFile(encryptedFile);
           if (decryptedFile.size === 0) throw new Error(t('chat.decryption_empty_error'));
+
+          const declaredOriginalSize = toFiniteNumber(receiver.metadata?.size);
+          if (declaredOriginalSize !== undefined && decryptedFile.size !== declaredOriginalSize) {
+            console.warn('[ChatWindow] Decrypted file size differs from declared size.', {
+              messageId: data.messageId,
+              expected: declaredOriginalSize,
+              actual: decryptedFile.size,
+            });
+          }
 
           await dbService.saveFileBlob(data.messageId, decryptedFile);
 
