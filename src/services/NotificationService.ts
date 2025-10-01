@@ -29,15 +29,14 @@ class NotificationService {
   private isTabVisible: boolean = true;
   private audioContext: AudioContext | null = null;
   private notificationSound: AudioBuffer | null = null;
+  private audioInitPromise: Promise<void> | null = null;
   private listeners: Map<string, Function[]> = new Map();
   private nearbyNotifiedAt: Map<string, number> = new Map();
   private readonly nearbyCooldownMs = 15 * 60 * 1000; // 15 minutes
 
   private constructor() {
     this.settings = this.loadSettings();
-    this.initializeAudio();
     this.setupVisibilityDetection();
-    this.requestNotificationPermission();
   }
 
   static getInstance(): NotificationService {
@@ -76,9 +75,25 @@ class NotificationService {
   }
 
   private async initializeAudio(): Promise<void> {
+    if (this.audioContext) {
+      if (this.audioContext.state === 'suspended') {
+        try {
+          await this.audioContext.resume();
+        } catch (error) {
+          console.warn('Audio context resume failed:', error);
+        }
+      }
+      return;
+    }
+
+    const AudioCtx = (window.AudioContext || (window as any).webkitAudioContext);
+    if (!AudioCtx) {
+      console.warn('AudioContext API not supported in this environment.');
+      return;
+    }
+
     try {
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      // Créer un son de notification simple
+      this.audioContext = new AudioCtx();
       const buffer = this.audioContext.createBuffer(1, 44100 * 0.1, 44100);
       const data = buffer.getChannelData(0);
       for (let i = 0; i < data.length; i++) {
@@ -88,6 +103,20 @@ class NotificationService {
     } catch (error) {
       console.warn('Audio context initialization failed:', error);
     }
+  }
+
+  async prepareSound(): Promise<void> {
+    if (this.audioContext && this.notificationSound) {
+      return;
+    }
+
+    if (!this.audioInitPromise) {
+      this.audioInitPromise = this.initializeAudio().finally(() => {
+        this.audioInitPromise = null;
+      });
+    }
+
+    await this.audioInitPromise;
   }
 
   private setupVisibilityDetection(): void {
@@ -107,10 +136,21 @@ class NotificationService {
     });
   }
 
-  private async requestNotificationPermission(): Promise<void> {
-    if ('Notification' in window && Notification.permission === 'default') {
-      await Notification.requestPermission();
+  async requestSystemPermission(): Promise<NotificationPermission | undefined> {
+    if (!('Notification' in window)) {
+      return undefined;
     }
+
+    if (Notification.permission === 'default') {
+      try {
+        return await Notification.requestPermission();
+      } catch (error) {
+        console.warn('Notification permission request failed:', error);
+        return undefined;
+      }
+    }
+
+    return Notification.permission;
   }
 
   addMessage(conversationId: string, message: UnreadMessage): void {

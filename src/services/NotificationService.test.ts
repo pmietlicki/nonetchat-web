@@ -168,14 +168,16 @@ describe('NotificationService', () => {
     expect(mockNotification).not.toHaveBeenCalled();
   });
 
-  it('should play a sound if enabled', () => {
+  it('should play a sound if enabled', async () => {
     notificationService.updateSettings({ soundEnabled: true });
+    await notificationService.prepareSound();
     notificationService.addMessage(conversationId, message);
     expect(mockStart).toHaveBeenCalled();
   });
 
-  it('should NOT play a sound if disabled', () => {
+  it('should NOT play a sound if disabled', async () => {
     notificationService.updateSettings({ soundEnabled: false });
+    await notificationService.prepareSound();
     notificationService.addMessage(conversationId, message);
     expect(mockStart).not.toHaveBeenCalled();
   });

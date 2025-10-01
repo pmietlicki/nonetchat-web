@@ -14,22 +14,31 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOpen, onC
 
   useEffect(() => {
     if (isOpen) {
-      setSettings(notificationService.getSettings());
+      const latestSettings = notificationService.getSettings();
+      setSettings(latestSettings);
+      if (latestSettings.soundEnabled) {
+        void notificationService.prepareSound();
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, notificationService]);
 
   const updateGlobalSetting = (key: keyof typeof settings, value: boolean) => {
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
     notificationService.updateSettings(newSettings);
+
+    if (
+      (key === 'soundEnabled' && value) ||
+      (key === 'globalEnabled' && value && newSettings.soundEnabled)
+    ) {
+      void notificationService.prepareSound();
+    }
   };
 
   const requestNotificationPermission = async () => {
-    if ('Notification' in window) {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        updateGlobalSetting('systemNotificationsEnabled', true);
-      }
+    const permission = await notificationService.requestSystemPermission();
+    if (permission === 'granted') {
+      updateGlobalSetting('systemNotificationsEnabled', true);
     }
   };
 
