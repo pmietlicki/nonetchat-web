@@ -92,6 +92,7 @@ describe('PeerService', () => {
   let mockServer: Server;
   let peerService: PeerService;
   const profile = { id: 'user-A', name: 'User A' };
+  const SESSION_TOKEN = 'test-session-token';
 
   beforeEach(() => {
     // Démarrer un faux serveur WebSocket avant chaque test
@@ -121,7 +122,7 @@ describe('PeerService', () => {
     });
 
     // Initialiser le service, ce qui déclenchera la connexion et l\'envoi du message
-    peerService.initialize(profile, FAKE_URL);
+    peerService.initialize(profile, FAKE_URL, SESSION_TOKEN);
 
     // Attendre que la promesse du message soit résolue
     await messagePromise;
@@ -129,11 +130,12 @@ describe('PeerService', () => {
     expect(receivedMessage).not.toBeNull();
     expect(receivedMessage.type).toBe('register');
     expect(receivedMessage.payload.id).toBe('user-A');
+    expect(receivedMessage.payload.sessionToken).toBe(SESSION_TOKEN);
   });
 
   it('devrait créer une connexion pair-à-pair lors de la découverte de nouveaux pairs', async () => {
     const connectionPromise = new Promise(resolve => mockServer.on('connection', resolve));
-    await peerService.initialize(profile, FAKE_URL);
+    await peerService.initialize(profile, FAKE_URL, SESSION_TOKEN);
     await connectionPromise;
 
     // Simuler le message 'nearby-peers' envoyé par le serveur
@@ -158,7 +160,7 @@ describe('PeerService', () => {
   });
 
   it('devrait créer et envoyer une offre en tant qu\'initiateur', async () => {
-    await peerService.initialize(profile, FAKE_URL);
+    await peerService.initialize(profile, FAKE_URL, SESSION_TOKEN);
     const sendToServerSpy = vi.spyOn(peerService as any, 'sendToServer');
     
     await (peerService as any).createPeerConnection('peer-B');
@@ -173,7 +175,7 @@ describe('PeerService', () => {
   });
 
   it('devrait recevoir une offre et envoyer une réponse', async () => {
-    await peerService.initialize(profile, FAKE_URL);
+    await peerService.initialize(profile, FAKE_URL, SESSION_TOKEN);
     const sendToServerSpy = vi.spyOn(peerService as any, 'sendToServer');
     const incomingOffer = { type: 'offer', sdp: 'some-offer-sdp' };
 

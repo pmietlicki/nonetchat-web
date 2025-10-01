@@ -23,6 +23,7 @@ import LanguageSelector from './components/LanguageSelector';
 import ConsentBanner from './components/ConsentBanner';
 import LegalDocuments from './components/LegalDocuments';
 import PrivacySettings from './components/PrivacySettings';
+import AuthService from './services/AuthService';
 
 const DEFAULT_SIGNALING_URL = 'wss://chat.nonetchat.com';
 // Clé publique VAPID (base64url)
@@ -88,6 +89,7 @@ function App() {
       return false;
     }
   });
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
 
   const capPublicMessages = (messages: any[]): any[] => {
     const now = Date.now();
@@ -161,6 +163,7 @@ function App() {
   const profileService = ProfileService.getInstance();
   const dbService = IndexedDBService.getInstance();
   const notificationService = NotificationService.getInstance();
+  const authService = AuthService.getInstance();
 
   // --- Géolocalisation ---
   const [hasGeoInit, setHasGeoInit] = useState(false);
@@ -285,7 +288,11 @@ useEffect(() => {
       setMyId(normalized.id!);
       if (!normalized.name) setIsProfileOpen(true);
 
-      await peerService.initialize(normalized, signalingUrl);
+      const apiUrl = toApiUrl(signalingUrl);
+      const session = await authService.ensureSession(apiUrl, normalized.id!);
+      setSessionToken(session);
+
+      await peerService.initialize(normalized, signalingUrl, session);
       peerService.setSearchRadius(searchRadius);
       setIsInitialized(true);
     };
@@ -734,10 +741,15 @@ useEffect(() => {
         }
 
         const apiUrl = toApiUrl(signalingUrl);
+        const token = await authService.ensureSession(apiUrl, userId);
+        setSessionToken(token);
         const res = await fetch(`${apiUrl}/api/save-subscription`, {
           method: 'POST',
           body: JSON.stringify({ userId, subscription }),
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
         });
         if (!res.ok) {
           throw new Error(`Push save failed: HTTP ${res.status}`);
@@ -751,7 +763,7 @@ useEffect(() => {
     if (myId) {
       registerServiceWorkerAndPush(myId);
     }
-  }, [myId, signalingUrl]);
+  }, [myId, signalingUrl, authService, sessionToken]);
 
   // ✅ Messages SW (FOCUS_CONVERSATION, RESUBSCRIBE_PUSH)
   useEffect(() => {
@@ -776,9 +788,14 @@ useEffect(() => {
             sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
           }
           const apiUrl = toApiUrl(signalingUrl);
+          const token = await authService.ensureSession(apiUrl, myId);
+          setSessionToken(token);
           const res = await fetch(`${apiUrl}/api/save-subscription`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
             body: JSON.stringify({ userId: myId, subscription: sub }),
           });
           if (!res.ok) {
@@ -793,7 +810,7 @@ useEffect(() => {
 
     navigator.serviceWorker.addEventListener('message', handler);
     return () => navigator.serviceWorker.removeEventListener('message', handler);
-  }, [myId, signalingUrl]);
+  }, [myId, signalingUrl, authService]);
 
   // --- Wake Lock
   useEffect(() => {
@@ -1318,7 +1335,11 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
             <ConnectionStatus
               isConnected={isConnected}
               onReconnect={async () => {
-                await peerService.initialize(userProfile, signalingUrl);
+                if (!userProfile.id) return;
+                const apiUrl = toApiUrl(signalingUrl);
+                const token = await authService.ensureSession(apiUrl, userProfile.id);
+                setSessionToken(token);
+                await peerService.initialize(userProfile, signalingUrl, token);
                 peerService.setSearchRadius(searchRadius);
               }}
             />

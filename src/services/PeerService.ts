@@ -92,6 +92,7 @@ class PeerService extends EventEmitter {
   private turnAuth: { username: string; credential: string } | null = null;
 
   private searchRadius: number | 'country' | 'city' | 'world' = 'world'; // Default world radius
+  private sessionToken: string | null = null;
 
   private getIceConfig(): RTCConfiguration {
     const u = this.turnAuth?.username;
@@ -301,13 +302,14 @@ class PeerService extends EventEmitter {
     this.turnRefreshTimer = window.setTimeout(() => this.fetchTurnAuth(this.myId), delay);
   }
 
-  public async initialize(profile: Partial<User>, signalingUrl: string) {
+  public async initialize(profile: Partial<User>, signalingUrl: string, sessionToken: string) {
     this.diagnosticService.log('Initializing PeerService with Stable ID');
     if (this.ws) this.destroy();
 
     this.myId = profile.id!;
     this.myProfile = profile;
     this.signalingUrl = signalingUrl;
+    this.sessionToken = sessionToken;
 
     // Prépare le profil public léger (métadonnées uniquement)
     this.myPublicProfile = await this.profileService.getPublicProfile();
@@ -337,7 +339,7 @@ class PeerService extends EventEmitter {
 
   this.sendToServer({
     type: 'register',
-    payload: { id: this.myId, profile: { name, avatarVersion } }
+    payload: { id: this.myId, sessionToken: this.sessionToken, profile: { name, avatarVersion } }
   });
 
   this.emit('open', this.myId);

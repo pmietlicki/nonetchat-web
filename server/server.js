@@ -41,6 +41,10 @@ function normalizeIp(ip) {
   return ip.startsWith('::ffff:') ? ip.slice(7) : ip;
 }
 
+function toBase64Url(buffer) {
+  return buffer.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+
 // -------------------------------------------------------------
 // GeoIP async init (non bloquant)
 // -------------------------------------------------------------
@@ -63,6 +67,8 @@ let geoipReader = null;
 // -------------------------------------------------------------
 let redis = null;
 const REDIS_PUSH_PREFIX = 'push:subs:'; // HSET {key} {endpoint} {subscriptionJson}
+const REDIS_AUTH_DEVICE_KEY = 'auth:devices';
+const REDIS_SESSION_PREFIX = 'auth:session:';
 if (process.env.REDIS_URL) {
   try {
     redis = new Redis(process.env.REDIS_URL, {
@@ -93,6 +99,82 @@ if (PUSH_ENABLED) {
 
 // En prod : Redis ; fallback mémoire sinon
 const pushSubscriptions = new Map(); // Map<userId, Map<endpoint, subscription>>
+
+// -------------------------------------------------------------
+// Device authentication & session management (Memory fallback)
+// -------------------------------------------------------------
+
+const deviceAuthMemory = new Map(); // deviceId -> hashed auth key
+const sessionMemory = new Map(); // sessionToken -> { deviceId, expiresAt }
+const SESSION_TTL_SECONDS = parseInt(process.env.AUTH_SESSION_TTL || '86400', 10);
+
+function hashAuthKey(authKey) {
+  return crypto.createHash('sha256').update(authKey).digest('hex');
+}
+
+function safeEquals(a, b) {
+  if (!a || !b) return false;
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+async function getStoredAuthHash(deviceId) {
+  if (redis) {
+    return await redis.hget(REDIS_AUTH_DEVICE_KEY, deviceId);
+  }
+  return deviceAuthMemory.get(deviceId) || null;
+}
+
+async function storeAuthHash(deviceId, hashedAuthKey) {
+  if (redis) {
+    await redis.hset(REDIS_AUTH_DEVICE_KEY, deviceId, hashedAuthKey);
+  } else {
+    deviceAuthMemory.set(deviceId, hashedAuthKey);
+  }
+}
+
+async function createSession(deviceId) {
+  const token = toBase64Url(crypto.randomBytes(32));
+  const expiresAt = Date.now() + SESSION_TTL_SECONDS * 1000;
+
+  if (redis) {
+    await redis.set(`${REDIS_SESSION_PREFIX}${token}`, deviceId, 'EX', SESSION_TTL_SECONDS);
+  } else {
+    sessionMemory.set(token, { deviceId, expiresAt });
+  }
+
+  return { token, expiresAt };
+}
+
+async function getSessionInfo(token) {
+  if (!token) return null;
+  if (redis) {
+    const deviceId = await redis.get(`${REDIS_SESSION_PREFIX}${token}`);
+    if (!deviceId) return null;
+    return { deviceId };
+  }
+  const record = sessionMemory.get(token);
+  if (!record) return null;
+  if (record.expiresAt && record.expiresAt <= Date.now()) {
+    sessionMemory.delete(token);
+    return null;
+  }
+  return record;
+}
+
+async function refreshSession(token) {
+  if (!token) return;
+  if (redis) {
+    await redis.expire(`${REDIS_SESSION_PREFIX}${token}`, SESSION_TTL_SECONDS);
+  } else {
+    const record = sessionMemory.get(token);
+    if (record) {
+      record.expiresAt = Date.now() + SESSION_TTL_SECONDS * 1000;
+    }
+  }
+}
 
 async function addSubscription(userId, subscription) {
   const ep = subscription?.endpoint;
@@ -288,6 +370,38 @@ app.get('/api/status', (req, res) => {
   res.json(status);
 });
 
+app.post('/api/auth/session', async (req, res) => {
+  const { deviceId, authKey } = req.body || {};
+
+  if (typeof deviceId !== 'string' || deviceId.trim().length < 6) {
+    return res.status(400).json({ error: 'Invalid deviceId' });
+  }
+  if (typeof authKey !== 'string' || authKey.length < 16) {
+    return res.status(400).json({ error: 'Invalid authKey' });
+  }
+
+  const normalizedId = deviceId.trim();
+  const providedHash = hashAuthKey(authKey);
+
+  try {
+    const storedHash = await getStoredAuthHash(normalizedId);
+    if (storedHash) {
+      if (!safeEquals(storedHash, providedHash)) {
+        console.warn(`[Auth] Invalid authKey for device ${normalizedId}`);
+        return res.status(401).json({ error: 'Authentication failed' });
+      }
+    } else {
+      await storeAuthHash(normalizedId, providedHash);
+    }
+
+    const { token, expiresAt } = await createSession(normalizedId);
+    return res.json({ sessionToken: token, expiresAt });
+  } catch (error) {
+    console.error('[Auth] Session issuance failed:', error?.message || error);
+    return res.status(500).json({ error: 'Unable to issue session' });
+  }
+});
+
 app.get('/api/geoip', async (req, res) => {
   if (!geoipReader) return res.status(503).json({ error: 'GeoIP disabled' });
 
@@ -327,11 +441,32 @@ app.get('/api/geoip', async (req, res) => {
 
 // Endpoint pour sauvegarder un abonnement push (multi-device)
 app.post('/api/save-subscription', async (req, res) => {
-  const { userId, subscription } = req.body;
-  if (!userId || !subscription) {
-    return res.status(400).json({ error: 'Missing userId or subscription' });
+  const authHeader = req.get('authorization') || '';
+  const token = authHeader.startsWith('Bearer ')
+    ? authHeader.slice(7).trim()
+    : null;
+
+  if (!token) {
+    return res.status(401).json({ error: 'Missing Authorization header' });
   }
+
+  const sessionInfo = await getSessionInfo(token);
+  if (!sessionInfo?.deviceId) {
+    return res.status(401).json({ error: 'Invalid session' });
+  }
+
+  const { userId: bodyUserId, subscription } = req.body || {};
+  if (!subscription) {
+    return res.status(400).json({ error: 'Missing subscription payload' });
+  }
+
+  const userId = sessionInfo.deviceId;
+  if (bodyUserId && bodyUserId !== userId) {
+    console.warn('[Push] Ignoring mismatched userId in body for session', { bodyUserId, userId });
+  }
+
   await addSubscription(userId, subscription);
+  await refreshSession(token);
   let total = 0;
   if (redis) {
     try {
@@ -898,7 +1033,27 @@ wss.on('connection', (ws, req) => {
       const { type, payload } = parsedMessage;
 
       if (type === 'register') {
-        clientId = payload.id;
+        const claimedId = payload?.id;
+        const sessionToken = typeof payload?.sessionToken === 'string' ? payload.sessionToken.trim() : '';
+
+        if (!sessionToken) {
+          try { ws.close(4403, 'Session token required'); } catch {}
+          return;
+        }
+
+        const sessionInfo = await getSessionInfo(sessionToken);
+        if (!sessionInfo?.deviceId) {
+          try { ws.close(4403, 'Invalid session token'); } catch {}
+          return;
+        }
+
+        if (claimedId && claimedId !== sessionInfo.deviceId) {
+          console.warn('[WS] Session token mismatch with claimed id', { claimedId, sessionDeviceId: sessionInfo.deviceId });
+          try { ws.close(4403, 'Session mismatch'); } catch {}
+          return;
+        }
+
+        clientId = sessionInfo.deviceId;
         const ip = normalizeIp(
           headerToStr(req.headers['cf-connecting-ip']) ||
           headerToStr(req.headers['x-real-ip']) ||
@@ -940,9 +1095,17 @@ wss.on('connection', (ws, req) => {
             name: payload?.profile?.name || payload?.profile?.displayName || 'Utilisateur',
             avatarVersion,
             avatar: payload?.profile?.avatar || pravatarUrl(clientId, avatarVersion, 192)
-          }
+          },
+          sessionToken,
         };
+
+        const previous = clients.get(clientId);
+        if (previous && previous.ws !== ws) {
+          try { previous.ws.close(4001, 'Session superseded'); } catch {}
+        }
+
         clients.set(clientId, clientData);
+        await refreshSession(sessionToken);
 
         console.log(`[WS] Client ${clientId} registered from IP ${ip} (${cityName || 'N/A'}, ${countryName || 'N/A'} - ${countryCode || 'N/A'}). Total: ${clients.size}`);
         rebuildGeoTree();
@@ -982,6 +1145,9 @@ wss.on('connection', (ws, req) => {
           clientData.discoveryMode = 'geo'; // reste 'geo' pour la logique du quadtree si le rayon redevient numérique
           rebuildGeoTree();
           broadcastPeerUpdates();
+          if (clientData.sessionToken) {
+            await refreshSession(clientData.sessionToken);
+          }
           break;
         }
 
@@ -989,10 +1155,16 @@ wss.on('connection', (ws, req) => {
           clientData.discoveryMode = 'lan';
           rebuildGeoTree();
           broadcastPeerUpdates();
+          if (clientData.sessionToken) {
+            await refreshSession(clientData.sessionToken);
+          }
           break;
 
         case 'heartbeat':
           clientData.isAlive = true;
+          if (clientData.sessionToken) {
+            await refreshSession(clientData.sessionToken);
+          }
           break;
 
         // ---- Messages applicatifs (optionnel, utile si store-and-forward) ----
