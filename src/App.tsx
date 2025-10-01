@@ -81,6 +81,38 @@ function App() {
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [locationInfo, setLocationInfo] = useState<{ city: string; country: string } | null>(null);
+  const [hasGeoConsent, setHasGeoConsent] = useState(() => {
+    try {
+      return localStorage.getItem('geolocation-consent') === 'accepted';
+    } catch {
+      return false;
+    }
+  });
+
+  const capPublicMessages = (messages: any[]): any[] => {
+    const now = Date.now();
+    const perRoomCounts = new Map<string, number>();
+    const trimmed: any[] = [];
+
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msg = messages[i];
+      const roomKey = msg?.roomId ?? '__unknown__';
+      if (PUBLIC_TTL_MS && typeof msg?.ts === 'number' && now - msg.ts > PUBLIC_TTL_MS) {
+        continue;
+      }
+      const roomCount = perRoomCounts.get(roomKey) ?? 0;
+      if (roomCount >= PUBLIC_PER_ROOM_CAP) {
+        continue;
+      }
+      perRoomCounts.set(roomKey, roomCount + 1);
+      trimmed.push(msg);
+      if (trimmed.length >= PUBLIC_TOTAL_CAP) {
+        break;
+      }
+    }
+
+    return trimmed.reverse();
+  };
 
   const globalFileReceivers = useRef(
     new Map<string, { peerId: string; chunks: ArrayBuffer[]; metadata: any; expectedSize?: number; startTime: number }>()
@@ -157,6 +189,9 @@ function App() {
 
   // Étape 2: Tente d'obtenir une position GPS plus précise et l'envoie au serveur.
   async function requestPreciseLocationAndUpdateServer() {
+    if (!hasGeoConsent) {
+      return;
+    }
     // D'abord, on peuple l'UI avec les noms de lieux (ville/pays)
     const ipLocation = await fetchLocationData();
   
@@ -250,12 +285,14 @@ useEffect(() => {
       setMyId(normalized.id!);
       if (!normalized.name) setIsProfileOpen(true);
 
-      peerService.initialize(normalized, signalingUrl);
+      await peerService.initialize(normalized, signalingUrl);
       peerService.setSearchRadius(searchRadius);
       setIsInitialized(true);
     };
 
-    initialize();
+    initialize().catch((error) => {
+      console.error('Failed to initialize application services:', error);
+    });
 
     const onBlockListUpdated = (list: string[]) => setBlockList(new Set(list));
     peerService.on('blocklist-updated', onBlockListUpdated);
@@ -317,7 +354,7 @@ useEffect(() => {
         // Précharger depuis IndexedDB (éphémère)
         try {
           const hist = await dbService.getRecentPublicMessages(payload.roomId, PUBLIC_PER_ROOM_CAP);
-          setPublicMessages(hist.map(h => ({
+          setPublicMessages(capPublicMessages(hist.map(h => ({
             type: 'public',
             id: h.msgId,
             roomId: h.roomId,
@@ -325,7 +362,7 @@ useEffect(() => {
             text: h.text,
             ts: h.ts,
             ttl: 0
-          })));
+          }))));
         } catch (error) {
           console.error('Erreur lors du chargement des messages publics depuis le cache:', error);
           setPublicMessages([]);
@@ -334,8 +371,19 @@ useEffect(() => {
     };
 
     const onPublicMessage = async (message: any) => {
-      setPublicMessages(prev => [...prev, message]);
-      
+      setPublicMessages(prev => {
+        const derivedId = message?.id ?? `${message?.roomId ?? 'unknown'}:${message?.ts ?? Date.now()}`;
+        const duplicate = prev.some(existing => {
+          const existingId = existing?.id ?? `${existing?.roomId ?? 'unknown'}:${existing?.ts ?? ''}`;
+          return existingId === derivedId;
+        });
+        if (duplicate) {
+          return prev;
+        }
+        const normalizedMessage = message?.id ? message : { ...message, id: derivedId };
+        return capPublicMessages([...prev, normalizedMessage]);
+      });
+
       // Incrémenter le compteur de messages non lus si l'onglet public n'est pas actif
       if (activeTab !== 'public') {
         setPublicUnreadCount(prev => prev + 1);
@@ -394,11 +442,11 @@ useEffect(() => {
   }, [signalingUrl, searchRadius]);
 
   useEffect(() => {
-  if (isConnected && !hasGeoInit) {
-    setHasGeoInit(true);
-    requestPreciseLocationAndUpdateServer();
-  }
-}, [isConnected, hasGeoInit, signalingUrl, searchRadius]);
+    if (isConnected && hasGeoConsent && !hasGeoInit) {
+      setHasGeoInit(true);
+      requestPreciseLocationAndUpdateServer();
+    }
+  }, [isConnected, hasGeoConsent, hasGeoInit, signalingUrl, searchRadius]);
 
 
   const createBaseUser = (peerId: string): User => ({
@@ -873,6 +921,23 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
     });
     setAvatarRefreshKey(prev => prev + 1);
     await peerService.broadcastProfileUpdate();
+  };
+
+  const persistGeolocationConsent = (status: 'accepted' | 'declined') => {
+    localStorage.setItem('geolocation-consent', status);
+    localStorage.setItem('geolocation-consent-date', new Date().toISOString());
+  };
+
+  const handleGeolocationConsentAccept = () => {
+    persistGeolocationConsent('accepted');
+    setHasGeoConsent(true);
+    setHasGeoInit(false);
+  };
+
+  const handleGeolocationConsentDecline = () => {
+    persistGeolocationConsent('declined');
+    setHasGeoConsent(false);
+    setHasGeoInit(false);
   };
 
   const handleSaveSettings = () => {
@@ -1576,14 +1641,8 @@ const handleSaveProfile = async (profileData: Partial<User>, avatarFile?: File) 
       />
 
       <ConsentBanner
-        onAccept={() => {
-          localStorage.setItem('geolocation-consent', 'accepted');
-          localStorage.setItem('geolocation-consent-date', new Date().toISOString());
-        }}
-        onDecline={() => {
-          localStorage.setItem('geolocation-consent', 'declined');
-          localStorage.setItem('geolocation-consent-date', new Date().toISOString());
-        }}
+        onAccept={handleGeolocationConsentAccept}
+        onDecline={handleGeolocationConsentDecline}
         onShowPrivacyPolicy={() => {
           setLegalDocumentsTab('privacy');
           setShowLegalDocuments(true);
