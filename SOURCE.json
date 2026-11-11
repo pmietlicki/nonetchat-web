@@ -1,0 +1,58 @@
+{
+  "files": {
+    "web/browser_locale.js": {
+      "sha256": "f083db3066438970331880c60e4b51f894ca2e2704dc16ec9fc210ad3528293c",
+      "sourceSha256": "f083db3066438970331880c60e4b51f894ca2e2704dc16ec9fc210ad3528293c",
+      "transform": "copy"
+    },
+    "web/favicon.png": {
+      "sha256": "23202c71e9756e2b0fb16499cd30ef4ec54609f6e6ce90f31d9c62fe09fbc749",
+      "sourceSha256": "23202c71e9756e2b0fb16499cd30ef4ec54609f6e6ce90f31d9c62fe09fbc749",
+      "transform": "copy"
+    },
+    "web/flutter_bootstrap.js": {
+      "sha256": "f8834f371811114317a18bb24c6c010a95a1fbe360bfa4ad6b633a494254cc09",
+      "sourceSha256": "f8834f371811114317a18bb24c6c010a95a1fbe360bfa4ad6b633a494254cc09",
+      "transform": "copy"
+    },
+    "web/icons/Icon-192.png": {
+      "sha256": "a3874c9708e4171ed01523ebdcc0b284b0b21665ea59064fd09d0265d688a44e",
+      "sourceSha256": "a3874c9708e4171ed01523ebdcc0b284b0b21665ea59064fd09d0265d688a44e",
+      "transform": "copy"
+    },
+    "web/icons/Icon-512.png": {
+      "sha256": "2640be410e4af4b2c61bab9a6699d15421da4a7ab9fc9c92be4102b252567242",
+      "sourceSha256": "2640be410e4af4b2c61bab9a6699d15421da4a7ab9fc9c92be4102b252567242",
+      "transform": "copy"
+    },
+    "web/icons/Icon-maskable-192.png": {
+      "sha256": "a3874c9708e4171ed01523ebdcc0b284b0b21665ea59064fd09d0265d688a44e",
+      "sourceSha256": "a3874c9708e4171ed01523ebdcc0b284b0b21665ea59064fd09d0265d688a44e",
+      "transform": "copy"
+    },
+    "web/icons/Icon-maskable-512.png": {
+      "sha256": "2640be410e4af4b2c61bab9a6699d15421da4a7ab9fc9c92be4102b252567242",
+      "sourceSha256": "2640be410e4af4b2c61bab9a6699d15421da4a7ab9fc9c92be4102b252567242",
+      "transform": "copy"
+    },
+    "web/image_pixel_worker.js": {
+      "sha256": "cf1da881c2c6ccc7e87ee135b1a7e7667245dcec826748100f422d85e9137e77",
+      "sourceSha256": "cf1da881c2c6ccc7e87ee135b1a7e7667245dcec826748100f422d85e9137e77",
+      "transform": "copy"
+    },
+    "web/index.html": {
+      "sha256": "d250e1d5c16940161c47e99a9cf0233489cc2d85cfbeb3e8b7e35bbec4d2e6ae",
+      "sourceSha256": "d250e1d5c16940161c47e99a9cf0233489cc2d85cfbeb3e8b7e35bbec4d2e6ae",
+      "transform": "copy"
+    },
+    "web/manifest.json": {
+      "sha256": "8fc729071771a9c614e938f1d5a85500c820bdc4aec0e9ae73b8e5d663ccdfc6",
+      "sourceSha256": "8fc729071771a9c614e938f1d5a85500c820bdc4aec0e9ae73b8e5d663ccdfc6",
+      "transform": "copy"
+    }
+  },
+  "platform": "web",
+  "schema": 1,
+  "sourceRevision": "7ac3e00c98bbdd4b877ad5abc1021928a03864b3",
+  "version": "0.3.0"
+}

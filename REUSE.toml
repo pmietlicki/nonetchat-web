@@ -1,0 +1,73 @@
+version = 1
+
+[[annotations]]
+path = ["web/browser_locale.js"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2025-2026 Pascal Mietlicki (COVOIT.NC)"]
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["web/favicon.png"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2025-2026 Pascal Mietlicki (COVOIT.NC)"]
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["web/flutter_bootstrap.js"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2025-2026 Pascal Mietlicki (COVOIT.NC)", "2014 The Flutter Authors"]
+SPDX-License-Identifier = "Apache-2.0 AND BSD-3-Clause"
+
+[[annotations]]
+path = ["web/icons/Icon-192.png"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2025-2026 Pascal Mietlicki (COVOIT.NC)"]
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["web/icons/Icon-512.png"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2025-2026 Pascal Mietlicki (COVOIT.NC)"]
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["web/icons/Icon-maskable-192.png"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2025-2026 Pascal Mietlicki (COVOIT.NC)"]
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["web/icons/Icon-maskable-512.png"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2025-2026 Pascal Mietlicki (COVOIT.NC)"]
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["web/image_pixel_worker.js"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2025-2026 Pascal Mietlicki (COVOIT.NC)"]
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["web/index.html"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2025-2026 Pascal Mietlicki (COVOIT.NC)", "2014 The Flutter Authors"]
+SPDX-License-Identifier = "Apache-2.0 AND BSD-3-Clause"
+
+[[annotations]]
+path = ["web/manifest.json"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2025-2026 Pascal Mietlicki (COVOIT.NC)", "2014 The Flutter Authors"]
+SPDX-License-Identifier = "Apache-2.0 AND BSD-3-Clause"
+
+[[annotations]]
+path = ["README.md", "SECURITY.md", "SOURCE.json"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2025-2026 Pascal Mietlicki (COVOIT.NC)"]
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["NOTICE"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2025-2026 Pascal Mietlicki (COVOIT.NC)"]
+SPDX-License-Identifier = "Apache-2.0"
