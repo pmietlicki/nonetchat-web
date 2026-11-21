@@ -41,8 +41,8 @@
       "transform": "copy"
     },
     "web/index.html": {
-      "sha256": "d250e1d5c16940161c47e99a9cf0233489cc2d85cfbeb3e8b7e35bbec4d2e6ae",
-      "sourceSha256": "d250e1d5c16940161c47e99a9cf0233489cc2d85cfbeb3e8b7e35bbec4d2e6ae",
+      "sha256": "88b2b19c6858e553d12f05473eca3f1f393a92d16d0f4de763579c8b62be1a22",
+      "sourceSha256": "88b2b19c6858e553d12f05473eca3f1f393a92d16d0f4de763579c8b62be1a22",
       "transform": "copy"
     },
     "web/manifest.json": {
@@ -53,6 +53,6 @@
   },
   "platform": "web",
   "schema": 1,
-  "sourceRevision": "7ac3e00c98bbdd4b877ad5abc1021928a03864b3",
-  "version": "0.3.0"
+  "sourceRevision": "e899f150262e5c093f2e84dd176071e9da14cb87",
+  "version": "0.4.0"
 }
